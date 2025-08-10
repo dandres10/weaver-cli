@@ -676,9 +676,9 @@ export class InjectionPlatformEntities${entityName}Mapper {
   );
   console.log(chalk.green(`✅ Mapper Injection: injection-platform-entities-${entityNameKebab}-mapper.ts`));
 
-  // 3. Repository Injection (añadir a archivo existente o crear nuevo)
-  // Este archivo normalmente sería compartido, pero por ahora creamos uno específico
-  console.log(chalk.green(`✅ Facade Injection manejado automáticamente`));
+  // 3. Repository Injection
+  await generateRepositoryInjection(entityName, paths.repositoryInjection, apiName);
+  console.log(chalk.green(`✅ Repository Injection: injection-platform-entities-repository.ts`));
 }
 
 // Helper functions
@@ -1002,5 +1002,74 @@ export class Injection${apiNameCapitalized}EntitiesFacade {
 
     await fs.writeFile(injectionFilePath, facadeInjectionContent);
     console.log(chalk.green(`✅ Facade Injection creado: ${injectionFileName}`));
+  }
+}
+
+/**
+ * Genera o actualiza el archivo de injection para repositories
+ */
+async function generateRepositoryInjection(entityName: string, repositoryInjectionPath: string, apiName: string = 'platform'): Promise<void> {
+  const injectionFileName = `injection-${apiName}-entities-repository.ts`;
+  const injectionFilePath = path.join(repositoryInjectionPath, injectionFileName);
+  
+  const entityNameCapitalized = entityName.charAt(0).toUpperCase() + entityName.slice(1);
+  const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
+
+  // Verificar si el archivo ya existe
+  const fileExists = await fs.pathExists(injectionFilePath);
+  
+  if (fileExists) {
+    // Leer archivo existente
+    const existingContent = await fs.readFile(injectionFilePath, 'utf8');
+    
+    // Verificar si la entidad ya está incluida
+    const repositoryMethodPattern = new RegExp(`\\s+public\\s+static\\s+${entityNameCapitalized}Repository\\(\\)`, 'g');
+    const importPattern = new RegExp(`import.*${entityNameCapitalized}Repository.*from.*entities/${entityName.toLowerCase()}`, 'g');
+    
+    if (!repositoryMethodPattern.test(existingContent) || !importPattern.test(existingContent)) {
+      // Agregar import si no existe
+      let updatedContent = existingContent;
+      
+      if (!importPattern.test(existingContent)) {
+        const importLine = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}";`;
+        
+        // Buscar la última línea de import
+        const importLines = existingContent.split('\n').filter(line => line.trim().startsWith('import'));
+        const lastImportIndex = existingContent.lastIndexOf(importLines[importLines.length - 1]) + importLines[importLines.length - 1].length;
+        
+        updatedContent = existingContent.slice(0, lastImportIndex) + '\n' + importLine + existingContent.slice(lastImportIndex);
+      }
+      
+      // Agregar método si no existe
+      if (!repositoryMethodPattern.test(updatedContent)) {
+        const methodLine = `  public static ${entityNameCapitalized}Repository() { return ${entityNameCapitalized}Repository.getInstance(); }`;
+        
+        // Buscar el final de la clase (antes del último })
+        const classEndIndex = updatedContent.lastIndexOf('}');
+        const beforeClassEnd = updatedContent.slice(0, classEndIndex);
+        const afterClassEnd = updatedContent.slice(classEndIndex);
+        
+        updatedContent = beforeClassEnd + methodLine + '\n' + afterClassEnd;
+      }
+      
+      await fs.writeFile(injectionFilePath, updatedContent);
+      console.log(chalk.green(`✅ Repository Injection actualizado: ${injectionFileName} (agregado ${entityNameCapitalized}Repository)`));
+    } else {
+      console.log(chalk.yellow(`⚠️  Repository Injection: ${entityNameCapitalized}Repository ya existe en ${injectionFileName}`));
+    }
+  } else {
+    // Crear archivo nuevo
+    const apiNameCapitalized = apiName.charAt(0).toUpperCase() + apiName.slice(1);
+    const repositoryInjectionContent = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}";
+
+export class Injection${apiNameCapitalized}EntitiesRepository {
+  public static ${entityNameCapitalized}Repository() { return ${entityNameCapitalized}Repository.getInstance(); }
+}
+
+
+`;
+
+    await fs.writeFile(injectionFilePath, repositoryInjectionContent);
+    console.log(chalk.green(`✅ Repository Injection creado: ${injectionFileName}`));
   }
 }

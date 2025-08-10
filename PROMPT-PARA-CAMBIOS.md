@@ -35,7 +35,8 @@ weaver-cli/
 5. **📁 Generación Flexible**: Desde cualquier directorio hacia cualquier API
 6. **🧪 Modo Local**: `wc --local` genera en `./test-output/`
 7. **🛡️ Validaciones**: Estructura proyecto, entidades existentes, confirmaciones
-8. **📊 Clean Architecture**: 42 archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
+8. **📊 Clean Architecture**: 42+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
+9. **🔧 Repository Injection**: Generación automática de injection-platform-entities-repository.ts
 
 ### 🗂️ ESTRUCTURA GENERADA
 
@@ -80,8 +81,12 @@ weaver-cli/
     └── injection/
         ├── domain/services/use_cases/apis/{api-name}/injection/entities/
         │   └── injection-{api-name}-entities-{entity}-use-case.ts
-        └── infrastructure/mappers/apis/{api-name}/injection/entities/
-            └── injection-{api-name}-entities-{entity}-mapper.ts
+        ├── infrastructure/mappers/apis/{api-name}/injection/entities/
+        │   └── injection-{api-name}-entities-{entity}-mapper.ts
+        ├── infrastructure/repositories/apis/{api-name}/repositories/injection/entities/
+        │   └── injection-{api-name}-entities-repository.ts
+        └── facade/apis/{api-name}/injection/entities/
+            └── injection-{api-name}-entities-facade.ts
 ```
 
 ### 🔧 TECNOLOGÍAS Y DEPENDENCIAS
@@ -118,7 +123,7 @@ npm run logout        # Build + logout
 5. **Target Selection**: Elegir dónde generar (mismo API, hermana, custom)
 6. **Entity Selection**: Mostrar entidades disponibles del Swagger
 7. **Validation**: Verificar estructura proyecto y entidades existentes
-8. **Generation**: Crear 42 archivos siguiendo patrón Clean Architecture
+8. **Generation**: Crear 43+ archivos siguiendo patrón Clean Architecture (incluye injection-repository)
 9. **Confirmation**: Mostrar resultado y ubicación de archivos
 
 ---
@@ -131,7 +136,7 @@ Necesito hacer cambios en Weaver CLI, el generador de código TypeScript que lee
 **CONTEXTO ACTUAL:**
 - Comando: `weaver` con autenticación "soyia"
 - Genera en: {directorio-actual}/{api-name}/domain/...
-- 43+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
+- 43+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections, Repository Injection)
 - Detección inteligente de APIs y directorios
 - Modo local con `--local` flag
 - Validaciones pre-generación completas
@@ -209,12 +214,48 @@ Modificar el template de los Use Cases para incluir logging automático
 CONTEXTO: Todos los Use Cases generados deben incluir logs de entrada y salida.
 ```
 
+### ✅ Corrección de Archivos Faltantes
+```
+CAMBIO SOLICITADO:
+Generar el archivo injection-platform-entities-repository.ts que no se estaba creando
+
+CONTEXTO: Los Use Cases importan InjectionPlatformEntitiesRepository pero el archivo 
+no se generaba, causando referencias rotas.
+
+SOLUCIÓN IMPLEMENTADA:
+- Función generateRepositoryInjection() que crea/actualiza el archivo automáticamente
+- Soporte para múltiples entidades en el mismo archivo
+- Patrón singleton consistente con el resto de la arquitectura
+```
+
+---
+
+## 📋 HISTORIAL DE CORRECCIONES
+
+### 🔧 **v1.0.5 - Archivo Repository Injection Faltante**
+**Fecha**: Diciembre 2024  
+**Problema**: El generador no creaba `injection-platform-entities-repository.ts`  
+**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
+**Cambios**:
+- ✅ Agregada función `generateRepositoryInjection()`
+- ✅ Lógica de creación/actualización automática
+- ✅ Soporte para múltiples entidades
+- ✅ Patrón consistente con facade injection
+
+**Resultado**: 
+```typescript
+export class InjectionPlatformEntitiesRepository {
+  public static MenuRepository() { return MenuRepository.getInstance(); }
+  public static UserRepository() { return UserRepository.getInstance(); }
+}
+```
+
 ---
 
 ## 🚀 INSTRUCCIONES DE USO
 
 1. **Copia el prompt** desde "PROMPT PARA MODIFICACIONES"
-2. **Reemplaza** `[DESCRIBIR AQUÍ EL CAMBIO QUE NECESITAS]` con tu solicitud específica
+2. **Reemplaza** `Corre el generador a ver que genera de forma local` con tu solicitud específica
 3. **Incluye contexto adicional** si es necesario
 4. **Envía el prompt** para obtener la implementación
 
