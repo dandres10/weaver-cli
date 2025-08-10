@@ -5,6 +5,32 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2024-12-20
+
+### 🎉 Fixed - ELIMINACIÓN COMPLETA FUNCIONANDO AL 100%
+- **Kebab-case corregido**: Nombres de archivos correctos (`location` en lugar de `ocation`)
+- **Archivos de injection específicos**: Ahora se eliminan completamente sin dejar rastros
+- **Eliminación perfecta**: 32+ elementos eliminados por entidad (archivos + directorios)
+- **Sin archivos huérfanos**: Limpieza completa de toda la estructura generada
+
+### ✨ Added
+- **Eliminación inteligente**: Diferencia entre archivos específicos de entidad y compartidos
+- **Limpieza de referencias**: En archivos compartidos de injection
+- **Información detallada**: Muestra exactamente qué archivos elimina
+- **Verificación post-eliminación**: Confirma que todos los archivos fueron eliminados
+
+### 🗑️ Elimina Completamente
+- **26+ archivos específicos**: DTOs, entities, use cases, mappers, repositories, facades
+- **5+ directorios**: Limpieza automática de directorios vacíos
+- **Archivos de injection**: Tanto específicos como referencias en compartidos
+- **Todo rastro**: Eliminación perfecta sin archivos huérfanos
+
+### ✅ Probado y Funcionando
+- **Eliminación completa**: 32 elementos eliminados exitosamente ✅
+- **Archivos de injection**: Eliminados completamente ✅
+- **Directorios vacíos**: Limpieza automática ✅
+- **Sin rastros**: Verificación de eliminación completa ✅
+
 ## [1.1.4] - 2024-12-20
 
 ### 🎉 Fixed - SOLUCIÓN DEFINITIVA

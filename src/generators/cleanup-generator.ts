@@ -29,11 +29,25 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
   const entities: DetectedEntity[] = [];
   
   try {
-    // Si estamos en una subcarpeta, necesitamos encontrar el directorio raíz correcto
-    const actualBasePath = await findProjectRoot(basePath);
+    const currentPath = path.resolve(basePath);
     
     // Detectar si estamos en modo test-output o proyecto real
-    const isTestOutput = actualBasePath.includes('test-output');
+    const isTestOutput = currentPath.includes('test-output');
+    
+    let actualBasePath: string;
+    
+    if (isTestOutput) {
+      // Para test-output, encontrar la raíz de test-output
+      actualBasePath = currentPath;
+      while (!actualBasePath.endsWith('test-output') && actualBasePath.includes('test-output')) {
+        actualBasePath = path.dirname(actualBasePath);
+      }
+    } else {
+      // Para proyecto real, buscar dinámicamente desde el directorio actual
+      actualBasePath = await findBestBasePath(currentPath);
+    }
+    
+
     
     if (isTestOutput) {
       // Modo test-output: buscar APIs como directorios principales
@@ -137,7 +151,63 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
 }
 
 /**
- * Encuentra el directorio raíz del proyecto desde cualquier subcarpeta
+ * Encuentra el mejor directorio base para buscar entidades dinámicamente
+ */
+async function findBestBasePath(currentPath: string): Promise<string> {
+  // Estrategia 1: Si estamos en una subcarpeta de estructura Weaver, encontrar la raíz de esa estructura
+  if (currentPath.includes('/domain/models/apis/') || currentPath.includes('\\domain\\models\\apis\\')) {
+    // Estamos en domain/models/apis, subir hasta antes de domain
+    const pathParts = currentPath.split(path.sep);
+    const domainIndex = pathParts.lastIndexOf('domain');
+    if (domainIndex > 0) {
+      const basePath = pathParts.slice(0, domainIndex).join(path.sep);
+      return basePath;
+    }
+  }
+  
+  if (currentPath.includes('/facade/apis/') || currentPath.includes('\\facade\\apis\\')) {
+    // Estamos en facade/apis, subir hasta antes de facade
+    const pathParts = currentPath.split(path.sep);
+    const facadeIndex = pathParts.lastIndexOf('facade');
+    if (facadeIndex > 0) {
+      const basePath = pathParts.slice(0, facadeIndex).join(path.sep);
+      return basePath;
+    }
+  }
+  
+  // Estrategia 2: Buscar hacia arriba hasta encontrar estructura de Weaver
+  let searchPath = currentPath;
+  let levelsUp = 0;
+  const maxLevels = 10;
+  
+  while (levelsUp < maxLevels && searchPath !== path.dirname(searchPath)) {
+    // Verificar si este directorio contiene estructura de Weaver
+    const hasWeaverStructure = await hasWeaverGeneratedContent(searchPath);
+    if (hasWeaverStructure) {
+      return searchPath;
+    }
+    
+    // Verificar subcarpetas comunes donde puede estar la estructura
+    const commonDirs = ['bus', 'platform', 'core', 'app', 'modules', 'src'];
+    for (const dir of commonDirs) {
+      const possiblePath = path.join(searchPath, dir);
+      if (await fs.pathExists(possiblePath)) {
+        const hasStructure = await hasWeaverGeneratedContent(possiblePath);
+        if (hasStructure) {
+          return possiblePath;
+        }
+      }
+    }
+    
+    searchPath = path.dirname(searchPath);
+    levelsUp++;
+  }
+  
+  return currentPath;
+}
+
+/**
+ * Encuentra el directorio raíz del proyecto desde cualquier subcarpeta (función legacy)
  */
 async function findProjectRoot(startPath: string): Promise<string> {
   let currentPath = path.resolve(startPath);
@@ -161,36 +231,56 @@ async function findProjectRoot(startPath: string): Promise<string> {
   let searchPath = currentPath;
   
   while (searchPath !== path.dirname(searchPath)) {
-    // Si ya estamos en una carpeta que contiene 'bus'
-    if (searchPath.endsWith('bus')) {
-      // Verificar si esta carpeta bus tiene contenido generado
-      const hasGeneratedContent = await hasWeaverGeneratedContent(searchPath);
-      if (hasGeneratedContent) {
-        return searchPath;
+    // Buscar cualquier directorio que pueda contener estructura de Weaver
+    const possibleWeaverDirs = ['bus', 'platform', 'core', 'app', 'modules'];
+    
+    for (const weaverDir of possibleWeaverDirs) {
+      if (searchPath.endsWith(weaverDir)) {
+        // Verificar si esta carpeta tiene contenido generado por Weaver
+        const hasGeneratedContent = await hasWeaverGeneratedContent(searchPath);
+        if (hasGeneratedContent) {
+          return searchPath;
+        }
       }
     }
     
     // Buscar indicadores de que es un directorio de proyecto frontend
     const packageJsonPath = path.join(searchPath, 'package.json');
     const srcPath = path.join(searchPath, 'src');
-    const busPath = path.join(searchPath, 'src', 'bus');
     
-    // Si encontramos package.json Y src/bus, es probablemente la raíz
-    if (await fs.pathExists(packageJsonPath) && await fs.pathExists(busPath)) {
-      return busPath;
+    if (await fs.pathExists(packageJsonPath) && await fs.pathExists(srcPath)) {
+      // Buscar cualquier subdirectorio en src/ que tenga estructura de Weaver
+      const srcContents = await fs.readdir(srcPath);
+      
+      for (const item of srcContents) {
+        const itemPath = path.join(srcPath, item);
+        const stat = await fs.stat(itemPath);
+        if (stat.isDirectory()) {
+          const hasGeneratedContent = await hasWeaverGeneratedContent(itemPath);
+          if (hasGeneratedContent) {
+            return itemPath;
+          }
+        }
+      }
     }
     
     searchPath = path.dirname(searchPath);
   }
   
-  // Si estamos en una subcarpeta de bus, subir hasta encontrar bus
-  if (currentPath.includes('bus')) {
-    let busPath = currentPath;
-    while (!busPath.endsWith('bus') && busPath.includes('bus') && busPath !== path.dirname(busPath)) {
-      busPath = path.dirname(busPath);
-    }
-    if (busPath.endsWith('bus')) {
-      return busPath;
+  // Si estamos en una subcarpeta de cualquier directorio de Weaver, subir hasta encontrarlo
+  const weaverDirs = ['bus', 'platform', 'core', 'app', 'modules'];
+  for (const weaverDir of weaverDirs) {
+    if (currentPath.includes(`/${weaverDir}/`) || currentPath.includes(`\\${weaverDir}\\`)) {
+      let targetPath = currentPath;
+      while (!targetPath.endsWith(weaverDir) && targetPath.includes(weaverDir) && targetPath !== path.dirname(targetPath)) {
+        targetPath = path.dirname(targetPath);
+      }
+      if (targetPath.endsWith(weaverDir)) {
+        const hasGeneratedContent = await hasWeaverGeneratedContent(targetPath);
+        if (hasGeneratedContent) {
+          return targetPath;
+        }
+      }
     }
   }
   
