@@ -3,6 +3,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { createCorrectEntityFlow } from './generators/correct-entity-flow-generator';
+import { detectGeneratedEntities, detectGeneratedAPIs, cleanupEntity, cleanupAPI, cleanupAll } from './generators/cleanup-generator';
 import { SwaggerAnalyzer } from './parsers/swagger-parser';
 import { ProjectValidator } from './validators/project-validator';
 import { AuthManager } from './auth/auth-manager';
@@ -18,6 +19,10 @@ const menuChoices: MenuChoice[] = [
   {
     name: '🏗️  Crear flujo entity',
     value: 'create-entity-flow'
+  },
+  {
+    name: '🧹 Limpiar/Eliminar código generado',
+    value: 'cleanup'
   },
   {
     name: '📊 Ver información de sesión',
@@ -50,6 +55,9 @@ async function showMainMenu(isLocalMode: boolean = false): Promise<void> {
   switch (action) {
     case 'create-entity-flow':
       await handleCreateEntityFlow(isLocalMode);
+      break;
+    case 'cleanup':
+      await handleCleanup(isLocalMode);
       break;
     case 'session-info':
       await AuthManager.showSessionInfo();
@@ -447,6 +455,302 @@ async function handleCreateEntityFlow(isLocalMode: boolean = false): Promise<voi
     console.error(chalk.red('\n❌ Error al generar el flujo:'), error);
     await showMainMenu(isLocalMode);
   }
+}
+
+/**
+ * Maneja el flujo de limpieza/eliminación de código generado
+ */
+async function handleCleanup(isLocalMode: boolean): Promise<void> {
+  console.log(chalk.blue.bold('\n🧹 LIMPIEZA DE CÓDIGO GENERADO'));
+  console.log(chalk.gray('Elimina entidades, APIs o todo el contenido generado\n'));
+
+  // Determinar la ruta base
+  const basePath = isLocalMode ? './test-output' : process.cwd();
+  
+  try {
+    // Detectar qué está disponible para limpiar
+    const entities = await detectGeneratedEntities(basePath);
+    const apis = await detectGeneratedAPIs(basePath);
+    
+    console.log(chalk.cyan('📊 Estado actual:'));
+    console.log(chalk.gray(`   APIs detectadas: ${apis.length}`));
+    console.log(chalk.gray(`   Entidades detectadas: ${entities.length}`));
+    console.log(chalk.gray(`   Directorio base: ${basePath}\n`));
+    
+    if (apis.length === 0 && entities.length === 0) {
+      console.log(chalk.yellow('⚠️  No se encontró código generado para limpiar'));
+      
+      const { continueAnyway } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'continueAnyway',
+          message: '¿Deseas limpiar el directorio completo de todas formas?',
+          default: false
+        }
+      ]);
+      
+      if (continueAnyway) {
+        await cleanupAll(basePath);
+      }
+      
+      await showMainMenu(isLocalMode);
+      return;
+    }
+
+    // Mostrar opciones de limpieza
+    const cleanupChoices = [];
+    
+    if (entities.length > 0) {
+      cleanupChoices.push({
+        name: `🗑️  Eliminar entidad específica (${entities.length} disponibles)`,
+        value: 'entity'
+      });
+    }
+    
+    if (apis.length > 0) {
+      cleanupChoices.push({
+        name: `🗂️  Eliminar API completa (${apis.length} disponibles)`,
+        value: 'api'
+      });
+    }
+    
+    cleanupChoices.push({
+      name: '🧨 Eliminar TODO el contenido generado',
+      value: 'all'
+    });
+    
+    cleanupChoices.push({
+      name: '🔙 Volver al menú principal',
+      value: 'back'
+    });
+    
+    const { cleanupType } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'cleanupType',
+        message: '¿Qué deseas limpiar?',
+        choices: cleanupChoices,
+        pageSize: 10
+      }
+    ]);
+    
+    switch (cleanupType) {
+      case 'entity':
+        await handleEntityCleanup(basePath, entities, isLocalMode);
+        break;
+      case 'api':
+        await handleAPICleanup(basePath, apis, isLocalMode);
+        break;
+      case 'all':
+        await handleFullCleanup(basePath, isLocalMode);
+        break;
+      case 'back':
+        await showMainMenu(isLocalMode);
+        break;
+    }
+    
+  } catch (error) {
+    console.error(chalk.red('❌ Error en la limpieza:'), error);
+    await showMainMenu(isLocalMode);
+  }
+}
+
+/**
+ * Maneja la limpieza de una entidad específica
+ */
+async function handleEntityCleanup(basePath: string, entities: any[], isLocalMode: boolean): Promise<void> {
+  console.log(chalk.blue('\n📋 Seleccionar entidad a eliminar'));
+  
+  // Crear choices organizadas por API
+  const entityChoices: any[] = [];
+  const groupedEntities = entities.reduce((acc: any, entity) => {
+    if (!acc[entity.apiName]) {
+      acc[entity.apiName] = [];
+    }
+    acc[entity.apiName].push(entity);
+    return acc;
+  }, {});
+  
+  Object.keys(groupedEntities).forEach(apiName => {
+    entityChoices.push(new inquirer.Separator(`--- API: ${apiName} ---`));
+    groupedEntities[apiName].forEach((entity: any) => {
+      entityChoices.push({
+        name: `${entity.name} (${entity.paths.length} archivos)`,
+        value: { apiName: entity.apiName, entityName: entity.name, paths: entity.paths }
+      });
+    });
+  });
+  
+  entityChoices.push({
+    name: '🔙 Volver',
+    value: 'back'
+  });
+  
+  const { selectedEntity } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedEntity',
+      message: 'Selecciona la entidad a eliminar:',
+      choices: entityChoices,
+      pageSize: 15
+    }
+  ]);
+  
+  if (selectedEntity === 'back') {
+    await handleCleanup(isLocalMode);
+    return;
+  }
+  
+  // Mostrar vista previa de lo que se eliminará
+  console.log(chalk.yellow(`\n⚠️  Vista previa de eliminación:`));
+  console.log(chalk.gray(`   Entidad: ${selectedEntity.entityName}`));
+  console.log(chalk.gray(`   API: ${selectedEntity.apiName}`));
+  console.log(chalk.gray(`   Archivos a eliminar: ${selectedEntity.paths.length}`));
+  
+  const { confirmDelete } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirmDelete',
+      message: `¿Estás seguro de eliminar la entidad "${selectedEntity.entityName}"?`,
+      default: false
+    }
+  ]);
+  
+  if (confirmDelete) {
+    await cleanupEntity(basePath, selectedEntity.apiName, selectedEntity.entityName);
+    console.log(chalk.green('\n✅ Entidad eliminada exitosamente!'));
+  } else {
+    console.log(chalk.blue('\n🚫 Operación cancelada'));
+  }
+  
+  const { goToMenu } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'goToMenu',
+      message: '¿Volver al menú principal?',
+      default: true
+    }
+  ]);
+  
+  if (goToMenu) {
+    await showMainMenu(isLocalMode);
+  } else {
+    await handleCleanup(isLocalMode);
+  }
+}
+
+/**
+ * Maneja la limpieza de una API completa
+ */
+async function handleAPICleanup(basePath: string, apis: any[], isLocalMode: boolean): Promise<void> {
+  console.log(chalk.blue('\n📋 Seleccionar API a eliminar'));
+  
+  const apiChoices = apis.map(api => ({
+    name: `${api.name} (${api.entities.length} entidades, ${api.totalFiles} archivos)`,
+    value: api
+  }));
+  
+  apiChoices.push({
+    name: '🔙 Volver',
+    value: 'back'
+  });
+  
+  const { selectedAPI } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedAPI',
+      message: 'Selecciona la API a eliminar:',
+      choices: apiChoices,
+      pageSize: 10
+    }
+  ]);
+  
+  if (selectedAPI === 'back') {
+    await handleCleanup(isLocalMode);
+    return;
+  }
+  
+  // Mostrar vista previa
+  console.log(chalk.yellow(`\n⚠️  Vista previa de eliminación:`));
+  console.log(chalk.gray(`   API: ${selectedAPI.name}`));
+  console.log(chalk.gray(`   Entidades: ${selectedAPI.entities.join(', ')}`));
+  console.log(chalk.gray(`   Total archivos: ${selectedAPI.totalFiles}`));
+  
+  const { confirmDelete } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirmDelete',
+      message: `¿Estás seguro de eliminar TODA la API "${selectedAPI.name}"?`,
+      default: false
+    }
+  ]);
+  
+  if (confirmDelete) {
+    await cleanupAPI(basePath, selectedAPI.name);
+    console.log(chalk.green('\n✅ API eliminada exitosamente!'));
+  } else {
+    console.log(chalk.blue('\n🚫 Operación cancelada'));
+  }
+  
+  const { goToMenu } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'goToMenu',
+      message: '¿Volver al menú principal?',
+      default: true
+    }
+  ]);
+  
+  if (goToMenu) {
+    await showMainMenu(isLocalMode);
+  } else {
+    await handleCleanup(isLocalMode);
+  }
+}
+
+/**
+ * Maneja la limpieza completa
+ */
+async function handleFullCleanup(basePath: string, isLocalMode: boolean): Promise<void> {
+  console.log(chalk.red.bold('\n🧨 LIMPIEZA COMPLETA'));
+  console.log(chalk.yellow('⚠️  Esta acción eliminará TODO el código generado'));
+  console.log(chalk.gray(`   Directorio: ${basePath}`));
+  
+  const { confirmDelete } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirmDelete',
+      message: '¿Estás COMPLETAMENTE SEGURO de eliminar todo?',
+      default: false
+    }
+  ]);
+  
+  if (!confirmDelete) {
+    console.log(chalk.blue('\n🚫 Operación cancelada'));
+    await handleCleanup(isLocalMode);
+    return;
+  }
+  
+  // Doble confirmación para operación destructiva
+  const { doubleConfirm } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'doubleConfirm',
+      message: 'Escribe "ELIMINAR TODO" para confirmar:',
+      validate: (input: string) => {
+        return input === 'ELIMINAR TODO' ? true : 'Debes escribir exactamente "ELIMINAR TODO"';
+      }
+    }
+  ]);
+  
+  if (doubleConfirm === 'ELIMINAR TODO') {
+    await cleanupAll(basePath);
+    console.log(chalk.green('\n✅ Todo el contenido eliminado exitosamente!'));
+  } else {
+    console.log(chalk.blue('\n🚫 Operación cancelada'));
+  }
+  
+  await showMainMenu(isLocalMode);
 }
 
 // Función principal

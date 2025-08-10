@@ -47,6 +47,50 @@ export class UserEntityMapper extends Mapper<IUserEntity, IUserDTO> {
 }
 ```
 
+## 🧹 Sistema de Limpieza Inteligente
+
+Weaver CLI incluye un poderoso sistema de limpieza para gestionar el código generado:
+
+### 🗑️ **Opciones de Limpieza**
+
+1. **Entidad Específica**: Elimina una entidad individual y todos sus archivos
+2. **API Completa**: Elimina toda la estructura de una API
+3. **Limpieza Total**: Elimina todo el contenido generado
+
+### 🛡️ **Características de Seguridad**
+
+- **Detección Automática**: Identifica entidades y APIs generadas
+- **Vista Previa**: Muestra archivos a eliminar antes de la operación
+- **Confirmaciones Múltiples**: Requiere confirmación explícita del usuario
+- **Limpieza de Referencias**: Elimina automáticamente referencias en archivos injection
+
+### 📋 **Ejemplo de Flujo de Limpieza**
+
+```bash
+🧹 LIMPIEZA DE CÓDIGO GENERADO
+📊 Estado actual:
+   APIs detectadas: 1
+   Entidades detectadas: 2
+
+? ¿Qué deseas limpiar?
+🗑️  Eliminar entidad específica (2 disponibles)
+🗂️  Eliminar API completa (1 disponibles)  
+🧨 Eliminar TODO el contenido generado
+
+# Al seleccionar entidad:
+⚠️  Vista previa de eliminación:
+   Entidad: Company
+   API: platform
+   Archivos a eliminar: 29
+
+? ¿Estás seguro de eliminar la entidad "Company"?
+
+🧹 Eliminando entidad "Company"...
+🗑️  29 archivos eliminados
+🧹 Referencias limpias en archivos injection
+✅ Entidad eliminada exitosamente
+```
+
 ## 🎯 Patrón Clean Architecture Completo
 
 Weaver CLI genera una estructura completa siguiendo Clean Architecture con importaciones inteligentes y sistema de injection automático.

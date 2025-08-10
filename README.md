@@ -124,6 +124,7 @@ bus/
 - ✅ **Authentication System** - Acceso controlado con clave
 - ✅ **Smart Imports** - Importaciones inteligentes según contexto
 - ✅ **Auto ID Field** - Campo `id` automático en DTOs y Entities principales
+- ✅ **Smart Cleanup** - Sistema de limpieza inteligente para eliminar código generado
 
 ### 📦 Sistema de Importaciones
 
@@ -226,6 +227,40 @@ public mapFrom(param: IUserEntity): IUserDTO {
   };
 }
 ```
+
+## 🧹 Sistema de Limpieza Inteligente
+
+Weaver CLI incluye un sistema completo de limpieza para eliminar código generado:
+
+### 🗑️ **Limpieza por Entidad**
+```bash
+weaver --local
+# Seleccionar: 🧹 Limpiar/Eliminar código generado
+# Elegir: 🗑️ Eliminar entidad específica
+```
+
+- Detecta automáticamente entidades generadas
+- Muestra vista previa de archivos a eliminar
+- Elimina directorios completos de la entidad
+- Limpia referencias en archivos de injection
+
+### 🗂️ **Limpieza por API Completa**
+```bash
+# Elimina toda la estructura de una API
+# Incluye: DTOs, Entities, Use Cases, Mappers, Repositories, Facades
+```
+
+### 🧨 **Limpieza Total**
+```bash
+# Elimina TODO el contenido generado
+# Requiere doble confirmación: "ELIMINAR TODO"
+```
+
+### ✨ **Características de Seguridad**
+- **Vista previa**: Muestra qué se eliminará antes de hacerlo
+- **Confirmaciones múltiples**: Requiere confirmación explícita
+- **Detección inteligente**: Identifica automáticamente contenido generado
+- **Limpieza de referencias**: Elimina imports y métodos en archivos injection
 
 ## 📋 Historial de Versiones
 
