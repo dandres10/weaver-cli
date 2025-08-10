@@ -1,10 +1,10 @@
 {
-  "name": "weaver-cli",
-  "version": "1.0.0",
+  "name": "weaver-frontend-cli",
+  "version": "1.0.2",
   "description": "🕷️ Weaver CLI - Teje la estructura perfecta de tu código frontend con arquitectura limpia",
   "main": "dist/index.js",
   "bin": {
-    "wc": "dist/cli.js"
+    "weaver": "dist/cli.js"
   },
   "repository": {
     "type": "git",

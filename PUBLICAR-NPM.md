@@ -104,10 +104,10 @@ git push origin master --tags
 
 ```bash
 # Instalar desde NPM
-npm install -g weaver-cli
+npm install -g weaver-frontend-cli
 
 # Verificar instalación
-wc --session-info
+weaver --session-info
 ```
 
 ### 3. Probar Funcionalidad
@@ -117,7 +117,7 @@ wc --session-info
 mkdir test-weaver && cd test-weaver
 
 # Ejecutar Weaver CLI
-wc --local
+weaver --local
 
 # Verificar autenticación y generación
 ```
@@ -128,34 +128,34 @@ wc --local
 
 ```bash
 # ⚠️ Solo usar en emergencias
-npm unpublish weaver-cli@1.0.0 --force
+npm unpublish weaver-frontend-cli@1.0.0 --force
 ```
 
 ### Ver Información del Paquete
 
 ```bash
 # Ver info del paquete
-npm info weaver-cli
+npm info weaver-frontend-cli
 
 # Ver versiones publicadas
-npm view weaver-cli versions --json
+npm view weaver-frontend-cli versions --json
 ```
 
 ### Gestionar Acceso
 
 ```bash
 # Ver colaboradores
-npm owner ls weaver-cli
+npm owner ls weaver-frontend-cli
 
 # Agregar colaborador
-npm owner add usuario weaver-cli
+npm owner add usuario weaver-frontend-cli
 ```
 
 ## 📊 Estadísticas y Monitoreo
 
 ### NPM Analytics
 
-- **Descargas**: https://npmjs.com/package/weaver-cli
+- **Descargas**: https://npmjs.com/package/weaver-frontend-cli
 - **Dependencias**: Verificar actualizaciones
 - **Issues**: Monitorear reportes de usuarios
 

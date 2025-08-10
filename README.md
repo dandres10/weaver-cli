@@ -7,7 +7,7 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 ## 🚀 Instalación
 
 ```bash
-npm install -g weaver-cli
+npm install -g weaver-frontend-cli
 ```
 
 ## 🎯 Uso
@@ -15,7 +15,7 @@ npm install -g weaver-cli
 Una vez instalado globalmente, ejecuta el comando en tu proyecto:
 
 ```bash
-wc
+weaver
 ```
 
 ### 🔑 Autenticación
@@ -27,17 +27,17 @@ Weaver CLI requiere autenticación para su uso. Al ejecutar por primera vez, se 
 Para probar la generación sin afectar tu proyecto principal:
 
 ```bash
-wc --local
+weaver --local
 ```
 
 ### 📊 Comandos Adicionales
 
 ```bash
 # Ver información de sesión
-wc --session-info
+weaver --session-info
 
 # Cerrar sesión
-wc --logout
+weaver --logout
 ```
 
 ## ✨ Características
@@ -125,7 +125,7 @@ bus/
 
 ## 🧩 Flujo de Trabajo
 
-1. **Ejecutar** `wc` en tu proyecto
+1. **Ejecutar** `weaver` en tu proyecto
 2. **Autenticarse** con la clave de acceso
 3. **Ingresar URL** de OpenAPI/Swagger
 4. **Seleccionar entidad** de la lista disponible

@@ -96,10 +96,10 @@ weaver-cli/
 ### 🎮 COMANDOS DISPONIBLES
 
 ```bash
-wc                    # Comando principal
-wc --local            # Modo local (test-output)
-wc --session-info     # Info de sesión
-wc --logout           # Cerrar sesión
+weaver                # Comando principal
+weaver --local        # Modo local (test-output)
+weaver --session-info # Info de sesión
+weaver --logout       # Cerrar sesión
 
 # Scripts NPM
 npm run build         # Compilar
@@ -129,7 +129,7 @@ npm run logout        # Build + logout
 Necesito hacer cambios en Weaver CLI, el generador de código TypeScript que lee OpenAPI/Swagger y genera entidades con Clean Architecture.
 
 **CONTEXTO ACTUAL:**
-- Comando: `wc` con autenticación "soyia"
+- Comando: `weaver` con autenticación "soyia"
 - Genera en: {directorio-actual}/{api-name}/domain/...
 - 42 archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
 - Detección inteligente de APIs y directorios

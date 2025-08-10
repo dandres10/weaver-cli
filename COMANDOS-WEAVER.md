@@ -3,26 +3,26 @@
 ## 🚀 Comando Principal
 
 ```bash
-wc
+weaver
 ```
 Ejecuta el menú principal de Weaver CLI con autenticación.
 
 ## 🧪 Modo de Prueba
 
 ```bash
-wc --local
+weaver --local
 ```
 Ejecuta en modo local - los archivos se generan en `./test-output/src/bus` en lugar del proyecto real.
 
 ## 🔑 Gestión de Autenticación
 
 ```bash
-wc --session-info
+weaver --session-info
 ```
 Muestra información de la sesión actual (estado, fecha de autenticación, días restantes).
 
 ```bash
-wc --logout
+weaver --logout
 ```
 Cierra la sesión actual y sale de la aplicación.
 
@@ -47,15 +47,15 @@ npm run session-info   # Compilar y mostrar info de sesión
 
 1. **Primera vez**:
    ```bash
-   npm install -g weaver-cli
-   wc
+   npm install -g weaver-frontend-cli
+   weaver
    # Ingresar clave: soyia
    ```
 
 2. **Uso normal**:
    ```bash
    cd mi-proyecto-frontend
-   wc
+   weaver
    # 1. Ingresar URL de OpenAPI/Swagger
    # 2. Seleccionar entidad
    # 3. Confirmar API name
@@ -64,7 +64,7 @@ npm run session-info   # Compilar y mostrar info de sesión
 
 3. **Pruebas locales**:
    ```bash
-   wc --local
+   weaver --local
    # Los archivos se generan en ./test-output/
    ```
 
