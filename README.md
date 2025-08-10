@@ -123,6 +123,7 @@ bus/
 - ✅ **Multi-API Support** - Soporte para múltiples APIs backend
 - ✅ **Authentication System** - Acceso controlado con clave
 - ✅ **Smart Imports** - Importaciones inteligentes según contexto
+- ✅ **Auto ID Field** - Campo `id` automático en DTOs y Entities principales
 
 ### 📦 Sistema de Importaciones
 
@@ -197,7 +198,41 @@ npm run session-info   # Ver info de sesión
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
+## 🆔 Campo ID Automático
+
+Todas las entidades generadas incluyen automáticamente el campo `id`:
+
+```typescript
+// DTO Principal
+export interface IUserDTO {
+  id?: string;          // ← Agregado automáticamente
+  name: string;
+  email: string;
+}
+
+// Entity Principal  
+export interface IUserEntity {
+  id?: string;          // ← Agregado automáticamente
+  name: string;
+  email: string;
+}
+
+// Mapper Principal - Mapeo automático
+public mapFrom(param: IUserEntity): IUserDTO {
+  return {
+    id: param.id,       // ← Mapeado automáticamente
+    name: param.name,
+    email: param.email
+  };
+}
+```
+
 ## 📋 Historial de Versiones
+
+### v1.0.8 - Auto ID Field ✨
+- **🆔 Campo ID Automático**: Agregado automáticamente `id?: string;` en DTOs y Entities principales
+- **🔧 Mappers Inteligentes**: Mapeo automático del campo `id` en todos los mappers principales
+- **✅ Consistencia ID**: Manejo uniforme del identificador único en toda la arquitectura
 
 ### v1.0.7 - Repository Import Fix 🔧
 - **🐛 Repository Imports**: Corregidas las importaciones en injection-platform-entities-repository.ts

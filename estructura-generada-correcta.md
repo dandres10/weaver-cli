@@ -1,5 +1,52 @@
 # Estructura Correcta Generada por Weaver CLI
 
+## 🆔 Campo ID Automático
+
+Todas las entidades generadas incluyen automáticamente el campo `id` en DTOs y Entities principales:
+
+### DTO Principal
+```typescript
+export interface IUserDTO {
+  id?: string;          // ← Agregado automáticamente
+  name: string;
+  email: string;
+  phone?: string;
+}
+```
+
+### Entity Principal  
+```typescript
+export interface IUserEntity {
+  id?: string;          // ← Agregado automáticamente
+  name: string;
+  email: string;
+  phone?: string;
+}
+```
+
+### Mapper Principal
+```typescript
+export class UserEntityMapper extends Mapper<IUserEntity, IUserDTO> {
+  public mapFrom(param: IUserEntity): IUserDTO {
+    return {
+      id: param.id,       // ← Mapeado automáticamente
+      name: param.name,
+      email: param.email,
+      phone: param.phone
+    };
+  }
+
+  public mapTo(param: IUserDTO): IUserEntity {
+    return {
+      id: param.id,       // ← Mapeado automáticamente  
+      name: param.name,
+      email: param.email,
+      phone: param.phone
+    };
+  }
+}
+```
+
 ## 🎯 Patrón Clean Architecture Completo
 
 Weaver CLI genera una estructura completa siguiendo Clean Architecture con importaciones inteligentes y sistema de injection automático.

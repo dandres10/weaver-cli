@@ -5,6 +5,24 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2024-12-19
+
+### ✨ Added
+- **Campo ID Automático**: Agregado automáticamente `id?: string;` en DTOs y Entities principales
+- **Mappers Inteligentes**: Mapeo automático del campo `id` en todos los mappers principales
+- **Consistencia ID**: Manejo uniforme del identificador único en toda la arquitectura
+
+### 🔧 Changed
+- DTOs principales (`I{Entity}DTO`) incluyen automáticamente `id?: string;`
+- Entities principales (`I{Entity}Entity`) incluyen automáticamente `id?: string;`
+- Mappers principales mapean automáticamente el campo `id` entre DTO ↔ Entity
+- Garantiza que todas las entidades tengan un identificador único consistente
+
+### 🎯 Benefits
+- Reduce la necesidad de agregar manualmente el campo `id` en cada entidad
+- Garantiza consistencia en el identificador único de todas las entidades
+- Simplifica el mapeo entre DTOs y Entities para el campo `id`
+
 ## [1.0.7] - 2024-12-19
 
 ### 🐛 Fixed

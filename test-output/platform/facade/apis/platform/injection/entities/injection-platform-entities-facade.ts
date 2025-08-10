@@ -1,7 +1,7 @@
-import { LocationFacade } from "@platform/facade/apis/platform/entities/location-facade";
+import { CompanyFacade } from "@platform/facade/apis/platform/entities/company-facade";
 
 export class InjectionPlatformEntitiesFacade {
-    public static LocationFacade() { return LocationFacade.getInstance(); }
+    public static CompanyFacade() { return CompanyFacade.getInstance(); }
 }
 
 

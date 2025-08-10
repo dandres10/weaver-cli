@@ -232,6 +232,40 @@ SOLUCIÓN IMPLEMENTADA:
 
 ## 📋 HISTORIAL DE CORRECCIONES
 
+### ✨ **v1.0.8 - Campo ID Automático**
+**Fecha**: Diciembre 2024  
+**Funcionalidad**: Agregado automático del campo `id` en DTOs y Entities principales
+
+**Implementado**:
+- **DTOs principales**: Incluyen automáticamente `id?: string;`
+- **Entities principales**: Incluyen automáticamente `id?: string;`
+- **Mappers inteligentes**: Mapeo automático del campo `id` entre DTO ↔ Entity
+- **Consistencia ID**: Garantiza identificador único en todas las entidades
+
+**Beneficios**:
+- Reduce trabajo manual de agregar `id` en cada entidad
+- Garantiza consistencia en identificadores únicos
+- Simplifica mapeo entre DTOs y Entities
+- Alineado con buenas prácticas de bases de datos
+
+### 🔧 **v1.0.7 - Repository Import Fix**
+**Fecha**: Diciembre 2024  
+**Problema**: Importaciones incorrectas en injection-platform-entities-repository.ts
+
+**Corregido**:
+- **Path específico**: `import { LocationRepository } from "../../entities/location/location-repository"`
+- **Antes**: `import { LocationRepository } from "../../entities/location"`
+- **Consistencia**: Alineado con patrón del proyecto goluti-frontend
+
+### 🎯 **v1.0.6 - Importaciones Inteligentes**
+**Fecha**: Diciembre 2024  
+**Problema**: Todas las importaciones usaban `@bus` cuando deberían usar `@{api-name}`
+
+**Implementado**:
+- **Smart Imports**: `@{api-name}` para código generado, `@bus` para dependencies core
+- **Context Aware**: Importaciones automáticas según contexto
+- **Clean Pattern**: Código más limpio y organizado
+
 ### 🔧 **v1.0.5 - Archivo Repository Injection Faltante**
 **Fecha**: Diciembre 2024  
 **Problema**: El generador no creaba `injection-platform-entities-repository.ts`  

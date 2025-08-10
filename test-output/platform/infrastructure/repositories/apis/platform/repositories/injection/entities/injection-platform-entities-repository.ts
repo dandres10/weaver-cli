@@ -1,7 +1,7 @@
-import { LocationRepository } from "../../entities/location/location-repository";
+import { CompanyRepository } from "../../entities/company/company-repository";
 
 export class InjectionPlatformEntitiesRepository {
-  public static LocationRepository() { return LocationRepository.getInstance(); }
+  public static CompanyRepository() { return CompanyRepository.getInstance(); }
 }
 
 

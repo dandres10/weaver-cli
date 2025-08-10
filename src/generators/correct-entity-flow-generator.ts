@@ -703,6 +703,11 @@ function generateDTOInterface(entityName: string, fields: any[], type: 'main' | 
     // Para delete y read, solo necesitamos el ID
     content += `  id: string;\n`;
   } else {
+    // Agregar siempre el campo id para DTOs principales (main, save, update)
+    if (type === 'main') {
+      content += `  id?: string;\n`;
+    }
+    
     fields.forEach(field => {
       const fieldName = convertToCamelCase(field.name);
       const isOptional = getFieldOptionalStatus(field, type);
@@ -728,6 +733,11 @@ function generateEntityInterface(entityName: string, fields: any[], type: 'main'
   if (type === 'delete' || type === 'read') {
     content += `  id: string;\n`;
   } else {
+    // Agregar siempre el campo id para Entities principales (main, save, update)
+    if (type === 'main') {
+      content += `  id?: string;\n`;
+    }
+    
     fields.forEach(field => {
       const fieldName = field.name; // Mantener snake_case para entities
       const isOptional = getFieldOptionalStatus(field, type);
@@ -743,17 +753,25 @@ function generateEntityInterface(entityName: string, fields: any[], type: 'main'
 
 function generateEntityMapper(entityName: string, fields: any[], apiName: string = 'platform'): string {
   const entityNameLower = entityName.toLowerCase();
-  const mapFromFields = fields.map(field => {
-    const dtoField = convertToCamelCase(field.name);
-    const entityField = field.name;
-    return `      ${dtoField}: param.${entityField}`;
-  }).join(',\n');
+  
+  // Agregar siempre el campo id al principio
+  const mapFromFields = [
+    '      id: param.id',
+    ...fields.map(field => {
+      const dtoField = convertToCamelCase(field.name);
+      const entityField = field.name;
+      return `      ${dtoField}: param.${entityField}`;
+    })
+  ].join(',\n');
 
-  const mapToFields = fields.map(field => {
-    const dtoField = convertToCamelCase(field.name);
-    const entityField = field.name;
-    return `      ${entityField}: param.${dtoField}`;
-  }).join(',\n');
+  const mapToFields = [
+    '      id: param.id',
+    ...fields.map(field => {
+      const dtoField = convertToCamelCase(field.name);
+      const entityField = field.name;
+      return `      ${entityField}: param.${dtoField}`;
+    })
+  ].join(',\n');
 
   return `import { Mapper } from "@bus/core/classes";
 import { I${entityName}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
