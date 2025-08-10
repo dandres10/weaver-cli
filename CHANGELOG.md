@@ -5,6 +5,16 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2024-12-20
+
+### 🔧 Changed
+- Versión de mantenimiento con mejoras de estabilidad
+- Optimizaciones menores en el generador de código
+
+### 📦 Technical
+- Actualización de dependencias y compilación optimizada
+- Mejora en la robustez del sistema de limpieza
+
 ## [1.1.0] - 2024-12-19
 
 ### ✨ Added

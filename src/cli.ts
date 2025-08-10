@@ -473,7 +473,11 @@ async function handleCleanup(isLocalMode: boolean): Promise<void> {
     
     console.log(chalk.cyan('📊 Estado actual:'));
     console.log(chalk.gray(`   Entidades detectadas: ${entities.length}`));
-    console.log(chalk.gray(`   Directorio base: ${basePath}\n`));
+    console.log(chalk.gray(`   Directorio base: ${basePath}`));
+    if (entities.length > 0) {
+      console.log(chalk.gray(`   APIs encontradas: ${[...new Set(entities.map(e => e.apiName))].join(', ')}`));
+    }
+    console.log('');
     
 
 

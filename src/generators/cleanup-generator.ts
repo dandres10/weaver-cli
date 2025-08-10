@@ -29,8 +29,11 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
   const entities: DetectedEntity[] = [];
   
   try {
+    // Si estamos en una subcarpeta, necesitamos encontrar el directorio raíz correcto
+    const actualBasePath = await findProjectRoot(basePath);
+    
     // Buscar en todas las APIs
-    const apisPath = path.join(basePath);
+    const apisPath = path.join(actualBasePath);
     if (!await fs.pathExists(apisPath)) {
       return entities;
     }
@@ -39,32 +42,36 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
     
     for (const apiDir of apiDirs) {
       const apiPath = path.join(apisPath, apiDir);
-      const stat = await fs.stat(apiPath);
       
-      if (stat.isDirectory()) {
-        // Buscar entidades en domain/models
-        const entitiesPath = path.join(apiPath, 'domain/models/apis', apiDir, 'entities');
+      // Verificar que existe y es directorio
+      if (!await fs.pathExists(apiPath)) continue;
+      const stat = await fs.stat(apiPath);
+      if (!stat.isDirectory()) continue;
+      
+      // Buscar entidades en domain/models
+      const entitiesPath = path.join(apiPath, 'domain/models/apis', apiDir, 'entities');
+      
+      if (await fs.pathExists(entitiesPath)) {
+        const entityDirs = await fs.readdir(entitiesPath);
         
-        if (await fs.pathExists(entitiesPath)) {
-          const entityDirs = await fs.readdir(entitiesPath);
+        for (const entityDir of entityDirs) {
+          const entityPath = path.join(entitiesPath, entityDir);
           
-          for (const entityDir of entityDirs) {
-            const entityPath = path.join(entitiesPath, entityDir);
-            const entityStat = await fs.stat(entityPath);
+          if (!await fs.pathExists(entityPath)) continue;
+          const entityStat = await fs.stat(entityPath);
+          
+          if (entityStat.isDirectory()) {
+            // Verificar que contiene archivos de DTOs
+            const dtoFiles = await fs.readdir(entityPath);
+            const hasDTOs = dtoFiles.some(file => file.includes('-dto.ts'));
             
-            if (entityStat.isDirectory()) {
-              // Verificar que contiene archivos de DTOs
-              const dtoFiles = await fs.readdir(entityPath);
-              const hasDTOs = dtoFiles.some(file => file.includes('-dto.ts'));
-              
-              if (hasDTOs) {
-                const entityPaths = await getEntityAllPaths(basePath, apiDir, entityDir);
-                entities.push({
-                  name: entityDir,
-                  apiName: apiDir,
-                  paths: entityPaths
-                });
-              }
+            if (hasDTOs) {
+              const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityDir);
+              entities.push({
+                name: entityDir,
+                apiName: apiDir,
+                paths: entityPaths
+              });
             }
           }
         }
@@ -75,6 +82,46 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
   }
   
   return entities;
+}
+
+/**
+ * Encuentra el directorio raíz del proyecto desde cualquier subcarpeta
+ */
+async function findProjectRoot(startPath: string): Promise<string> {
+  let currentPath = path.resolve(startPath);
+  
+  // Si estamos en modo local, usar directamente
+  if (currentPath.includes('test-output')) {
+    return currentPath;
+  }
+  
+  while (currentPath !== path.dirname(currentPath)) {
+    // Buscar indicadores de que es un directorio de proyecto frontend
+    const packageJsonPath = path.join(currentPath, 'package.json');
+    const srcPath = path.join(currentPath, 'src');
+    const busPath = path.join(currentPath, 'src', 'bus');
+    
+    // Si encontramos package.json Y src/bus, es probablemente la raíz
+    if (await fs.pathExists(packageJsonPath) && await fs.pathExists(busPath)) {
+      return path.join(currentPath, 'src', 'bus');
+    }
+    
+    // Si ya estamos en src/bus o una subcarpeta, usar esa como base
+    if (currentPath.endsWith('bus') || currentPath.includes(path.join('src', 'bus'))) {
+      // Si estamos en una subcarpeta de bus, subir hasta bus
+      while (!currentPath.endsWith('bus') && currentPath.includes('bus')) {
+        currentPath = path.dirname(currentPath);
+      }
+      if (currentPath.endsWith('bus')) {
+        return currentPath;
+      }
+    }
+    
+    currentPath = path.dirname(currentPath);
+  }
+  
+  // Si no encontramos nada, usar el directorio original
+  return startPath;
 }
 
 /**
