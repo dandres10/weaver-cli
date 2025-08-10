@@ -5,6 +5,25 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-12-19
+
+### ✨ Added
+- **🎯 Limpieza Simplificada**: Sistema de limpieza directo y enfocado en entidades
+- **📍 Ejecución Contextual**: Funciona desde la carpeta donde se ejecuta
+- **🚀 Flujo Directo**: Sin menús innecesarios, directo a seleccionar entidad
+
+### 🔧 Changed
+- Simplificado el flujo de limpieza para eliminar solo entidades específicas
+- Removida la opción "Eliminar API completa" - no necesaria para el flujo de trabajo
+- Removida la opción "Eliminar TODO" - simplificado para uso práctico
+- Eliminada la selección de carpetas - funciona directamente en la carpeta actual
+
+### 🎯 Benefits
+- Flujo más directo y rápido para eliminar entidades
+- Menos opciones confusas, enfocado en el caso de uso principal
+- Ejecución contextual desde la carpeta específica (ej: /bus)
+- Experiencia de usuario simplificada y clara
+
 ## [1.0.9] - 2024-12-19
 
 ### ✨ Added

@@ -232,6 +232,27 @@ SOLUCIÓN IMPLEMENTADA:
 
 ## 📋 HISTORIAL DE CORRECCIONES
 
+### 🎯 **v1.1.0 - Simplified Cleanup**
+**Fecha**: Diciembre 2024  
+**Funcionalidad**: Sistema de limpieza simplificado enfocado en entidades
+
+**Implementado**:
+- **🎯 Flujo Directo**: Eliminación de menús innecesarios, directo a seleccionar entidad
+- **📍 Ejecución Contextual**: Funciona desde la carpeta donde se ejecuta el comando
+- **🚀 Simplificación**: Removidas opciones "Eliminar API completa" y "Eliminar TODO"
+- **✨ UX Mejorada**: Experiencia más rápida y clara para el caso de uso principal
+
+**Beneficios**:
+- Flujo más directo: `weaver` → "🧹 Limpiar" → seleccionar entidad → ¡listo!
+- Ejecución contextual: desde `/bus` elimina entidades de bus, desde `/appointment` elimina de appointment
+- Menos confusión: solo la funcionalidad que realmente se necesita
+- Experiencia más rápida y eficiente
+
+**Cambios en Código**:
+- **`src/cli.ts`**: Simplificado `handleCleanup()` para ir directo a selección de entidad
+- **Removidas funciones**: `handleAPICleanup()`, `handleFullCleanup()`
+- **Imports simplificados**: Solo `detectGeneratedEntities` y `cleanupEntity`
+
 ### 🧹 **v1.0.9 - Smart Cleanup System**
 **Fecha**: Diciembre 2024  
 **Funcionalidad**: Sistema completo de limpieza inteligente para código generado

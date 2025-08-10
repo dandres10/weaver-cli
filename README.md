@@ -228,41 +228,33 @@ public mapFrom(param: IUserEntity): IUserDTO {
 }
 ```
 
-## 🧹 Sistema de Limpieza Inteligente
+## 🧹 Sistema de Limpieza de Entidades
 
-Weaver CLI incluye un sistema completo de limpieza para eliminar código generado:
+Weaver CLI incluye un sistema de limpieza para eliminar entidades generadas:
 
-### 🗑️ **Limpieza por Entidad**
+### 🗑️ **Eliminar Entidades**
 ```bash
-weaver --local
+# Ejecutar desde la carpeta que contiene las entidades
+cd /ruta/a/tu/proyecto/bus  # Ejemplo: carpeta 'bus'
+weaver
 # Seleccionar: 🧹 Limpiar/Eliminar código generado
-# Elegir: 🗑️ Eliminar entidad específica
+# Seleccionar la entidad a eliminar de la lista
 ```
 
-- Detecta automáticamente entidades generadas
-- Muestra vista previa de archivos a eliminar
-- Elimina directorios completos de la entidad
-- Limpia referencias en archivos de injection
-
-### 🗂️ **Limpieza por API Completa**
-```bash
-# Elimina toda la estructura de una API
-# Incluye: DTOs, Entities, Use Cases, Mappers, Repositories, Facades
-```
-
-### 🧨 **Limpieza Total**
-```bash
-# Elimina TODO el contenido generado
-# Requiere doble confirmación: "ELIMINAR TODO"
-```
-
-### ✨ **Características de Seguridad**
-- **Vista previa**: Muestra qué se eliminará antes de hacerlo
-- **Confirmaciones múltiples**: Requiere confirmación explícita
-- **Detección inteligente**: Identifica automáticamente contenido generado
-- **Limpieza de referencias**: Elimina imports y métodos en archivos injection
+### ✨ **Características**
+- **Detección automática**: Identifica entidades generadas en la carpeta actual
+- **Vista previa**: Muestra archivos que se eliminarán antes de proceder
+- **Eliminación completa**: Remueve DTOs, Entities, Use Cases, Mappers, Repositories, Facades
+- **Limpieza de referencias**: Elimina automáticamente imports y métodos en archivos injection
+- **Confirmación segura**: Requiere confirmación explícita antes de eliminar
 
 ## 📋 Historial de Versiones
+
+### v1.1.0 - Simplified Cleanup 🎯
+- **🎯 Limpieza Simplificada**: Sistema directo enfocado en eliminar entidades
+- **📍 Ejecución Contextual**: Funciona desde la carpeta donde se ejecuta
+- **🚀 Flujo Directo**: Sin menús innecesarios, directo a seleccionar entidad
+- **✨ Experiencia Mejorada**: Flujo más rápido y claro para eliminar entidades
 
 ### v1.0.9 - Smart Cleanup System 🧹
 - **🧹 Sistema de Limpieza Completo**: Gestión completa del código generado
