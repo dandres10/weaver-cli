@@ -6,6 +6,14 @@
   "bin": {
     "wc": "dist/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dandres10/weaver-cli.git"
+  },
+  "homepage": "https://github.com/dandres10/weaver-cli#readme",
+  "bugs": {
+    "url": "https://github.com/dandres10/weaver-cli/issues"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
