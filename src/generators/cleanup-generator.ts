@@ -48,27 +48,56 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
       const stat = await fs.stat(apiPath);
       if (!stat.isDirectory()) continue;
       
-      // Buscar entidades en domain/models
-      const entitiesPath = path.join(apiPath, 'domain/models/apis', apiDir, 'entities');
+      // Buscar entidades en domain/models - la estructura real del generador
+      const entitiesBasePath = path.join(apiPath, 'domain/models/apis', apiDir, 'entities');
       
-      if (await fs.pathExists(entitiesPath)) {
-        const entityDirs = await fs.readdir(entitiesPath);
+      if (await fs.pathExists(entitiesBasePath)) {
+        const entityDirs = await fs.readdir(entitiesBasePath);
         
         for (const entityDir of entityDirs) {
-          const entityPath = path.join(entitiesPath, entityDir);
+          const entityPath = path.join(entitiesBasePath, entityDir);
           
           if (!await fs.pathExists(entityPath)) continue;
           const entityStat = await fs.stat(entityPath);
           
           if (entityStat.isDirectory()) {
-            // Verificar que contiene archivos de DTOs
-            const dtoFiles = await fs.readdir(entityPath);
-            const hasDTOs = dtoFiles.some(file => file.includes('-dto.ts'));
+            // Verificar que contiene archivos de DTOs o archivos relevantes
+            const files = await fs.readdir(entityPath);
+            const hasRelevantFiles = files.some(file => 
+              file.includes('-dto.ts') || 
+              file.includes('-entity.ts') ||
+              file.includes('-use-case.ts') ||
+              file === 'index.ts'
+            );
             
-            if (hasDTOs) {
+            if (hasRelevantFiles) {
               const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityDir);
               entities.push({
                 name: entityDir,
+                apiName: apiDir,
+                paths: entityPaths
+              });
+            }
+          }
+        }
+      }
+      
+      // También buscar en facade para verificar si hay entidades por el patrón de archivos de facade
+      const facadePath = path.join(apiPath, 'facade/apis', apiDir, 'entities');
+      if (await fs.pathExists(facadePath)) {
+        const facadeFiles = await fs.readdir(facadePath);
+        
+        for (const facadeFile of facadeFiles) {
+          if (facadeFile.endsWith('-facade.ts') && !facadeFile.startsWith('injection-')) {
+            // Extraer nombre de entidad del archivo de facade
+            const entityName = facadeFile.replace('-facade.ts', '');
+            
+            // Verificar si ya no está en la lista
+            const alreadyExists = entities.some(e => e.name.toLowerCase() === entityName.toLowerCase());
+            if (!alreadyExists) {
+              const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityName);
+              entities.push({
+                name: entityName,
                 apiName: apiDir,
                 paths: entityPaths
               });
@@ -90,11 +119,22 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
 async function findProjectRoot(startPath: string): Promise<string> {
   let currentPath = path.resolve(startPath);
   
-  // Si estamos en modo local, usar directamente
-  if (currentPath.includes('test-output')) {
-    return currentPath;
+  // Si estamos en modo local y startPath contiene test-output, usar el directorio directamente
+  if (startPath.includes('test-output')) {
+    // Si ya estamos en test-output, usar como está
+    if (currentPath.endsWith('test-output')) {
+      return currentPath;
+    }
+    // Si estamos en una subcarpeta de test-output, subir hasta test-output
+    while (!currentPath.endsWith('test-output') && currentPath.includes('test-output')) {
+      currentPath = path.dirname(currentPath);
+    }
+    if (currentPath.endsWith('test-output') || currentPath.includes('test-output')) {
+      return currentPath;
+    }
   }
   
+  // Para proyectos reales
   while (currentPath !== path.dirname(currentPath)) {
     // Buscar indicadores de que es un directorio de proyecto frontend
     const packageJsonPath = path.join(currentPath, 'package.json');
@@ -175,27 +215,28 @@ export async function detectGeneratedAPIs(basePath: string): Promise<DetectedAPI
  */
 async function getEntityAllPaths(basePath: string, apiName: string, entityName: string): Promise<string[]> {
   const paths: string[] = [];
+  const entityNameLower = entityName.toLowerCase();
   const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
   
-  // Rutas base según la estructura de Weaver CLI
+  // Rutas base según la estructura real del generador (debe coincidir con correct-entity-flow-generator.ts)
   const baseStructure = {
-    // Domain DTOs
-    domainModels: path.join(basePath, apiName, 'domain/models/apis', apiName, 'entities', entityName),
+    // Domain DTOs - usar entityNameLower como en el generador
+    domainModels: path.join(basePath, apiName, 'domain/models/apis', apiName, 'entities', entityNameLower),
     
     // Domain Repository Interface
     domainRepository: path.join(basePath, apiName, 'domain/services/repositories/apis', apiName, 'entities'),
     
-    // Domain Use Cases
-    domainUseCases: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'entities', entityName),
+    // Domain Use Cases - usar entityNameLower
+    domainUseCases: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'entities', entityNameLower),
     
-    // Infrastructure Entities
-    infraEntities: path.join(basePath, apiName, 'infrastructure/entities/apis', apiName, 'entities', entityName),
+    // Infrastructure Entities - usar entityNameLower
+    infraEntities: path.join(basePath, apiName, 'infrastructure/entities/apis', apiName, 'entities', entityNameLower),
     
-    // Infrastructure Mappers
-    infraMappers: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'entities', entityName),
+    // Infrastructure Mappers - usar entityNameLower
+    infraMappers: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'entities', entityNameLower),
     
-    // Infrastructure Repository
-    infraRepository: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/entities', entityName),
+    // Infrastructure Repository - usar entityNameLower
+    infraRepository: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/entities', entityNameLower),
     
     // Facade
     facade: path.join(basePath, apiName, 'facade/apis', apiName, 'entities'),

@@ -5,6 +5,18 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2024-12-20
+
+### 🐛 Fixed
+- **Detección de entidades desde subcarpetas**: Corregido problema donde no se detectaban entidades cuando se ejecuta desde `/bus` u otras subcarpetas
+- **Función findProjectRoot()**: Implementada para detectar automáticamente el directorio raíz correcto del proyecto
+- **Mejor información de estado**: Agregada información adicional sobre APIs encontradas en el menú de limpieza
+
+### 📦 Technical
+- Mejorado algoritmo de detección de estructura de proyecto
+- Soporte robusto para ejecución desde cualquier subcarpeta del proyecto
+- Validaciones adicionales de existencia de directorios
+
 ## [1.1.1] - 2024-12-20
 
 ### 🔧 Changed

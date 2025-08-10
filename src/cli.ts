@@ -465,7 +465,17 @@ async function handleCleanup(isLocalMode: boolean): Promise<void> {
   console.log(chalk.gray('Elimina entidades, APIs o todo el contenido generado\n'));
 
   // Determinar la ruta base
-  const basePath = isLocalMode ? './test-output' : process.cwd();
+  let basePath;
+  if (isLocalMode) {
+    // Si ya estamos en test-output, usar el directorio actual
+    if (process.cwd().includes('test-output')) {
+      basePath = process.cwd();
+    } else {
+      basePath = './test-output';
+    }
+  } else {
+    basePath = process.cwd();
+  }
   
   try {
     // Detectar qué está disponible para limpiar
