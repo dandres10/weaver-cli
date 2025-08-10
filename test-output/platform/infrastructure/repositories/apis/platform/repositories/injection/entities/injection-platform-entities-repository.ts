@@ -1,9 +1,7 @@
-import { ApiTokenRepository } from "../../entities/apitoken";
-import { MenuPermissionRepository } from "../../entities/menupermission";
+import { CountryRepository } from "../../entities/country";
 
 export class InjectionPlatformEntitiesRepository {
-  public static ApiTokenRepository() { return ApiTokenRepository.getInstance(); }
-  public static MenuPermissionRepository() { return MenuPermissionRepository.getInstance(); }
+  public static CountryRepository() { return CountryRepository.getInstance(); }
 }
 
 
