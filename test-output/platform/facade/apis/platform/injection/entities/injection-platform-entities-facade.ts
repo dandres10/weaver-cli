@@ -1,9 +1,9 @@
-import { MenuFacade } from "@bus/facade/apis/platform/entities/menu-facade";
-import { UserFacade } from "@bus/facade/apis/platform/entities/user-facade";
+import { ApiTokenFacade } from "@platform/facade/apis/platform/entities/api-token-facade";
+import { MenuPermissionFacade } from "@platform/facade/apis/platform/entities/menu-permission-facade";
 
 export class InjectionPlatformEntitiesFacade {
-    public static MenuFacade() { return MenuFacade.getInstance(); }
-    public static UserFacade() { return UserFacade.getInstance(); }
+    public static ApiTokenFacade() { return ApiTokenFacade.getInstance(); }
+    public static MenuPermissionFacade() { return MenuPermissionFacade.getInstance(); }
 }
 
 

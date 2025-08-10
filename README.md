@@ -122,6 +122,27 @@ bus/
 - ✅ **OpenAPI Integration** - Lectura automática de especificaciones
 - ✅ **Multi-API Support** - Soporte para múltiples APIs backend
 - ✅ **Authentication System** - Acceso controlado con clave
+- ✅ **Smart Imports** - Importaciones inteligentes según contexto
+
+### 📦 Sistema de Importaciones
+
+Weaver CLI genera importaciones inteligentes:
+
+```typescript
+// ✅ Archivos generados - Usa @{api-name}
+import { IUserDTO } from "@platform/domain/models/apis/platform/entities/user";
+import { UserRepository } from "@platform/infrastructure/repositories/apis/platform/repositories/entities/user";
+
+// ✅ Dependencias core - Mantiene @bus  
+import { IConfigDTO } from "@bus/core/interfaces";
+import { UseCase } from "@bus/core/interfaces/use-case";
+import { Mapper } from "@bus/core/classes";
+```
+
+**Beneficios:**
+- 🎯 **Consistencia**: Importaciones coherentes en todo el proyecto
+- 🔧 **Flexibilidad**: Soporte para múltiples APIs sin conflictos
+- 🛡️ **Separación**: Distingue claramente entre código generado y dependencias
 
 ## 🧩 Flujo de Trabajo
 
@@ -175,6 +196,24 @@ npm run session-info   # Ver info de sesión
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
+
+## 📋 Historial de Versiones
+
+### v1.0.6 - Importaciones Inteligentes ✨
+- **🔧 Importaciones corregidas**: Los archivos generados usan `@{api-name}`, los core mantienen `@bus`
+- **📦 33+ importaciones**: Sistemáticamente corregidas en todos los templates
+- **🎯 Separación clara**: Distingue entre código generado y dependencias externas
+
+### v1.0.5 - Repository Injection Completo 🔧  
+- **📁 Archivo faltante**: Genera `injection-platform-entities-repository.ts`
+- **🔄 Actualización automática**: Agrega nuevas entidades al archivo existente
+- **🛡️ Evita duplicados**: Verificación inteligente de entidades existentes
+
+### v1.0.4 - Clean Architecture Base 🏗️
+- **43+ archivos**: Estructura completa por entidad
+- **🔐 Autenticación**: Sistema con clave de acceso
+- **🌐 OpenAPI**: Integración completa con Swagger
+- **🧪 Modo local**: Pruebas con `--local`
 
 ## 📄 Licencia
 

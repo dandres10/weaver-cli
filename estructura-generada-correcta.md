@@ -1,8 +1,8 @@
-# Estructura Correcta Generada por Goluti Frontend Generator
+# Estructura Correcta Generada por Weaver CLI
 
-## 🎯 Basado en el Flujo Location Real
+## 🎯 Patrón Clean Architecture Completo
 
-Después de analizar el flujo correcto de `location` en tu proyecto, he ajustado completamente la lógica del generador para seguir el patrón exacto.
+Weaver CLI genera una estructura completa siguiendo Clean Architecture con importaciones inteligentes y sistema de injection automático.
 
 ## 📂 Estructura Completa Generada
 
@@ -205,6 +205,76 @@ export class UserFacade {
   }
   
   // ... resto de operaciones
+}
+```
+
+## 📦 Sistema de Importaciones Inteligentes
+
+### ✅ **Importaciones Corregidas (v1.0.5+)**
+
+Weaver CLI ahora genera importaciones inteligentes que distinguen entre código generado y dependencias core:
+
+```typescript
+// ✅ user-save-use-case.ts
+import { IConfigDTO } from "@bus/core/interfaces";                    // ← Core: mantiene @bus
+import { UseCase } from "@bus/core/interfaces/use-case";              // ← Core: mantiene @bus
+import { IUserDTO, IUserSaveDTO } from "@platform/domain/models/apis/platform/entities/user";           // ← Generado: usa @platform
+import { InjectionPlatformEntitiesUserMapper } from "@platform/infrastructure/mappers/apis/platform/injection/entities/injection-platform-entities-user-mapper";   // ← Generado: usa @platform
+import { InjectionPlatformEntitiesRepository } from "@platform/infrastructure/repositories/apis/platform/repositories/injection/entities/injection-platform-entities-repository";  // ← Generado: usa @platform
+
+// ✅ user-entity-mapper.ts
+import { Mapper } from "@bus/core/classes";                           // ← Core: mantiene @bus
+import { IUserDTO } from "@platform/domain/models/apis/platform/entities/user";     // ← Generado: usa @platform
+import { IUserEntity } from "@platform/infrastructure/entities/apis/platform/entities/user";  // ← Generado: usa @platform
+
+// ✅ user-repository.ts
+import { IConfigDTO } from "@bus/core/interfaces";                    // ← Core: mantiene @bus
+import platformAxios from "@bus/core/axios/platform-axios";          // ← Core: mantiene @bus
+import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";          // ← Core: mantiene @bus
+import { IUserRepository } from "@platform/domain/services/repositories/apis/platform/entities/i-user-repository";  // ← Generado: usa @platform
+```
+
+### 🎯 **Reglas de Importación**
+
+1. **Archivos Core (mantiene `@bus`):**
+   - `@bus/core/interfaces/*`
+   - `@bus/core/classes/*`
+   - `@bus/core/axios/*`
+   - `@bus/core/const/*`
+   - `@bus/core/injection/*`
+
+2. **Archivos Generados (usa `@{api-name}`):**
+   - `@platform/domain/models/*`
+   - `@platform/domain/services/*`
+   - `@platform/infrastructure/*`
+   - `@platform/facade/*`
+
+### 🔧 **Beneficios**
+
+- **🎯 Consistencia**: Importaciones coherentes en todo el proyecto
+- **🔧 Flexibilidad**: Soporte para múltiples APIs (platform, payment, etc.)
+- **🛡️ Separación**: Distingue claramente entre código generado y dependencias
+- **📦 Modularidad**: Facilita la gestión de múltiples módulos de API
+
+### 📋 **Archivos de Injection Completos**
+
+```typescript
+// injection-platform-entities-repository.ts
+import { UserRepository } from "../../entities/user";
+import { MenuRepository } from "../../entities/menu";
+
+export class InjectionPlatformEntitiesRepository {
+  public static UserRepository() { return UserRepository.getInstance(); }
+  public static MenuRepository() { return MenuRepository.getInstance(); }
+}
+
+// injection-platform-entities-facade.ts  
+import { UserFacade } from "@platform/facade/apis/platform/entities/user-facade";
+import { MenuFacade } from "@platform/facade/apis/platform/entities/menu-facade";
+
+export class InjectionPlatformEntitiesFacade {
+    public static UserFacade() { return UserFacade.getInstance(); }
+    public static MenuFacade() { return MenuFacade.getInstance(); }
 }
 ```
 

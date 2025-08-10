@@ -250,6 +250,25 @@ export class InjectionPlatformEntitiesRepository {
 }
 ```
 
+### 🔧 **v1.0.6 - Importaciones Inteligentes**
+**Fecha**: Diciembre 2024  
+**Problema**: Las importaciones usaban `@bus` para archivos generados  
+**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
+**Cambios**:
+- ✅ Importaciones de archivos generados usan `@{api-name}` (ej: `@platform`)
+- ✅ Importaciones de archivos core mantienen `@bus`
+- ✅ 33+ importaciones corregidas sistemáticamente
+- ✅ Parámetro `apiName` agregado a funciones auxiliares
+
+**Resultado**:
+```typescript
+// ✅ Archivos generados - usa @platform
+import { IUserDTO } from "@platform/domain/models/apis/platform/entities/user";
+
+// ✅ Archivos core - mantiene @bus  
+import { IConfigDTO } from "@bus/core/interfaces";
+```
+
 ---
 
 ## 🚀 INSTRUCCIONES DE USO
