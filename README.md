@@ -264,6 +264,13 @@ weaver --local
 
 ## 📋 Historial de Versiones
 
+### v1.0.9 - Smart Cleanup System 🧹
+- **🧹 Sistema de Limpieza Completo**: Gestión completa del código generado
+- **🗑️ Limpieza por Entidad**: Eliminación inteligente de entidades individuales
+- **🗂️ Limpieza por API**: Eliminación completa de APIs con todos sus archivos
+- **🧨 Limpieza Total**: Eliminación de todo el contenido con doble confirmación
+- **🛡️ Operaciones Seguras**: Múltiples confirmaciones y vista previa
+
 ### v1.0.8 - Auto ID Field ✨
 - **🆔 Campo ID Automático**: Agregado automáticamente `id?: string;` en DTOs y Entities principales
 - **🔧 Mappers Inteligentes**: Mapeo automático del campo `id` en todos los mappers principales

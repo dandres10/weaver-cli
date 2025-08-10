@@ -232,6 +232,29 @@ SOLUCIÓN IMPLEMENTADA:
 
 ## 📋 HISTORIAL DE CORRECCIONES
 
+### 🧹 **v1.0.9 - Smart Cleanup System**
+**Fecha**: Diciembre 2024  
+**Funcionalidad**: Sistema completo de limpieza inteligente para código generado
+
+**Implementado**:
+- **🗑️ Limpieza por Entidad**: Eliminación de entidades individuales con detección automática
+- **🗂️ Limpieza por API**: Eliminación completa de APIs con todos sus archivos
+- **🧨 Limpieza Total**: Eliminación de todo el contenido con doble confirmación
+- **🛡️ Operaciones Seguras**: Múltiples confirmaciones y vista previa antes de eliminar
+- **🧠 Detección Inteligente**: Identifica automáticamente entidades y APIs generadas
+- **🧹 Limpieza de Referencias**: Elimina imports y métodos en archivos injection
+
+**Beneficios**:
+- Gestión completa del ciclo de vida del código generado
+- Operaciones de limpieza seguras con confirmaciones múltiples
+- Mantenimiento fácil del workspace durante desarrollo
+- Navegación intuitiva entre opciones de limpieza
+
+**Archivos Implementados**:
+- **`src/generators/cleanup-generator.ts`**: Nuevo generador de limpieza
+- **`src/cli.ts`**: Agregada opción de limpieza al menú principal
+- **Funciones**: `detectGeneratedEntities()`, `cleanupEntity()`, `cleanupAPI()`, `cleanupAll()`
+
 ### ✨ **v1.0.8 - Campo ID Automático**
 **Fecha**: Diciembre 2024  
 **Funcionalidad**: Agregado automático del campo `id` en DTOs y Entities principales

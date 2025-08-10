@@ -5,6 +5,27 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2024-12-19
+
+### ✨ Added
+- **🧹 Smart Cleanup System**: Sistema completo de limpieza inteligente para código generado
+- **🗑️ Entity Cleanup**: Eliminación de entidades individuales con detección automática
+- **🗂️ API Cleanup**: Eliminación completa de APIs con todos sus archivos
+- **🧨 Full Cleanup**: Eliminación total de contenido generado con doble confirmación
+- **🛡️ Safety Features**: Múltiples confirmaciones y vista previa antes de eliminar
+
+### 🔧 Changed
+- Agregada nueva opción "🧹 Limpiar/Eliminar código generado" al menú principal
+- Sistema de detección automática de entidades y APIs generadas
+- Limpieza inteligente de referencias en archivos de injection
+- Navegación mejorada entre menús de limpieza
+
+### 🎯 Benefits
+- Gestión completa del ciclo de vida del código generado
+- Operaciones de limpieza seguras con confirmaciones múltiples
+- Detección automática de contenido generado
+- Mantenimiento fácil del workspace durante desarrollo
+
 ## [1.0.8] - 2024-12-19
 
 ### ✨ Added
