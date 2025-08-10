@@ -22,14 +22,19 @@ export class ProjectValidator {
   static async validateProjectStructure(basePath: string, apiName: string = 'platform'): Promise<ValidationResult> {
     console.log(chalk.blue('🔍 Validando estructura del proyecto...'));
     
+    // Determinar si estamos en el directorio de la API o necesitamos crear uno
+    const currentDirName = path.basename(basePath);
+    const shouldCreateApiDir = currentDirName !== apiName;
+    const apiPrefix = shouldCreateApiDir ? `${apiName}/` : '';
+    
     const requiredDirectories = [
-      `${apiName}/domain/models/apis/${apiName}/entities`,
-      `${apiName}/domain/services/repositories/apis/${apiName}/entities`,
-      `${apiName}/domain/services/use_cases/apis/${apiName}/entities`,
-      `${apiName}/infrastructure/entities/apis/${apiName}/entities`,
-      `${apiName}/infrastructure/mappers/apis/${apiName}/entities`,
-      `${apiName}/infrastructure/repositories/apis/${apiName}/repositories/entities`,
-      `${apiName}/facade/apis/${apiName}/entities`
+      `${apiPrefix}domain/models/apis/${apiName}/entities`,
+      `${apiPrefix}domain/services/repositories/apis/${apiName}/entities`,
+      `${apiPrefix}domain/services/use_cases/apis/${apiName}/entities`,
+      `${apiPrefix}infrastructure/entities/apis/${apiName}/entities`,
+      `${apiPrefix}infrastructure/mappers/apis/${apiName}/entities`,
+      `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/entities`,
+      `${apiPrefix}facade/apis/${apiName}/entities`
     ];
 
     const missingDirectories: string[] = [];
@@ -106,15 +111,20 @@ export class ProjectValidator {
 
     const conflictingFiles: string[] = [];
 
+    // Determinar si estamos en el directorio de la API o necesitamos crear uno
+    const currentDirName = path.basename(basePath);
+    const shouldCreateApiDir = currentDirName !== apiName;
+    const apiPrefix = shouldCreateApiDir ? `${apiName}/` : '';
+
     // Directorios donde buscar archivos de la entidad (usando apiName dinámico)
     const searchPaths = [
-      `${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}`,
-      `${apiName}/domain/services/repositories/apis/${apiName}/entities/i-${entityNameKebab}-repository.ts`,
-      `${apiName}/domain/services/use_cases/apis/${apiName}/entities/${entityNameLower}`,
-      `${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}`,
-      `${apiName}/infrastructure/mappers/apis/${apiName}/entities/${entityNameLower}`,
-      `${apiName}/infrastructure/repositories/apis/${apiName}/repositories/entities/${entityNameLower}`,
-      `${apiName}/facade/apis/${apiName}/entities/${entityNameKebab}-facade.ts`
+      `${apiPrefix}domain/models/apis/${apiName}/entities/${entityNameLower}`,
+      `${apiPrefix}domain/services/repositories/apis/${apiName}/entities/i-${entityNameKebab}-repository.ts`,
+      `${apiPrefix}domain/services/use_cases/apis/${apiName}/entities/${entityNameLower}`,
+      `${apiPrefix}infrastructure/entities/apis/${apiName}/entities/${entityNameLower}`,
+      `${apiPrefix}infrastructure/mappers/apis/${apiName}/entities/${entityNameLower}`,
+      `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/entities/${entityNameLower}`,
+      `${apiPrefix}facade/apis/${apiName}/entities/${entityNameKebab}-facade.ts`
     ];
 
     for (const searchPath of searchPaths) {

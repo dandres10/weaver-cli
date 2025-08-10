@@ -51,7 +51,7 @@ weaver --logout
 
 ### 🏗️ Generación Inteligente
 
-- **42 archivos por entidad** siguiendo Clean Architecture
+- **43+ archivos por entidad** siguiendo Clean Architecture
 - **Validación previa** del proyecto y entidades existentes
 - **Soporte para múltiples APIs** (platform, payment, etc.)
 - **Nomenclatura consistente** (camelCase para DTOs, snake_case para Entities)
@@ -109,8 +109,8 @@ bus/
     │   └── injection-platform-entities-user-use-case.ts     # Inyección use cases
     ├── infrastructure/mappers/apis/platform/injection/entities/
     │   └── injection-platform-entities-user-mapper.ts       # Inyección mappers
-    └── infrastructure/repositories/apis/platform/repositories/injection/entities/
-        └── (nota para añadir a archivo existente)            # Inyección repositories
+    └── facade/apis/platform/injection/entities/
+        └── injection-platform-entities-facade.ts            # Inyección facades (auto-actualizado)
 ```
 
 ## 🛠️ Características Técnicas
@@ -132,7 +132,7 @@ bus/
 5. **Configurar API name** (autodetectado o manual)
 6. **Validar** estructura del proyecto
 7. **Confirmar** generación
-8. **¡Listo!** 42 archivos generados automáticamente
+8. **¡Listo!** 43+ archivos generados automáticamente
 
 ## 🧪 Desarrollo
 

@@ -89,7 +89,7 @@ export class DirectoryDetector {
    */
   static calculateTargetPath(baseDir: string, currentApiName: string | null, targetApiName: string): string {
     if (currentApiName === targetApiName) {
-      // Generar en el directorio actual
+      // Generar en el directorio actual (sin duplicar el nombre del API)
       return baseDir;
     } else {
       // Generar en directorio hermano

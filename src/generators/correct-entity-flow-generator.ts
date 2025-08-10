@@ -9,42 +9,49 @@ const LOCAL_TEST_PATH = './test-output';
 
 export async function createCorrectEntityFlow(entityName: string, basePath: string = DEFAULT_BASE_PATH, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
   console.log(chalk.blue(`📁 Generando flujo completo para ${entityName} en: ${basePath}`));
-
+  
   const entityNameLower = entityName.toLowerCase();
   const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
-
+  
   // Verificar que el directorio base existe
   if (!await fs.pathExists(basePath)) {
     throw new Error(`El directorio base no existe: ${basePath}`);
   }
 
-  // Definir las rutas correctas: {directorio}/{apiName}/domain/...
-  const paths = {
+  // Determinar si estamos en el directorio de la API o necesitamos crear uno
+  const currentDirName = path.basename(basePath);
+  const shouldCreateApiDir = currentDirName !== apiName;
+  
+  // Definir las rutas correctas según si necesitamos crear el directorio API o no
+  const apiPrefix = shouldCreateApiDir ? `${apiName}/` : '';
+  
+    const paths = {
     // Domain DTOs
-    domainModels: path.join(basePath, `${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}`),
-
+    domainModels: path.join(basePath, `${apiPrefix}domain/models/apis/${apiName}/entities/${entityNameLower}`),
+    
     // Domain Repository Interface
-    domainRepository: path.join(basePath, `${apiName}/domain/services/repositories/apis/${apiName}/entities`),
-
+    domainRepository: path.join(basePath, `${apiPrefix}domain/services/repositories/apis/${apiName}/entities`),
+    
     // Domain Use Cases
-    domainUseCases: path.join(basePath, `${apiName}/domain/services/use_cases/apis/${apiName}/entities/${entityNameLower}`),
-
+    domainUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${apiName}/entities/${entityNameLower}`),
+    
     // Infrastructure Entities
-    infraEntities: path.join(basePath, `${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}`),
-
+    infraEntities: path.join(basePath, `${apiPrefix}infrastructure/entities/apis/${apiName}/entities/${entityNameLower}`),
+    
     // Infrastructure Mappers
-    infraMappers: path.join(basePath, `${apiName}/infrastructure/mappers/apis/${apiName}/entities/${entityNameLower}`),
-
+    infraMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${apiName}/entities/${entityNameLower}`),
+    
     // Infrastructure Repository
-    infraRepository: path.join(basePath, `${apiName}/infrastructure/repositories/apis/${apiName}/repositories/entities/${entityNameLower}`),
-
+    infraRepository: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/entities/${entityNameLower}`),
+    
     // Facade
-    facade: path.join(basePath, `${apiName}/facade/apis/${apiName}/entities`),
-
+    facade: path.join(basePath, `${apiPrefix}facade/apis/${apiName}/entities`),
+    
     // Injection folders
-    useCaseInjection: path.join(basePath, `${apiName}/domain/services/use_cases/apis/${apiName}/injection/entities`),
-    mapperInjection: path.join(basePath, `${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities`),
-    repositoryInjection: path.join(basePath, `${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities`)
+    useCaseInjection: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${apiName}/injection/entities`),
+    mapperInjection: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${apiName}/injection/entities`),
+    repositoryInjection: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/injection/entities`),
+    facadeInjection: path.join(basePath, `${apiPrefix}facade/apis/${apiName}/injection/entities`)
   };
 
   try {
@@ -63,6 +70,7 @@ export async function createCorrectEntityFlow(entityName: string, basePath: stri
     await generateInfrastructureRepository(entityName, paths, schema, apiName);
     await generateFacade(entityName, paths, schema, apiName);
     await generateInjectionFiles(entityName, paths, schema, apiName);
+    await generateFacadeInjection(entityName, paths.facadeInjection, apiName);
 
     console.log(chalk.green(`✨ Flujo ${entityName} generado exitosamente siguiendo el patrón correcto!`));
 
@@ -670,7 +678,7 @@ export class InjectionPlatformEntities${entityName}Mapper {
 
   // 3. Repository Injection (añadir a archivo existente o crear nuevo)
   // Este archivo normalmente sería compartido, pero por ahora creamos uno específico
-  console.log(chalk.yellow(`ℹ️  Recuerda añadir ${entityName}Repository a injection-platform-entities-repository.ts`));
+  console.log(chalk.green(`✅ Facade Injection manejado automáticamente`));
 }
 
 // Helper functions
@@ -925,5 +933,74 @@ function getTypeScriptType(field: any): string {
     case 'boolean': return 'boolean';
     case 'array': return 'any[]';
     default: return 'string';
+  }
+}
+
+/**
+ * Genera o actualiza el archivo de injection para facades
+ */
+async function generateFacadeInjection(entityName: string, facadeInjectionPath: string, apiName: string = 'platform'): Promise<void> {
+  const injectionFileName = `injection-${apiName}-entities-facade.ts`;
+  const injectionFilePath = path.join(facadeInjectionPath, injectionFileName);
+  
+  const entityNameCapitalized = entityName.charAt(0).toUpperCase() + entityName.slice(1);
+  const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
+
+  // Verificar si el archivo ya existe
+  const fileExists = await fs.pathExists(injectionFilePath);
+  
+  if (fileExists) {
+    // Leer archivo existente
+    const existingContent = await fs.readFile(injectionFilePath, 'utf8');
+    
+    // Verificar si la entidad ya está incluida
+    const facadeMethodPattern = new RegExp(`\\s+public\\s+static\\s+${entityNameCapitalized}Facade\\(\\)`, 'g');
+    const importPattern = new RegExp(`import.*${entityNameCapitalized}Facade.*from.*${entityNameKebab}-facade`, 'g');
+    
+    if (!facadeMethodPattern.test(existingContent) || !importPattern.test(existingContent)) {
+      // Agregar import si no existe
+      let updatedContent = existingContent;
+      
+      if (!importPattern.test(existingContent)) {
+        const importLine = `import { ${entityNameCapitalized}Facade } from "@bus/facade/apis/${apiName}/entities/${entityNameKebab}-facade";`;
+        
+        // Buscar la última línea de import
+        const importLines = existingContent.split('\n').filter(line => line.trim().startsWith('import'));
+        const lastImportIndex = existingContent.lastIndexOf(importLines[importLines.length - 1]) + importLines[importLines.length - 1].length;
+        
+        updatedContent = existingContent.slice(0, lastImportIndex) + '\n' + importLine + existingContent.slice(lastImportIndex);
+      }
+      
+      // Agregar método si no existe
+      if (!facadeMethodPattern.test(updatedContent)) {
+        const methodLine = `    public static ${entityNameCapitalized}Facade() { return ${entityNameCapitalized}Facade.getInstance(); }`;
+        
+        // Buscar el final de la clase (antes del último })
+        const classEndIndex = updatedContent.lastIndexOf('}');
+        const beforeClassEnd = updatedContent.slice(0, classEndIndex);
+        const afterClassEnd = updatedContent.slice(classEndIndex);
+        
+        updatedContent = beforeClassEnd + methodLine + '\n' + afterClassEnd;
+      }
+      
+      await fs.writeFile(injectionFilePath, updatedContent);
+      console.log(chalk.green(`✅ Facade Injection actualizado: ${injectionFileName} (agregado ${entityNameCapitalized}Facade)`));
+    } else {
+      console.log(chalk.yellow(`⚠️  Facade Injection: ${entityNameCapitalized}Facade ya existe en ${injectionFileName}`));
+    }
+  } else {
+    // Crear archivo nuevo
+    const apiNameCapitalized = apiName.charAt(0).toUpperCase() + apiName.slice(1);
+    const facadeInjectionContent = `import { ${entityNameCapitalized}Facade } from "@bus/facade/apis/${apiName}/entities/${entityNameKebab}-facade";
+
+export class Injection${apiNameCapitalized}EntitiesFacade {
+    public static ${entityNameCapitalized}Facade() { return ${entityNameCapitalized}Facade.getInstance(); }
+}
+
+
+`;
+
+    await fs.writeFile(injectionFilePath, facadeInjectionContent);
+    console.log(chalk.green(`✅ Facade Injection creado: ${injectionFileName}`));
   }
 }

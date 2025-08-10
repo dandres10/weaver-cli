@@ -131,7 +131,7 @@ Necesito hacer cambios en Weaver CLI, el generador de código TypeScript que lee
 **CONTEXTO ACTUAL:**
 - Comando: `weaver` con autenticación "soyia"
 - Genera en: {directorio-actual}/{api-name}/domain/...
-- 42 archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
+- 43+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
 - Detección inteligente de APIs y directorios
 - Modo local con `--local` flag
 - Validaciones pre-generación completas
