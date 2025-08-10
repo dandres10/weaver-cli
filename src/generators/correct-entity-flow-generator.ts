@@ -1031,7 +1031,7 @@ async function generateRepositoryInjection(entityName: string, repositoryInjecti
       let updatedContent = existingContent;
       
       if (!importPattern.test(existingContent)) {
-        const importLine = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}";`;
+        const importLine = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}/${entityNameKebab}-repository";`;
         
         // Buscar la última línea de import
         const importLines = existingContent.split('\n').filter(line => line.trim().startsWith('import'));
@@ -1060,7 +1060,7 @@ async function generateRepositoryInjection(entityName: string, repositoryInjecti
   } else {
     // Crear archivo nuevo
     const apiNameCapitalized = apiName.charAt(0).toUpperCase() + apiName.slice(1);
-    const repositoryInjectionContent = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}";
+    const repositoryInjectionContent = `import { ${entityNameCapitalized}Repository } from "../../entities/${entityName.toLowerCase()}/${entityNameKebab}-repository";
 
 export class Injection${apiNameCapitalized}EntitiesRepository {
   public static ${entityNameCapitalized}Repository() { return ${entityNameCapitalized}Repository.getInstance(); }

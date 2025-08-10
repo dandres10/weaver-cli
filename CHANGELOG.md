@@ -5,6 +5,17 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2024-12-19
+
+### 🐛 Fixed
+- **Repository Imports**: Corregidas las importaciones en injection-platform-entities-repository.ts
+- **Path específico**: Los repositories ahora se importan con el path completo al archivo
+- **Consistencia**: Alineado con el patrón del proyecto goluti-frontend
+
+### 📦 Technical
+- Importaciones cambiadas de `from "../../entities/location"` a `from "../../entities/location/location-repository"`
+- Aplica tanto para archivos nuevos como para actualizaciones de archivos existentes
+
 ## [1.0.6] - 2024-12-19
 
 ### 🔧 Added
