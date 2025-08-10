@@ -269,6 +269,22 @@ import { IUserDTO } from "@platform/domain/models/apis/platform/entities/user";
 import { IConfigDTO } from "@bus/core/interfaces";
 ```
 
+### 🔧 **v1.0.7 - Repository Import Fix**
+**Fecha**: Diciembre 2024  
+**Problema**: Importaciones incorrectas en injection-platform-entities-repository.ts  
+**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
+**Cambios**:
+- ✅ Importaciones de repositories usan path completo al archivo
+- ✅ Cambio de `"../../entities/location"` a `"../../entities/location/location-repository"`
+- ✅ Alineado con patrón del proyecto goluti-frontend
+- ✅ Aplica a archivos nuevos y actualizaciones
+
+**Resultado**:
+```typescript
+// ✅ Correcto
+import { LocationRepository } from "../../entities/location/location-repository";
+```
+
 ---
 
 ## 🚀 INSTRUCCIONES DE USO

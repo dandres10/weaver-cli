@@ -199,6 +199,11 @@ npm run session-info   # Ver info de sesión
 
 ## 📋 Historial de Versiones
 
+### v1.0.7 - Repository Import Fix 🔧
+- **🐛 Repository Imports**: Corregidas las importaciones en injection-platform-entities-repository.ts
+- **📁 Path específico**: Los repositories usan el path completo al archivo
+- **✅ Consistencia**: Alineado con el patrón del proyecto goluti-frontend
+
 ### v1.0.6 - Importaciones Inteligentes ✨
 - **🔧 Importaciones corregidas**: Los archivos generados usan `@{api-name}`, los core mantienen `@bus`
 - **📦 33+ importaciones**: Sistemáticamente corregidas en todos los templates
