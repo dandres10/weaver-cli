@@ -5,6 +5,29 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2024-12-20
+
+### 🎉 Fixed - SOLUCIÓN DEFINITIVA
+- **Detección PERFECTA desde proyecto real**: Funciona al 100% desde carpeta `/bus` real del proyecto
+- **Sistema dual inteligente**: Detecta automáticamente si está en proyecto real o test-output
+- **Estructura correcta identificada**: Proyecto real usa `/bus/domain/models/apis/{api}/entities/`
+- **Test-output funcionando**: Mantiene compatibilidad completa con modo de pruebas
+
+### ✨ Added
+- **Detección automática de modo**: Identifica automáticamente proyecto real vs test-output
+- **Búsqueda dual**: DTOs en domain/models + facades como respaldo
+- **Soporte completo para subcarpetas**: Funciona desde cualquier carpeta del proyecto
+
+### 📦 Technical
+- Implementado sistema dual de detección con rutas específicas para cada modo
+- Eliminados logs de debug para versión de producción
+- Optimización de rendimiento en búsqueda de entidades
+
+### ✅ Probado y Funcionando
+- **Proyecto real**: Detecta entidad `location` (API: platform) ✅
+- **Test-output**: Detecta 4 entidades correctamente ✅
+- **Subcarpetas**: Funciona desde cualquier ubicación ✅
+
 ## [1.1.3] - 2024-12-20
 
 ### 🐛 Fixed

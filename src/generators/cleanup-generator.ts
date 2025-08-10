@@ -328,37 +328,47 @@ export async function detectGeneratedAPIs(basePath: string): Promise<DetectedAPI
 async function getEntityAllPaths(basePath: string, apiName: string, entityName: string): Promise<string[]> {
   const paths: string[] = [];
   const entityNameLower = entityName.toLowerCase();
-  const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
+  // Convertir CamelCase a kebab-case correctamente
+  const entityNameKebab = entityName
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
   
-  // Rutas base según la estructura real del generador (debe coincidir con correct-entity-flow-generator.ts)
-  const baseStructure = {
-    // Domain DTOs - usar entityNameLower como en el generador
-    domainModels: path.join(basePath, apiName, 'domain/models/apis', apiName, 'entities', entityNameLower),
-    
-    // Domain Repository Interface
-    domainRepository: path.join(basePath, apiName, 'domain/services/repositories/apis', apiName, 'entities'),
-    
-    // Domain Use Cases - usar entityNameLower
-    domainUseCases: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'entities', entityNameLower),
-    
-    // Infrastructure Entities - usar entityNameLower
-    infraEntities: path.join(basePath, apiName, 'infrastructure/entities/apis', apiName, 'entities', entityNameLower),
-    
-    // Infrastructure Mappers - usar entityNameLower
-    infraMappers: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'entities', entityNameLower),
-    
-    // Infrastructure Repository - usar entityNameLower
-    infraRepository: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/entities', entityNameLower),
-    
-    // Facade
-    facade: path.join(basePath, apiName, 'facade/apis', apiName, 'entities'),
-    
-    // Injection files
-    useCaseInjection: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'injection/entities'),
-    mapperInjection: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'injection/entities'),
-    repositoryInjection: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities'),
-    facadeInjection: path.join(basePath, apiName, 'facade/apis', apiName, 'injection/entities')
-  };
+  // Detectar si estamos en test-output o proyecto real
+  const isTestOutput = basePath.includes('test-output');
+  
+  let baseStructure: any;
+  
+  if (isTestOutput) {
+    // Estructura para test-output (como antes)
+    baseStructure = {
+      domainModels: path.join(basePath, apiName, 'domain/models/apis', apiName, 'entities', entityNameLower),
+      domainRepository: path.join(basePath, apiName, 'domain/services/repositories/apis', apiName, 'entities'),
+      domainUseCases: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'entities', entityNameLower),
+      infraEntities: path.join(basePath, apiName, 'infrastructure/entities/apis', apiName, 'entities', entityNameLower),
+      infraMappers: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'entities', entityNameLower),
+      infraRepository: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/entities', entityNameLower),
+      facade: path.join(basePath, apiName, 'facade/apis', apiName, 'entities'),
+      useCaseInjection: path.join(basePath, apiName, 'domain/services/use_cases/apis', apiName, 'injection/entities'),
+      mapperInjection: path.join(basePath, apiName, 'infrastructure/mappers/apis', apiName, 'injection/entities'),
+      repositoryInjection: path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities'),
+      facadeInjection: path.join(basePath, apiName, 'facade/apis', apiName, 'injection/entities')
+    };
+  } else {
+    // Estructura para proyecto real - basePath ya es /bus
+    baseStructure = {
+      domainModels: path.join(basePath, 'domain/models/apis', apiName, 'entities', entityNameLower),
+      domainRepository: path.join(basePath, 'domain/services/repositories/apis', apiName, 'entities'),
+      domainUseCases: path.join(basePath, 'domain/services/use_cases/apis', apiName, 'entities', entityNameLower),
+      infraEntities: path.join(basePath, 'infrastructure/entities/apis', apiName, 'entities', entityNameLower),
+      infraMappers: path.join(basePath, 'infrastructure/mappers/apis', apiName, 'entities', entityNameLower),
+      infraRepository: path.join(basePath, 'infrastructure/repositories/apis', apiName, 'repositories/entities', entityNameLower),
+      facade: path.join(basePath, 'facade/apis', apiName, 'entities'),
+      useCaseInjection: path.join(basePath, 'domain/services/use_cases/apis', apiName, 'injection/entities'),
+      mapperInjection: path.join(basePath, 'infrastructure/mappers/apis', apiName, 'injection/entities'),
+      repositoryInjection: path.join(basePath, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities'),
+      facadeInjection: path.join(basePath, 'facade/apis', apiName, 'injection/entities')
+    };
+  }
   
   // Archivos específicos de entidad
   const entityFiles = [
@@ -401,9 +411,9 @@ async function getEntityAllPaths(basePath: string, apiName: string, entityName: 
     // Facade
     path.join(baseStructure.facade, `${entityNameKebab}-facade.ts`),
     
-    // Injection files
-    path.join(baseStructure.useCaseInjection, `injection-${apiName}-entities-${entityNameKebab}-use-case.ts`),
-    path.join(baseStructure.mapperInjection, `injection-${apiName}-entities-${entityNameKebab}-mapper.ts`)
+    // Injection files (usar entityNameLower para injection files)
+    path.join(baseStructure.useCaseInjection, `injection-${apiName}-entities-${entityNameLower}-use-case.ts`),
+    path.join(baseStructure.mapperInjection, `injection-${apiName}-entities-${entityNameLower}-mapper.ts`)
   ];
   
   // Verificar qué archivos existen realmente
@@ -429,7 +439,7 @@ async function getEntityAllPaths(basePath: string, apiName: string, entityName: 
   }
   
   // Agregar directorios vacíos que se pueden eliminar
-  for (const dirPath of Object.values(baseStructure)) {
+  for (const dirPath of Object.values(baseStructure) as string[]) {
     if (await fs.pathExists(dirPath)) {
       try {
         const files = await fs.readdir(dirPath);
@@ -625,30 +635,54 @@ export async function cleanupAll(basePath: string): Promise<void> {
  * Limpia referencias de entidad en archivos de injection
  */
 async function cleanupInjectionReferences(basePath: string, apiName: string, entityName: string): Promise<void> {
-  const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
+  const entityNameLower = entityName.toLowerCase();
+  const entityNameKebab = entityName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
   const entityNamePascal = entityName.charAt(0).toUpperCase() + entityName.slice(1);
   
-  // Archivos de injection a limpiar
-  const injectionFiles = [
-    path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities/injection-' + apiName + '-entities-repository.ts'),
-    path.join(basePath, apiName, 'facade/apis', apiName, 'injection/entities/injection-' + apiName + '-entities-facade.ts')
-  ];
+  // Detectar si estamos en test-output o proyecto real
+  const isTestOutput = basePath.includes('test-output');
+  
+  let injectionFiles: string[];
+  
+  if (isTestOutput) {
+    // Estructura para test-output
+    injectionFiles = [
+      path.join(basePath, apiName, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities/injection-' + apiName + '-entities-repository.ts'),
+      path.join(basePath, apiName, 'facade/apis', apiName, 'injection/entities/injection-' + apiName + '-entities-facade.ts')
+    ];
+  } else {
+    // Estructura para proyecto real - basePath ya es /bus
+    injectionFiles = [
+      path.join(basePath, 'infrastructure/repositories/apis', apiName, 'repositories/injection/entities/injection-' + apiName + '-entities-repository.ts'),
+      path.join(basePath, 'facade/apis', apiName, 'injection/entities/injection-' + apiName + '-entities-facade.ts'),
+      // Agregar archivos específicos de la entidad que deben eliminarse completamente
+      path.join(basePath, 'domain/services/use_cases/apis', apiName, 'injection/entities/injection-' + apiName + '-entities-' + entityNameLower + '-use-case.ts'),
+      path.join(basePath, 'infrastructure/mappers/apis', apiName, 'injection/entities/injection-' + apiName + '-entities-' + entityNameLower + '-mapper.ts')
+    ];
+  }
   
   for (const injectionFile of injectionFiles) {
     if (await fs.pathExists(injectionFile)) {
       try {
-        let content = await fs.readFile(injectionFile, 'utf-8');
-        
-        // Remover import de la entidad
-        const importRegex = new RegExp(`import\\s*{[^}]*${entityNamePascal}[^}]*}\\s*from[^;]+;\\s*\n?`, 'g');
-        content = content.replace(importRegex, '');
-        
-        // Remover método estático de la entidad
-        const methodRegex = new RegExp(`\\s*public\\s+static\\s+${entityNamePascal}[^}]+}\\s*\n?`, 'g');
-        content = content.replace(methodRegex, '');
-        
-        await fs.writeFile(injectionFile, content);
-        console.log(chalk.gray(`🧹 Referencias eliminadas de: ${path.relative(basePath, injectionFile)}`));
+        // Si es un archivo específico de la entidad (contiene el nombre de la entidad), eliminarlo completamente
+        if (injectionFile.includes(`-${entityNameLower}-`)) {
+          await fs.remove(injectionFile);
+          console.log(chalk.gray(`🗑️  Archivo de injection eliminado: ${path.relative(basePath, injectionFile)}`));
+        } else {
+          // Si es un archivo compartido, solo limpiar referencias
+          let content = await fs.readFile(injectionFile, 'utf-8');
+          
+          // Remover import de la entidad
+          const importRegex = new RegExp(`import\\s*{[^}]*${entityNamePascal}[^}]*}\\s*from[^;]+;\\s*\n?`, 'g');
+          content = content.replace(importRegex, '');
+          
+          // Remover método estático de la entidad
+          const methodRegex = new RegExp(`\\s*public\\s+static\\s+${entityNamePascal}[^}]+}\\s*\n?`, 'g');
+          content = content.replace(methodRegex, '');
+          
+          await fs.writeFile(injectionFile, content);
+          console.log(chalk.gray(`🧹 Referencias eliminadas de: ${path.relative(basePath, injectionFile)}`));
+        }
         
       } catch (error) {
         console.warn(chalk.yellow(`⚠️  Error limpiando referencias en ${injectionFile}: ${error}`));
