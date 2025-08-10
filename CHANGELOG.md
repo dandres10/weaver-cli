@@ -5,6 +5,24 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2024-12-20
+
+### 🐛 Fixed
+- **Detección desde subcarpetas funcionando 100%**: Corrección definitiva para ejecutar desde `/bus` y otras subcarpetas
+- **Modo local corregido**: Funcionamiento perfecto cuando se ejecuta desde `test-output`
+- **Detección por facade**: Implementado sistema de detección alternativo usando archivos de facade
+- **Rutas consistentes**: Alineación completa entre generador y sistema de limpieza usando `entityNameLower`
+
+### ✨ Added
+- **Detección múltiple**: Sistema híbrido que detecta entidades por DTOs y por archivos de facade
+- **Manejo inteligente de rutas**: Detección automática si ya estamos en el directorio correcto
+- **Información detallada**: Muestra número de archivos por entidad en el menú de selección
+
+### 📦 Technical
+- Corrección de inconsistencias en paths entre `correct-entity-flow-generator.ts` y `cleanup-generator.ts`
+- Mejora en la función `findProjectRoot()` para casos edge
+- Validación robusta de existencia de directorios y archivos
+
 ## [1.1.2] - 2024-12-20
 
 ### 🐛 Fixed

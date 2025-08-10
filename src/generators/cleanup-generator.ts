@@ -32,75 +32,98 @@ export async function detectGeneratedEntities(basePath: string): Promise<Detecte
     // Si estamos en una subcarpeta, necesitamos encontrar el directorio raíz correcto
     const actualBasePath = await findProjectRoot(basePath);
     
-    // Buscar en todas las APIs
-    const apisPath = path.join(actualBasePath);
-    if (!await fs.pathExists(apisPath)) {
-      return entities;
-    }
+    // Detectar si estamos en modo test-output o proyecto real
+    const isTestOutput = actualBasePath.includes('test-output');
     
-    const apiDirs = await fs.readdir(apisPath);
-    
-    for (const apiDir of apiDirs) {
-      const apiPath = path.join(apisPath, apiDir);
+    if (isTestOutput) {
+      // Modo test-output: buscar APIs como directorios principales
+      const apisPath = path.join(actualBasePath);
+      if (!await fs.pathExists(apisPath)) {
+        return entities;
+      }
       
-      // Verificar que existe y es directorio
-      if (!await fs.pathExists(apiPath)) continue;
-      const stat = await fs.stat(apiPath);
-      if (!stat.isDirectory()) continue;
+      const apiDirs = await fs.readdir(apisPath);
       
-      // Buscar entidades en domain/models - la estructura real del generador
-      const entitiesBasePath = path.join(apiPath, 'domain/models/apis', apiDir, 'entities');
-      
-      if (await fs.pathExists(entitiesBasePath)) {
-        const entityDirs = await fs.readdir(entitiesBasePath);
+      for (const apiDir of apiDirs) {
+        const apiPath = path.join(apisPath, apiDir);
+        if (!await fs.pathExists(apiPath)) continue;
+        const stat = await fs.stat(apiPath);
+        if (!stat.isDirectory()) continue;
         
-        for (const entityDir of entityDirs) {
-          const entityPath = path.join(entitiesBasePath, entityDir);
+        await detectEntitiesInAPI(actualBasePath, apiDir, apiPath, entities);
+      }
+    } else {
+      // Modo proyecto real: buscar en domain/models/apis/
+      const domainModelsPath = path.join(actualBasePath, 'domain/models/apis');
+      
+      if (await fs.pathExists(domainModelsPath)) {
+        const apiDirs = await fs.readdir(domainModelsPath);
+        
+        for (const apiDir of apiDirs) {
+          const apiPath = path.join(domainModelsPath, apiDir);
+          if (!await fs.pathExists(apiPath)) continue;
+          const stat = await fs.stat(apiPath);
+          if (!stat.isDirectory()) continue;
           
-          if (!await fs.pathExists(entityPath)) continue;
-          const entityStat = await fs.stat(entityPath);
+          // Para proyecto real, la estructura es /bus/domain/models/apis/{api}/entities/
+          const entitiesPath = path.join(apiPath, 'entities');
           
-          if (entityStat.isDirectory()) {
-            // Verificar que contiene archivos de DTOs o archivos relevantes
-            const files = await fs.readdir(entityPath);
-            const hasRelevantFiles = files.some(file => 
-              file.includes('-dto.ts') || 
-              file.includes('-entity.ts') ||
-              file.includes('-use-case.ts') ||
-              file === 'index.ts'
-            );
+          if (await fs.pathExists(entitiesPath)) {
+            const entityDirs = await fs.readdir(entitiesPath);
             
-            if (hasRelevantFiles) {
-              const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityDir);
-              entities.push({
-                name: entityDir,
-                apiName: apiDir,
-                paths: entityPaths
-              });
+            for (const entityDir of entityDirs) {
+              const entityPath = path.join(entitiesPath, entityDir);
+              
+              if (!await fs.pathExists(entityPath)) continue;
+              const entityStat = await fs.stat(entityPath);
+              
+              if (entityStat.isDirectory()) {
+                const files = await fs.readdir(entityPath);
+                const hasRelevantFiles = files.some(file => 
+                  file.includes('-dto.ts') || 
+                  file.includes('-entity.ts') ||
+                  file.includes('-use-case.ts') ||
+                  file === 'index.ts'
+                );
+                
+                if (hasRelevantFiles) {
+                  const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityDir);
+                  entities.push({
+                    name: entityDir,
+                    apiName: apiDir,
+                    paths: entityPaths
+                  });
+                }
+              }
             }
           }
         }
       }
       
-      // También buscar en facade para verificar si hay entidades por el patrón de archivos de facade
-      const facadePath = path.join(apiPath, 'facade/apis', apiDir, 'entities');
-      if (await fs.pathExists(facadePath)) {
-        const facadeFiles = await fs.readdir(facadePath);
+      // También buscar facades en proyecto real
+      const facadeApisPath = path.join(actualBasePath, 'facade/apis');
+      
+      if (await fs.pathExists(facadeApisPath)) {
+        const apiDirs = await fs.readdir(facadeApisPath);
         
-        for (const facadeFile of facadeFiles) {
-          if (facadeFile.endsWith('-facade.ts') && !facadeFile.startsWith('injection-')) {
-            // Extraer nombre de entidad del archivo de facade
-            const entityName = facadeFile.replace('-facade.ts', '');
+        for (const apiDir of apiDirs) {
+          const facadePath = path.join(facadeApisPath, apiDir, 'entities');
+          if (await fs.pathExists(facadePath)) {
+            const facadeFiles = await fs.readdir(facadePath);
             
-            // Verificar si ya no está en la lista
-            const alreadyExists = entities.some(e => e.name.toLowerCase() === entityName.toLowerCase());
-            if (!alreadyExists) {
-              const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityName);
-              entities.push({
-                name: entityName,
-                apiName: apiDir,
-                paths: entityPaths
-              });
+            for (const facadeFile of facadeFiles) {
+              if (facadeFile.endsWith('-facade.ts') && !facadeFile.startsWith('injection-')) {
+                const entityName = facadeFile.replace('-facade.ts', '');
+                const alreadyExists = entities.some(e => e.name.toLowerCase() === entityName.toLowerCase());
+                if (!alreadyExists) {
+                  const entityPaths = await getEntityAllPaths(actualBasePath, apiDir, entityName);
+                  entities.push({
+                    name: entityName,
+                    apiName: apiDir,
+                    paths: entityPaths
+                  });
+                }
+              }
             }
           }
         }
@@ -134,34 +157,123 @@ async function findProjectRoot(startPath: string): Promise<string> {
     }
   }
   
-  // Para proyectos reales
-  while (currentPath !== path.dirname(currentPath)) {
+  // Para proyectos reales - buscar desde el directorio actual hacia arriba
+  let searchPath = currentPath;
+  
+  while (searchPath !== path.dirname(searchPath)) {
+    // Si ya estamos en una carpeta que contiene 'bus'
+    if (searchPath.endsWith('bus')) {
+      // Verificar si esta carpeta bus tiene contenido generado
+      const hasGeneratedContent = await hasWeaverGeneratedContent(searchPath);
+      if (hasGeneratedContent) {
+        return searchPath;
+      }
+    }
+    
     // Buscar indicadores de que es un directorio de proyecto frontend
-    const packageJsonPath = path.join(currentPath, 'package.json');
-    const srcPath = path.join(currentPath, 'src');
-    const busPath = path.join(currentPath, 'src', 'bus');
+    const packageJsonPath = path.join(searchPath, 'package.json');
+    const srcPath = path.join(searchPath, 'src');
+    const busPath = path.join(searchPath, 'src', 'bus');
     
     // Si encontramos package.json Y src/bus, es probablemente la raíz
     if (await fs.pathExists(packageJsonPath) && await fs.pathExists(busPath)) {
-      return path.join(currentPath, 'src', 'bus');
+      return busPath;
     }
     
-    // Si ya estamos en src/bus o una subcarpeta, usar esa como base
-    if (currentPath.endsWith('bus') || currentPath.includes(path.join('src', 'bus'))) {
-      // Si estamos en una subcarpeta de bus, subir hasta bus
-      while (!currentPath.endsWith('bus') && currentPath.includes('bus')) {
-        currentPath = path.dirname(currentPath);
-      }
-      if (currentPath.endsWith('bus')) {
-        return currentPath;
-      }
+    searchPath = path.dirname(searchPath);
+  }
+  
+  // Si estamos en una subcarpeta de bus, subir hasta encontrar bus
+  if (currentPath.includes('bus')) {
+    let busPath = currentPath;
+    while (!busPath.endsWith('bus') && busPath.includes('bus') && busPath !== path.dirname(busPath)) {
+      busPath = path.dirname(busPath);
     }
-    
-    currentPath = path.dirname(currentPath);
+    if (busPath.endsWith('bus')) {
+      return busPath;
+    }
   }
   
   // Si no encontramos nada, usar el directorio original
   return startPath;
+}
+
+/**
+ * Verifica si un directorio contiene contenido generado por Weaver
+ */
+async function hasWeaverGeneratedContent(dirPath: string): Promise<boolean> {
+  try {
+    // Buscar directorios que indiquen estructura de Weaver
+    const domainPath = path.join(dirPath, 'domain');
+    const infrastructurePath = path.join(dirPath, 'infrastructure');
+    const facadePath = path.join(dirPath, 'facade');
+    
+    return await fs.pathExists(domainPath) || 
+           await fs.pathExists(infrastructurePath) || 
+           await fs.pathExists(facadePath);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Detecta entidades en una API específica (para modo test-output)
+ */
+async function detectEntitiesInAPI(basePath: string, apiName: string, apiPath: string, entities: DetectedEntity[]): Promise<void> {
+  // Buscar entidades en domain/models
+  const entitiesBasePath = path.join(apiPath, 'domain/models/apis', apiName, 'entities');
+  
+  if (await fs.pathExists(entitiesBasePath)) {
+    const entityDirs = await fs.readdir(entitiesBasePath);
+    
+    for (const entityDir of entityDirs) {
+      const entityPath = path.join(entitiesBasePath, entityDir);
+      
+      if (!await fs.pathExists(entityPath)) continue;
+      const entityStat = await fs.stat(entityPath);
+      
+      if (entityStat.isDirectory()) {
+        const files = await fs.readdir(entityPath);
+        const hasRelevantFiles = files.some(file => 
+          file.includes('-dto.ts') || 
+          file.includes('-entity.ts') ||
+          file.includes('-use-case.ts') ||
+          file === 'index.ts'
+        );
+        
+        if (hasRelevantFiles) {
+          const entityPaths = await getEntityAllPaths(basePath, apiName, entityDir);
+          entities.push({
+            name: entityDir,
+            apiName: apiName,
+            paths: entityPaths
+          });
+        }
+      }
+    }
+  }
+  
+  // También buscar en facade
+  const facadePath = path.join(apiPath, 'facade/apis', apiName, 'entities');
+  
+  if (await fs.pathExists(facadePath)) {
+    const facadeFiles = await fs.readdir(facadePath);
+    
+    for (const facadeFile of facadeFiles) {
+      if (facadeFile.endsWith('-facade.ts') && !facadeFile.startsWith('injection-')) {
+        const entityName = facadeFile.replace('-facade.ts', '');
+        const alreadyExists = entities.some(e => e.name.toLowerCase() === entityName.toLowerCase());
+        if (!alreadyExists) {
+          const entityPaths = await getEntityAllPaths(basePath, apiName, entityName);
+          entities.push({
+            name: entityName,
+            apiName: apiName,
+            paths: entityPaths
+          });
+        }
+      }
+    }
+  }
 }
 
 /**
