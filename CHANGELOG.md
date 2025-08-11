@@ -5,6 +5,37 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2024-12-20
+
+### 🎯 Fixed - FLUJO PERFECTO CON API NAME + DIRECTORIO FLEXIBLE
+- **Flujo simplificado y claro**: API name define estructura lógica, directorio define ubicación física
+- **Selección de directorio**: Modo local permite elegir carpeta existente o crear nueva
+- **Eliminada confusión**: Sin duplicidad entre apiName y targetApiName
+- **Lógica correcta**: apiPrefix = '' siempre, sin carpetas adicionales innecesarias
+
+### ✨ Added
+- **Selección de directorio en modo local**: Lista carpetas existentes + opción crear nueva
+- **Flujo dual perfecto**: Mismo API + nueva carpeta o API diferente + carpeta existente
+- **Estructura lógica clara**: apis/{api-name}/ siempre respeta el nombre configurado
+- **Compatibilidad total**: Funciona igual en modo local y producción
+
+### 🎯 Casos de Uso Implementados
+- **Caso 1**: `platform` → `nuevo: platform` → `platform/apis/platform/`
+- **Caso 2**: `leon` → `platform (existente)` → `platform/apis/leon/`
+- **Flexibilidad total**: Cualquier combinación API + directorio
+
+### 🚀 Mejoras Técnicas
+- Simplificado calculateTargetPath() para usar siempre directorio actual
+- Mejorada lógica de selección de directorio en modo local
+- Eliminada lógica confusa de shouldCreateApiDir
+- Código más lineal y fácil de mantener
+
+### ✅ Probado y Funcionando
+- **4 casos diferentes**: Todos exitosos en modo local ✅
+- **Estructura correcta**: APIs y entidades en ubicaciones exactas ✅
+- **Detección dinámica**: Desde cualquier carpeta funcionando ✅
+- **Eliminación completa**: 32+ elementos eliminados perfectamente ✅
+
 ## [1.1.6] - 2024-12-20
 
 ### 🎯 Fixed - DETECCIÓN DINÁMICA UNIVERSAL
