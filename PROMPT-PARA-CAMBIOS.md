@@ -21,7 +21,7 @@ weaver-cli/
 │   │   └── project-validator.ts            # Validaciones pre-generación
 │   └── utils/
 │       └── directory-detector.ts           # Detección inteligente de APIs y directorios
-├── package.json                            # Configuración NPM (comando: "wc")
+├── package.json                            # Configuración NPM (comando: "weaver")
 ├── tsconfig.json                           # Configuración TypeScript
 └── README.md                               # Documentación completa
 ```
@@ -29,64 +29,64 @@ weaver-cli/
 ### 🎯 FUNCIONALIDADES IMPLEMENTADAS
 
 1. **🔐 Autenticación**: Clave "soyia", sesión 30 días, archivo ~/.weaver-cli-auth
-2. **⚡ CLI Interactivo**: Comando `wc`, menú con inquirer, colores con chalk
+2. **⚡ CLI Interactivo**: Comando `weaver`, menú con inquirer, colores con chalk
 3. **🌐 OpenAPI Integration**: Lectura automática, detección de entidades y tipos
-4. **🎯 Detección Inteligente**: API actual vs API target, validación de rutas
-5. **📁 Generación Flexible**: Desde cualquier directorio hacia cualquier API
-6. **🧪 Modo Local**: `wc --local` genera en `./test-output/`
+4. **🎯 Detección Inteligente**: API actual vs API target, validación de rutas, detección desde cualquier directorio
+5. **📁 Generación Flexible**: Desde cualquier directorio hacia cualquier API con selección de directorio destino
+6. **🧪 Modo Local**: `weaver --local` genera en `./test-output/` con selección de carpetas existentes
 7. **🛡️ Validaciones**: Estructura proyecto, entidades existentes, confirmaciones
 8. **📊 Clean Architecture**: 42+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections)
 9. **🔧 Repository Injection**: Generación automática de injection-platform-entities-repository.ts
+10. **🧹 Sistema de Limpieza**: Detección y eliminación completa de entidades generadas desde cualquier directorio
+11. **🎯 Flujo Dual Perfecto**: API name (estructura lógica) + directorio destino (ubicación física)
 
 ### 🗂️ ESTRUCTURA GENERADA
 
 ```
-{directorio-actual}/
-└── {api-name}/                    # Ej: platform/, payment/, etc.
-    ├── domain/
-    │   ├── models/apis/{api-name}/entities/{entity}/
-    │   │   ├── i-{entity}-dto.ts
-    │   │   ├── i-{entity}-save-dto.ts
-    │   │   ├── i-{entity}-read-dto.ts
-    │   │   ├── i-{entity}-update-dto.ts
-    │   │   ├── i-{entity}-delete-dto.ts
-    │   │   └── index.ts
-    │   └── services/
-    │       ├── repositories/apis/{api-name}/entities/
-    │       │   └── i-{entity}-repository.ts
-    │       └── use_cases/apis/{api-name}/entities/{entity}/
-    │           ├── {entity}-save-use-case.ts
-    │           ├── {entity}-read-use-case.ts
-    │           ├── {entity}-update-use-case.ts
-    │           ├── {entity}-delete-use-case.ts
-    │           └── {entity}-list-use-case.ts
-    ├── infrastructure/
-    │   ├── entities/apis/{api-name}/entities/{entity}/
-    │   │   ├── i-{entity}-entity.ts
-    │   │   ├── i-{entity}-save-entity.ts
-    │   │   ├── i-{entity}-read-entity.ts
-    │   │   ├── i-{entity}-update-entity.ts
-    │   │   ├── i-{entity}-delete-entity.ts
-    │   │   └── index.ts
-    │   ├── mappers/apis/{api-name}/entities/{entity}/
-    │   │   ├── {entity}-entity-mapper.ts
-    │   │   ├── {entity}-save-mapper.ts
-    │   │   ├── {entity}-read-mapper.ts
-    │   │   ├── {entity}-update-mapper.ts
-    │   │   └── {entity}-delete-mapper.ts
-    │   └── repositories/apis/{api-name}/repositories/entities/{entity}/
-    │       └── {entity}-repository.ts
-    ├── facade/apis/{api-name}/entities/
-    │   └── {entity}-facade.ts
-    └── injection/
-        ├── domain/services/use_cases/apis/{api-name}/injection/entities/
-        │   └── injection-{api-name}-entities-{entity}-use-case.ts
-        ├── infrastructure/mappers/apis/{api-name}/injection/entities/
-        │   └── injection-{api-name}-entities-{entity}-mapper.ts
-        ├── infrastructure/repositories/apis/{api-name}/repositories/injection/entities/
-        │   └── injection-{api-name}-entities-repository.ts
-        └── facade/apis/{api-name}/injection/entities/
-            └── injection-{api-name}-entities-facade.ts
+{directorio-destino}/              # Seleccionado por el usuario (ej: platform/, bus/, test-output/platform/)
+├── domain/
+│   ├── models/apis/{api-name}/entities/{entity}/         # api-name configurado por usuario
+│   │   ├── i-{entity}-dto.ts
+│   │   ├── i-{entity}-save-dto.ts
+│   │   ├── i-{entity}-read-dto.ts
+│   │   ├── i-{entity}-update-dto.ts
+│   │   ├── i-{entity}-delete-dto.ts
+│   │   └── index.ts
+│   └── services/
+│       ├── repositories/apis/{api-name}/entities/
+│       │   └── i-{entity}-repository.ts
+│       └── use_cases/apis/{api-name}/entities/{entity}/
+│           ├── {entity}-save-use-case.ts
+│           ├── {entity}-read-use-case.ts
+│           ├── {entity}-update-use-case.ts
+│           ├── {entity}-delete-use-case.ts
+│           ├── {entity}-list-use-case.ts
+│           └── injection/entities/
+│               └── injection-{api-name}-entities-{entity}-use-case.ts
+├── infrastructure/
+│   ├── entities/apis/{api-name}/entities/{entity}/
+│   │   ├── i-{entity}-entity.ts
+│   │   ├── i-{entity}-save-entity.ts
+│   │   ├── i-{entity}-read-entity.ts
+│   │   ├── i-{entity}-update-entity.ts
+│   │   ├── i-{entity}-delete-entity.ts
+│   │   └── index.ts
+│   ├── mappers/apis/{api-name}/entities/{entity}/
+│   │   ├── {entity}-entity-mapper.ts
+│   │   ├── {entity}-save-mapper.ts
+│   │   ├── {entity}-read-mapper.ts
+│   │   ├── {entity}-update-mapper.ts
+│   │   ├── {entity}-delete-mapper.ts
+│   │   └── injection/entities/
+│   │       └── injection-{api-name}-entities-{entity}-mapper.ts
+│   └── repositories/apis/{api-name}/repositories/entities/{entity}/
+│       ├── {entity}-repository.ts
+│       └── injection/entities/
+│           └── injection-{api-name}-entities-repository.ts
+├── facade/apis/{api-name}/entities/
+│   ├── {entity}-facade.ts
+│   └── injection/entities/
+│       └── injection-{api-name}-entities-facade.ts
 ```
 
 ### 🔧 TECNOLOGÍAS Y DEPENDENCIAS
@@ -116,15 +116,15 @@ npm run logout        # Build + logout
 
 ### 🔄 FLUJO DE TRABAJO
 
-1. **Detección**: Analizar directorio actual y APIs disponibles
+1. **Detección Automática**: Analizar directorio actual y APIs disponibles desde cualquier ubicación
 2. **Autenticación**: Verificar clave "soyia" (válida 30 días)
 3. **OpenAPI**: Solicitar URL, cargar y analizar especificación
-4. **API Selection**: Detectar API del Swagger, sugerir opciones
-5. **Target Selection**: Elegir dónde generar (mismo API, hermana, custom)
+4. **API Name**: Configurar nombre lógico de API (estructura apis/{api-name}/)
+5. **Directorio Destino**: Seleccionar ubicación física (local: carpetas existentes/nueva, producción: APIs hermanas)
 6. **Entity Selection**: Mostrar entidades disponibles del Swagger
 7. **Validation**: Verificar estructura proyecto y entidades existentes
-8. **Generation**: Crear 43+ archivos siguiendo patrón Clean Architecture (incluye injection-repository)
-9. **Confirmation**: Mostrar resultado y ubicación de archivos
+8. **Generation**: Crear 42+ archivos siguiendo patrón Clean Architecture con injection completo
+9. **Confirmation**: Mostrar resultado y ubicación exacta de archivos
 
 ---
 
@@ -135,18 +135,21 @@ Necesito hacer cambios en Weaver CLI, el generador de código TypeScript que lee
 
 **CONTEXTO ACTUAL:**
 - Comando: `weaver` con autenticación "soyia"
-- Genera en: {directorio-actual}/{api-name}/domain/...
-- 43+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections, Repository Injection)
-- Detección inteligente de APIs y directorios
-- Modo local con `--local` flag
+- Flujo dual: API name (lógico) + directorio destino (físico)
+- Genera en: {directorio-destino}/domain/models/apis/{api-name}/...
+- 42+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections completas)
+- Detección automática desde cualquier directorio (/bus, /platform, /core, etc.)
+- Modo local con selección de carpetas existentes/nuevas
+- Sistema de limpieza completo de entidades generadas
 - Validaciones pre-generación completas
 
 **ARQUITECTURA DE ARCHIVOS:**
-- `src/cli.ts`: Menú interactivo principal
-- `src/generators/correct-entity-flow-generator.ts`: Lógica de generación
+- `src/cli.ts`: Menú interactivo principal con flujo dual simplificado
+- `src/generators/correct-entity-flow-generator.ts`: Lógica de generación con targetApiName
+- `src/generators/cleanup-generator.ts`: Sistema completo de limpieza de entidades
 - `src/parsers/swagger-parser.ts`: Parser OpenAPI con detección API
 - `src/validators/project-validator.ts`: Validaciones estructura y entidades
-- `src/utils/directory-detector.ts`: Detección APIs y directorios
+- `src/utils/directory-detector.ts`: Detección inteligente desde cualquier directorio
 - `src/auth/auth-manager.ts`: Sistema autenticación
 
 **CAMBIO SOLICITADO:**
@@ -228,140 +231,7 @@ SOLUCIÓN IMPLEMENTADA:
 - Patrón singleton consistente con el resto de la arquitectura
 ```
 
----
 
-## 📋 HISTORIAL DE CORRECCIONES
-
-### 🎯 **v1.1.0 - Simplified Cleanup**
-**Fecha**: Diciembre 2024  
-**Funcionalidad**: Sistema de limpieza simplificado enfocado en entidades
-
-**Implementado**:
-- **🎯 Flujo Directo**: Eliminación de menús innecesarios, directo a seleccionar entidad
-- **📍 Ejecución Contextual**: Funciona desde la carpeta donde se ejecuta el comando
-- **🚀 Simplificación**: Removidas opciones "Eliminar API completa" y "Eliminar TODO"
-- **✨ UX Mejorada**: Experiencia más rápida y clara para el caso de uso principal
-
-**Beneficios**:
-- Flujo más directo: `weaver` → "🧹 Limpiar" → seleccionar entidad → ¡listo!
-- Ejecución contextual: desde `/bus` elimina entidades de bus, desde `/appointment` elimina de appointment
-- Menos confusión: solo la funcionalidad que realmente se necesita
-- Experiencia más rápida y eficiente
-
-**Cambios en Código**:
-- **`src/cli.ts`**: Simplificado `handleCleanup()` para ir directo a selección de entidad
-- **Removidas funciones**: `handleAPICleanup()`, `handleFullCleanup()`
-- **Imports simplificados**: Solo `detectGeneratedEntities` y `cleanupEntity`
-
-### 🧹 **v1.0.9 - Smart Cleanup System**
-**Fecha**: Diciembre 2024  
-**Funcionalidad**: Sistema completo de limpieza inteligente para código generado
-
-**Implementado**:
-- **🗑️ Limpieza por Entidad**: Eliminación de entidades individuales con detección automática
-- **🗂️ Limpieza por API**: Eliminación completa de APIs con todos sus archivos
-- **🧨 Limpieza Total**: Eliminación de todo el contenido con doble confirmación
-- **🛡️ Operaciones Seguras**: Múltiples confirmaciones y vista previa antes de eliminar
-- **🧠 Detección Inteligente**: Identifica automáticamente entidades y APIs generadas
-- **🧹 Limpieza de Referencias**: Elimina imports y métodos en archivos injection
-
-**Beneficios**:
-- Gestión completa del ciclo de vida del código generado
-- Operaciones de limpieza seguras con confirmaciones múltiples
-- Mantenimiento fácil del workspace durante desarrollo
-- Navegación intuitiva entre opciones de limpieza
-
-**Archivos Implementados**:
-- **`src/generators/cleanup-generator.ts`**: Nuevo generador de limpieza
-- **`src/cli.ts`**: Agregada opción de limpieza al menú principal
-- **Funciones**: `detectGeneratedEntities()`, `cleanupEntity()`, `cleanupAPI()`, `cleanupAll()`
-
-### ✨ **v1.0.8 - Campo ID Automático**
-**Fecha**: Diciembre 2024  
-**Funcionalidad**: Agregado automático del campo `id` en DTOs y Entities principales
-
-**Implementado**:
-- **DTOs principales**: Incluyen automáticamente `id?: string;`
-- **Entities principales**: Incluyen automáticamente `id?: string;`
-- **Mappers inteligentes**: Mapeo automático del campo `id` entre DTO ↔ Entity
-- **Consistencia ID**: Garantiza identificador único en todas las entidades
-
-**Beneficios**:
-- Reduce trabajo manual de agregar `id` en cada entidad
-- Garantiza consistencia en identificadores únicos
-- Simplifica mapeo entre DTOs y Entities
-- Alineado con buenas prácticas de bases de datos
-
-### 🔧 **v1.0.7 - Repository Import Fix**
-**Fecha**: Diciembre 2024  
-**Problema**: Importaciones incorrectas en injection-platform-entities-repository.ts
-
-**Corregido**:
-- **Path específico**: `import { LocationRepository } from "../../entities/location/location-repository"`
-- **Antes**: `import { LocationRepository } from "../../entities/location"`
-- **Consistencia**: Alineado con patrón del proyecto goluti-frontend
-
-### 🎯 **v1.0.6 - Importaciones Inteligentes**
-**Fecha**: Diciembre 2024  
-**Problema**: Todas las importaciones usaban `@bus` cuando deberían usar `@{api-name}`
-
-**Implementado**:
-- **Smart Imports**: `@{api-name}` para código generado, `@bus` para dependencies core
-- **Context Aware**: Importaciones automáticas según contexto
-- **Clean Pattern**: Código más limpio y organizado
-
-### 🔧 **v1.0.5 - Archivo Repository Injection Faltante**
-**Fecha**: Diciembre 2024  
-**Problema**: El generador no creaba `injection-platform-entities-repository.ts`  
-**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
-**Cambios**:
-- ✅ Agregada función `generateRepositoryInjection()`
-- ✅ Lógica de creación/actualización automática
-- ✅ Soporte para múltiples entidades
-- ✅ Patrón consistente con facade injection
-
-**Resultado**: 
-```typescript
-export class InjectionPlatformEntitiesRepository {
-  public static MenuRepository() { return MenuRepository.getInstance(); }
-  public static UserRepository() { return UserRepository.getInstance(); }
-}
-```
-
-### 🔧 **v1.0.6 - Importaciones Inteligentes**
-**Fecha**: Diciembre 2024  
-**Problema**: Las importaciones usaban `@bus` para archivos generados  
-**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
-**Cambios**:
-- ✅ Importaciones de archivos generados usan `@{api-name}` (ej: `@platform`)
-- ✅ Importaciones de archivos core mantienen `@bus`
-- ✅ 33+ importaciones corregidas sistemáticamente
-- ✅ Parámetro `apiName` agregado a funciones auxiliares
-
-**Resultado**:
-```typescript
-// ✅ Archivos generados - usa @platform
-import { IUserDTO } from "@platform/domain/models/apis/platform/entities/user";
-
-// ✅ Archivos core - mantiene @bus  
-import { IConfigDTO } from "@bus/core/interfaces";
-```
-
-### 🔧 **v1.0.7 - Repository Import Fix**
-**Fecha**: Diciembre 2024  
-**Problema**: Importaciones incorrectas en injection-platform-entities-repository.ts  
-**Archivo modificado**: `src/generators/correct-entity-flow-generator.ts`  
-**Cambios**:
-- ✅ Importaciones de repositories usan path completo al archivo
-- ✅ Cambio de `"../../entities/location"` a `"../../entities/location/location-repository"`
-- ✅ Alineado con patrón del proyecto goluti-frontend
-- ✅ Aplica a archivos nuevos y actualizaciones
-
-**Resultado**:
-```typescript
-// ✅ Correcto
-import { LocationRepository } from "../../entities/location/location-repository";
-```
 
 ---
 
