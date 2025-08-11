@@ -88,14 +88,9 @@ export class DirectoryDetector {
    * Calcula la ruta de generación según el API target
    */
   static calculateTargetPath(baseDir: string, currentApiName: string | null, targetApiName: string): string {
-    if (currentApiName === targetApiName) {
-      // Generar en el directorio actual (sin duplicar el nombre del API)
-      return baseDir;
-    } else {
-      // Generar en directorio hermano
-      const parentDir = path.dirname(baseDir);
-      return path.join(parentDir, targetApiName);
-    }
+    // SIEMPRE usar el directorio actual como base
+    // El targetApiName se usará para crear la estructura apis/{targetApiName}/
+    return baseDir;
   }
   
   /**

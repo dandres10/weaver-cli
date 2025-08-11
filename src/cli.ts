@@ -9,6 +9,7 @@ import { ProjectValidator } from './validators/project-validator';
 import { AuthManager } from './auth/auth-manager';
 import { DirectoryDetector } from './utils/directory-detector';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 
 interface MenuChoice {
   name: string;
@@ -228,90 +229,113 @@ async function handleCreateEntityFlow(isLocalMode: boolean = false): Promise<voi
 
     console.log(chalk.blue(`🔗 API configurada: ${apiName}`));
 
-    // 🎯 SELECCIONAR API TARGET (dónde generar)
-    console.log(chalk.yellow('\n📁 Configurando directorio de generación...'));
+    // 📁 SELECCIONAR DIRECTORIO DE DESTINO (dónde crear físicamente)
+    console.log(chalk.yellow('\n📁 Configurando directorio de destino...'));
     
-    let targetApiName: string;
     let targetBasePath: string;
 
-    // Crear opciones para selección de API target
-    const targetApiChoices: any[] = [];
-    
-    // Opción 1: API del Swagger (siempre disponible)
-    targetApiChoices.push({
-      name: `${apiName} ${directoryInfo.currentApiName === apiName ? '(actual directorio - mismo API)' : '(del Swagger)'}`,
-      value: apiName,
-      short: apiName
-    });
-    
-    // Opción 2: APIs hermanas disponibles (solo si son diferentes)
-    for (const siblingApi of directoryInfo.possibleApiNames) {
-      if (siblingApi !== apiName) {
-        targetApiChoices.push({
-          name: `${siblingApi} ${siblingApi === directoryInfo.currentApiName ? '(actual directorio)' : '(API hermana)'}`,
-          value: siblingApi,
-          short: siblingApi
-        });
-      }
-    }
-    
-    // Opción 3: API personalizada
-    targetApiChoices.push({
-      name: 'Otra API (personalizada)',
-      value: 'custom',
-      short: 'custom'
-    });
-
-    const { selectedTargetApi } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selectedTargetApi',
-        message: '¿En qué API quieres generar el código?',
-        choices: targetApiChoices,
-        default: directoryInfo.currentApiName || apiName
-      }
-    ]);
-
-    if (selectedTargetApi === 'custom') {
-      const { customTargetApi } = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'customTargetApi',
-          message: 'Nombre de la API target:',
-          validate: (input: string) => {
-            if (!input.trim()) {
-              return 'El nombre de la API es requerido';
-            }
-            return true;
+    if (isLocalMode) {
+      // En modo local, permitir seleccionar carpeta existente o crear nueva
+      const testOutputPath = path.resolve('./test-output');
+      await fs.ensureDir(testOutputPath);
+      
+      // Buscar carpetas existentes en test-output
+      const existingDirs = [];
+      if (await fs.pathExists(testOutputPath)) {
+        const contents = await fs.readdir(testOutputPath);
+        for (const item of contents) {
+          const itemPath = path.join(testOutputPath, item);
+          const stat = await fs.stat(itemPath);
+          if (stat.isDirectory()) {
+            existingDirs.push(item);
           }
         }
+      }
+      
+      const directoryChoices: any[] = [];
+      
+      // Agregar carpetas existentes
+      for (const dir of existingDirs) {
+        directoryChoices.push({
+          name: `${dir} (existente)`,
+          value: path.join(testOutputPath, dir),
+          short: dir
+        });
+      }
+      
+      // Agregar opción para crear nueva carpeta
+      directoryChoices.push({
+        name: `Crear nueva carpeta: ${apiName}`,
+        value: 'create_new',
+        short: `nuevo: ${apiName}`
+      });
+
+      const { selectedDirectory } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedDirectory',
+          message: '¿En qué directorio crear la entidad?',
+          choices: directoryChoices,
+          pageSize: 10
+        }
       ]);
-      targetApiName = customTargetApi.trim();
+
+      if (selectedDirectory === 'create_new') {
+        targetBasePath = path.resolve(`./test-output/${apiName}`);
+        await fs.ensureDir(targetBasePath);
+      } else {
+        targetBasePath = selectedDirectory;
+      }
+      
+      console.log(chalk.green(`✅ Directorio target válido: ${targetBasePath}`));
     } else {
-      targetApiName = selectedTargetApi;
+      // En proyecto real, crear opciones de directorio
+      const directoryChoices: any[] = [];
+      
+      // Opción 1: Directorio actual (si tiene estructura de API)
+      if (directoryInfo.currentApiName) {
+        directoryChoices.push({
+          name: `${directoryInfo.currentApiName} (directorio actual)`,
+          value: directoryInfo.baseDirectory,
+          short: directoryInfo.currentApiName
+        });
+      }
+      
+      // Opción 2: APIs hermanas disponibles
+      for (const siblingApi of directoryInfo.possibleApiNames) {
+        if (siblingApi !== directoryInfo.currentApiName) {
+          const siblingPath = path.join(path.dirname(directoryInfo.baseDirectory), siblingApi);
+          directoryChoices.push({
+            name: `${siblingApi} (API hermana)`,
+            value: siblingPath,
+            short: siblingApi
+          });
+        }
+      }
+
+      const { selectedDirectory } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedDirectory',
+          message: '¿En qué directorio crear la entidad?',
+          choices: directoryChoices,
+          pageSize: 10
+        }
+      ]);
+
+      targetBasePath = selectedDirectory;
+
+      // Verificar que el directorio target sea válido
+      const validation = await DirectoryDetector.validateTargetPath(targetBasePath);
+      if (!validation.isValid) {
+        console.log(chalk.red(`\n❌ ${validation.message}`));
+        return await showMainMenu(isLocalMode);
+      }
+      console.log(chalk.green(`✅ ${validation.message}`));
     }
 
-    // Calcular la ruta target
-    if (isLocalMode) {
-      targetBasePath = path.resolve('./test-output');
-    } else {
-      targetBasePath = DirectoryDetector.calculateTargetPath(
-        directoryInfo.baseDirectory,
-        directoryInfo.currentApiName,
-        targetApiName
-      );
-    }
-
-    // Validar la ruta target
-    const targetValidation = await DirectoryDetector.validateTargetPath(targetBasePath);
-    if (!targetValidation.isValid) {
-      console.log(chalk.red(`\n❌ Error con directorio target: ${targetValidation.message}`));
-      return await showMainMenu(isLocalMode);
-    }
-
-    console.log(chalk.green(`✅ ${targetValidation.message}`));
-    console.log(chalk.blue(`🎯 Generando en API: ${targetApiName}`));
-    console.log(chalk.gray(`📁 Ruta completa: ${targetBasePath}/${targetApiName}/domain/...`));
+    console.log(chalk.blue(`🎯 Generando entidad en API: ${apiName}`));
+    console.log(chalk.gray(`📁 Estructura: ${targetBasePath}/domain/models/apis/${apiName}/entities/...`));
 
     // Mostrar entidades disponibles para selección
     const entityChoices = availableEntities.map(entity => ({
@@ -377,7 +401,7 @@ async function handleCreateEntityFlow(isLocalMode: boolean = false): Promise<voi
         : null;
 
       // 🔍 VALIDACIONES PRE-GENERACIÓN (usar variables target)
-      const validation = await ProjectValidator.validateBeforeGeneration(entityName, targetBasePath, targetApiName);
+      const validation = await ProjectValidator.validateBeforeGeneration(entityName, targetBasePath, apiName);
 
       if (!validation.canProceed) {
         console.log(chalk.red('\n❌ No se puede continuar debido a problemas de validación'));
@@ -420,7 +444,7 @@ async function handleCreateEntityFlow(isLocalMode: boolean = false): Promise<voi
 
       console.log(chalk.blue(`\n🔧 Generando flujo para ${entityName}...`));
 
-      await createCorrectEntityFlow(entityName, targetBasePath, entitySchema, targetApiName);
+      await createCorrectEntityFlow(entityName, targetBasePath, entitySchema, apiName);
 
       console.log(chalk.green(`\n✅ Flujo ${entityName} generado exitosamente!`));
 

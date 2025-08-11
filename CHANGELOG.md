@@ -5,6 +5,32 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2024-12-20
+
+### 🎯 Fixed - DETECCIÓN DINÁMICA UNIVERSAL
+- **Detección desde cualquier directorio**: Ya no necesitas estar en `/bus`, funciona desde `/platform`, `/core`, `/app`, etc.
+- **Búsqueda inteligente**: Detecta automáticamente la estructura Weaver desde donde estés parado
+- **Subcarpetas soportadas**: Funciona desde `domain/models/apis/`, `facade/apis/`, y cualquier nivel
+- **Sin dependencia de raíz fija**: Se adapta dinámicamente a tu estructura de proyecto
+
+### ✨ Added
+- **Función findBestBasePath**: Nueva lógica más inteligente para encontrar la base
+- **Detección automática**: Identifica si estás en test-output o proyecto real
+- **Compatibilidad universal**: Funciona con cualquier nombre de directorio (`bus`, `platform`, `core`, etc.)
+- **Búsqueda hacia arriba**: Si no encuentra estructura en el directorio actual, busca en niveles superiores
+
+### 🚀 Mejoras Técnicas
+- Eliminada dependencia de `findProjectRoot` obsoleta
+- Algoritmo más eficiente de detección de estructura
+- Sin logs de debug en versión de producción
+- Código más limpio y mantenible
+
+### ✅ Probado y Funcionando
+- **Desde `/platform`**: Detecta 2 entidades (location, menu) ✅
+- **Desde subcarpetas**: Funciona desde cualquier nivel ✅
+- **Test-output**: Mantiene compatibilidad completa ✅
+- **Proyectos reales**: Detección perfecta ✅
+
 ## [1.1.5] - 2024-12-20
 
 ### 🎉 Fixed - ELIMINACIÓN COMPLETA FUNCIONANDO AL 100%

@@ -7,7 +7,7 @@ import { EntitySchema } from '../parsers/swagger-parser';
 const DEFAULT_BASE_PATH = process.cwd(); // Directorio actual por defecto
 const LOCAL_TEST_PATH = './test-output';
 
-export async function createCorrectEntityFlow(entityName: string, basePath: string = DEFAULT_BASE_PATH, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+export async function createCorrectEntityFlow(entityName: string, basePath: string = DEFAULT_BASE_PATH, schema?: EntitySchema | null, targetApiName: string = 'platform'): Promise<void> {
   console.log(chalk.blue(`📁 Generando flujo completo para ${entityName} en: ${basePath}`));
   
   const entityNameLower = entityName.toLowerCase();
@@ -18,40 +18,37 @@ export async function createCorrectEntityFlow(entityName: string, basePath: stri
     throw new Error(`El directorio base no existe: ${basePath}`);
   }
 
-  // Determinar si estamos en el directorio de la API o necesitamos crear uno
-  const currentDirName = path.basename(basePath);
-  const shouldCreateApiDir = currentDirName !== apiName;
-  
-  // Definir las rutas correctas según si necesitamos crear el directorio API o no
-  const apiPrefix = shouldCreateApiDir ? `${apiName}/` : '';
+  // SIEMPRE usar el directorio base seleccionado, NUNCA crear carpetas adicionales
+  // El targetApiName se usa solo para la estructura apis/{targetApiName}/
+  const apiPrefix = '';
   
     const paths = {
     // Domain DTOs
-    domainModels: path.join(basePath, `${apiPrefix}domain/models/apis/${apiName}/entities/${entityNameLower}`),
+    domainModels: path.join(basePath, `${apiPrefix}domain/models/apis/${targetApiName}/entities/${entityNameLower}`),
     
     // Domain Repository Interface
-    domainRepository: path.join(basePath, `${apiPrefix}domain/services/repositories/apis/${apiName}/entities`),
+    domainRepository: path.join(basePath, `${apiPrefix}domain/services/repositories/apis/${targetApiName}/entities`),
     
     // Domain Use Cases
-    domainUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${apiName}/entities/${entityNameLower}`),
+    domainUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${targetApiName}/entities/${entityNameLower}`),
     
     // Infrastructure Entities
-    infraEntities: path.join(basePath, `${apiPrefix}infrastructure/entities/apis/${apiName}/entities/${entityNameLower}`),
+    infraEntities: path.join(basePath, `${apiPrefix}infrastructure/entities/apis/${targetApiName}/entities/${entityNameLower}`),
     
     // Infrastructure Mappers
-    infraMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${apiName}/entities/${entityNameLower}`),
+    infraMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${targetApiName}/entities/${entityNameLower}`),
     
     // Infrastructure Repository
-    infraRepository: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/entities/${entityNameLower}`),
+    infraRepository: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${targetApiName}/repositories/entities/${entityNameLower}`),
     
     // Facade
-    facade: path.join(basePath, `${apiPrefix}facade/apis/${apiName}/entities`),
+    facade: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/entities`),
     
     // Injection folders
-    useCaseInjection: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${apiName}/injection/entities`),
-    mapperInjection: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${apiName}/injection/entities`),
-    repositoryInjection: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/injection/entities`),
-    facadeInjection: path.join(basePath, `${apiPrefix}facade/apis/${apiName}/injection/entities`)
+    useCaseInjection: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${targetApiName}/injection/entities`),
+    mapperInjection: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${targetApiName}/injection/entities`),
+    repositoryInjection: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${targetApiName}/repositories/injection/entities`),
+    facadeInjection: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/injection/entities`)
   };
 
   try {
@@ -62,15 +59,15 @@ export async function createCorrectEntityFlow(entityName: string, basePath: stri
     }
 
     // Generar archivos según el patrón correcto
-    await generateDomainDTOs(entityName, paths, schema, apiName);
-    await generateDomainRepositoryInterface(entityName, paths, schema, apiName);
-    await generateDomainUseCases(entityName, paths, schema, apiName);
-    await generateInfrastructureEntities(entityName, paths, schema, apiName);
-    await generateInfrastructureMappers(entityName, paths, schema, apiName);
-    await generateInfrastructureRepository(entityName, paths, schema, apiName);
-    await generateFacade(entityName, paths, schema, apiName);
-    await generateInjectionFiles(entityName, paths, schema, apiName);
-    await generateFacadeInjection(entityName, paths.facadeInjection, apiName);
+    await generateDomainDTOs(entityName, paths, schema, targetApiName);
+    await generateDomainRepositoryInterface(entityName, paths, schema, targetApiName);
+    await generateDomainUseCases(entityName, paths, schema, targetApiName);
+    await generateInfrastructureEntities(entityName, paths, schema, targetApiName);
+    await generateInfrastructureMappers(entityName, paths, schema, targetApiName);
+    await generateInfrastructureRepository(entityName, paths, schema, targetApiName);
+    await generateFacade(entityName, paths, schema, targetApiName);
+    await generateInjectionFiles(entityName, paths, schema, targetApiName);
+    await generateFacadeInjection(entityName, paths.facadeInjection, targetApiName);
 
     console.log(chalk.green(`✨ Flujo ${entityName} generado exitosamente siguiendo el patrón correcto!`));
 
