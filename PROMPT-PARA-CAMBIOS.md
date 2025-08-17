@@ -39,6 +39,7 @@ weaver-cli/
 9. **🔧 Repository Injection**: Generación automática de injection-platform-entities-repository.ts
 10. **🧹 Sistema de Limpieza**: Detección y eliminación completa de entidades generadas desde cualquier directorio
 11. **🎯 Flujo Dual Perfecto**: API name (estructura lógica) + directorio destino (ubicación física)
+12. **🔍 Detección ID Swagger**: Parser inteligente que detecta campos ID del Swagger y los incluye en DTOs main/update (v1.1.8)
 
 ### 🗂️ ESTRUCTURA GENERADA
 
@@ -229,6 +230,32 @@ SOLUCIÓN IMPLEMENTADA:
 - Función generateRepositoryInjection() que crea/actualiza el archivo automáticamente
 - Soporte para múltiples entidades en el mismo archivo
 - Patrón singleton consistente con el resto de la arquitectura
+```
+
+### 🐛 Corrección Detección de Campos del Swagger
+```
+CAMBIO SOLICITADO:
+Ajustar la lógica para que si el swagger trae el id lo agregue al DTO main y update
+
+CONTEXTO: Los DTOs de update no incluían el campo 'id' cuando estaba presente en el 
+schema del Swagger, causando incompatibilidad con las APIs que requieren ID para actualizar.
+
+PROBLEMA IDENTIFICADO:
+- SwaggerAnalyzer priorizaba ApiTokenSave sobre ApiTokenUpdate
+- El schema Save no tiene ID (correcto), pero Update sí lo tiene
+- Los DTOs generados omitían el campo ID del Swagger
+
+SOLUCIÓN IMPLEMENTADA (v1.1.8):
+- Corregida prioridad en swagger-parser.ts: Update → Base → Save
+- Detección inteligente de campo ID en correct-entity-flow-generator.ts
+- Solo incluye ID en DTOs main/update cuando está presente en el schema
+- Respeta la opcionalidad del campo según definición del Swagger
+
+RESULTADO:
+✅ Main DTO: Incluye ID con opcionalidad correcta del Swagger
+✅ Update DTO: Incluye ID según requerimientos del Swagger
+✅ Save DTO: Sin ID (correcto para creación)
+✅ Read/Delete DTOs: Siempre incluyen ID (sin cambios)
 ```
 
 
