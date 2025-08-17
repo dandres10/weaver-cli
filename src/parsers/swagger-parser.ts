@@ -80,7 +80,18 @@ export class SwaggerAnalyzer {
     const updateSchemaName = `${entityName}Update`;
     const baseSchemaName = entityName;
 
-    let primarySchema = schemas[saveSchemaName] || schemas[baseSchemaName] || schemas[updateSchemaName];
+    // Priorizar el schema que tenga el campo 'id' (normalmente Update o base)
+    let primarySchema = schemas[updateSchemaName] || schemas[baseSchemaName] || schemas[saveSchemaName];
+
+    // Si ninguno existe, usar el primero disponible
+    if (!primarySchema) {
+      const availableSchemas = Object.keys(schemas).filter(name => 
+        name.includes(entityName) && ('properties' in (schemas[name] || {}))
+      );
+      if (availableSchemas.length > 0) {
+        primarySchema = schemas[availableSchemas[0]];
+      }
+    }
 
     if (!primarySchema || !('properties' in primarySchema)) {
       return null;

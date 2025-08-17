@@ -5,6 +5,29 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2024-12-21
+
+### 🐛 Fixed - CORRECCIÓN DETECCIÓN DE CAMPOS ID DEL SWAGGER
+
+#### **Problema Resuelto**
+- **Campo ID faltante**: Los DTOs de `update` y `main` no incluían el campo `id` cuando estaba presente en el schema del Swagger
+- **Parser incorrecto**: El `SwaggerAnalyzer` priorizaba el schema `Save` sobre `Update`, perdiendo información del campo `id`
+
+#### **Mejoras Implementadas**
+- **Parser corregido**: Ahora prioriza `UpdateSchema` → `BaseSchema` → `SaveSchema` para detectar todos los campos
+- **Detección inteligente**: Detecta automáticamente si el campo `id` viene del Swagger y lo incluye apropiadamente
+- **Lógica mejorada**: Solo incluye `id` en DTOs `main` y `update` cuando está presente en el schema
+
+#### **Resultado**
+- ✅ **Main DTO**: Incluye `id` con la opcionalidad correcta del Swagger
+- ✅ **Update DTO**: Incluye `id` según requerimientos del Swagger  
+- ✅ **Save DTO**: No incluye `id` (correcto para creación)
+- ✅ **Read/Delete DTOs**: Siempre incluyen `id` (sin cambios)
+
+#### **Archivos Modificados**
+- `src/parsers/swagger-parser.ts`: Corregida prioridad de schemas
+- `src/generators/correct-entity-flow-generator.ts`: Mejorada detección de campos del Swagger
+
 ## [1.1.7] - 2024-12-20
 
 ### 🎯 Fixed - FLUJO PERFECTO CON API NAME + DIRECTORIO FLEXIBLE

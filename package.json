@@ -1,6 +1,6 @@
 {
   "name": "weaver-frontend-cli",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "🕷️ Weaver CLI - Teje la estructura perfecta de tu código frontend con arquitectura limpia",
   "main": "dist/index.js",
   "bin": {

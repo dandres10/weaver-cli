@@ -696,16 +696,24 @@ function generateDTOInterface(entityName: string, fields: any[], type: 'main' | 
 
   let content = `export interface ${interfaceName} {\n`;
 
+  // Verificar si el campo 'id' viene del Swagger
+  const hasIdField = fields.some(field => field.name === 'id');
+  const idField = fields.find(field => field.name === 'id');
+
   if (type === 'delete' || type === 'read') {
-    // Para delete y read, solo necesitamos el ID
+    // Para delete y read, siempre necesitamos el ID
     content += `  id: string;\n`;
   } else {
-    // Agregar siempre el campo id para DTOs principales (main, save, update)
-    if (type === 'main') {
-      content += `  id?: string;\n`;
+    // Solo agregar el campo id si viene del Swagger y es main o update
+    if ((type === 'main' || type === 'update') && hasIdField) {
+      const isOptional = !idField?.required;
+      content += `  id${isOptional ? '?' : ''}: string;\n`;
     }
     
+    // Procesar el resto de campos, excluyendo 'id' para evitar duplicados
     fields.forEach(field => {
+      if (field.name === 'id') return; // Ya lo procesamos arriba o lo omitimos
+      
       const fieldName = convertToCamelCase(field.name);
       const isOptional = getFieldOptionalStatus(field, type);
       const tsType = getTypeScriptType(field);
@@ -727,15 +735,24 @@ function generateEntityInterface(entityName: string, fields: any[], type: 'main'
 
   let content = `export interface ${interfaceName} {\n`;
 
+  // Verificar si el campo 'id' viene del Swagger
+  const hasIdField = fields.some(field => field.name === 'id');
+  const idField = fields.find(field => field.name === 'id');
+
   if (type === 'delete' || type === 'read') {
+    // Para delete y read, siempre necesitamos el ID
     content += `  id: string;\n`;
   } else {
-    // Agregar siempre el campo id para Entities principales (main, save, update)
-    if (type === 'main') {
-      content += `  id?: string;\n`;
+    // Solo agregar el campo id si viene del Swagger y es main o update
+    if ((type === 'main' || type === 'update') && hasIdField) {
+      const isOptional = !idField?.required;
+      content += `  id${isOptional ? '?' : ''}: string;\n`;
     }
     
+    // Procesar el resto de campos, excluyendo 'id' para evitar duplicados
     fields.forEach(field => {
+      if (field.name === 'id') return; // Ya lo procesamos arriba o lo omitimos
+      
       const fieldName = field.name; // Mantener snake_case para entities
       const isOptional = getFieldOptionalStatus(field, type);
       const tsType = getTypeScriptType(field);
