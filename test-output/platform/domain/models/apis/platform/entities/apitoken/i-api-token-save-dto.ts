@@ -1,5 +1,5 @@
 export interface IApiTokenSaveDTO {
-  rolId?: string;
+  rolId: string;
   token: string;
   state?: boolean;
 }

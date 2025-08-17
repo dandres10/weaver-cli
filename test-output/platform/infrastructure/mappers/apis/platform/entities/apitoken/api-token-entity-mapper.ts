@@ -15,6 +15,7 @@ export class ApiTokenEntityMapper extends Mapper<IApiTokenEntity, IApiTokenDTO> 
   public mapFrom(param: IApiTokenEntity): IApiTokenDTO {
     return {
       id: param.id,
+      id: param.id,
       rolId: param.rol_id,
       token: param.token,
       state: param.state
@@ -27,6 +28,7 @@ export class ApiTokenEntityMapper extends Mapper<IApiTokenEntity, IApiTokenDTO> 
 
   public mapTo(param: IApiTokenDTO): IApiTokenEntity {
     return {
+      id: param.id,
       id: param.id,
       rol_id: param.rolId,
       token: param.token,

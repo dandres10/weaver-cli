@@ -1,6 +1,6 @@
 export interface IApiTokenEntity {
-  id?: string;
-  rol_id?: string;
+  id: string;
+  rol_id: string;
   token: string;
   state?: boolean;
 }
