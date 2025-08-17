@@ -39,7 +39,7 @@ weaver-cli/
 9. **🔧 Repository Injection**: Generación automática de injection-platform-entities-repository.ts
 10. **🧹 Sistema de Limpieza**: Detección y eliminación completa de entidades generadas desde cualquier directorio
 11. **🎯 Flujo Dual Perfecto**: API name (estructura lógica) + directorio destino (ubicación física)
-12. **🔍 Detección ID Swagger**: Parser inteligente que detecta campos ID del Swagger y los incluye en DTOs main/update (v1.1.8)
+12. **🔍 Detección ID Swagger**: Incluye campos ID del Swagger automáticamente en DTOs main/update
 
 ### 🗂️ ESTRUCTURA GENERADA
 
@@ -129,144 +129,11 @@ npm run logout        # Build + logout
 
 ---
 
-## 📝 PROMPT PARA MODIFICACIONES
-
-```
-Necesito hacer cambios en Weaver CLI, el generador de código TypeScript que lee OpenAPI/Swagger y genera entidades con Clean Architecture.
-
-**CONTEXTO ACTUAL:**
-- Comando: `weaver` con autenticación "soyia"
-- Flujo dual: API name (lógico) + directorio destino (físico)
-- Genera en: {directorio-destino}/domain/models/apis/{api-name}/...
-- 42+ archivos por entidad (DTOs, Entities, Use Cases, Mappers, Facades, Injections completas)
-- Detección automática desde cualquier directorio (/bus, /platform, /core, etc.)
-- Modo local con selección de carpetas existentes/nuevas
-- Sistema de limpieza completo de entidades generadas
-- Validaciones pre-generación completas
-
-**ARQUITECTURA DE ARCHIVOS:**
-- `src/cli.ts`: Menú interactivo principal con flujo dual simplificado
-- `src/generators/correct-entity-flow-generator.ts`: Lógica de generación con targetApiName
-- `src/generators/cleanup-generator.ts`: Sistema completo de limpieza de entidades
-- `src/parsers/swagger-parser.ts`: Parser OpenAPI con detección API
-- `src/validators/project-validator.ts`: Validaciones estructura y entidades
-- `src/utils/directory-detector.ts`: Detección inteligente desde cualquier directorio
-- `src/auth/auth-manager.ts`: Sistema autenticación
-
-**CAMBIO SOLICITADO:**
-[DESCRIBIR AQUÍ EL CAMBIO QUE NECESITAS]
-
-**CRITERIOS:**
-- Mantener compatibilidad con funcionalidad existente
-- Seguir patrones de código actuales
-- Actualizar validaciones si es necesario
-- Conservar Clean Architecture en archivos generados
-- Mantener sistema de autenticación
-- Preservar detección inteligente de APIs
-- Mantener modo local para pruebas
-
-**ENTREGABLES ESPERADOS:**
-- Código modificado con explicación de cambios
-- Actualización de README.md si aplica
-- Scripts de prueba si es necesario
-- Documentación de nuevas funcionalidades
-```
-
----
-
-## 🔍 EJEMPLOS DE CAMBIOS COMUNES
-
-### 📝 Agregar Nueva Funcionalidad
-```
-CAMBIO SOLICITADO:
-Agregar opción para generar solo DTOs (sin Use Cases ni Mappers)
-
-CONTEXTO: Necesito una opción en el menú que permita generar solo los DTOs 
-de una entidad, sin toda la estructura completa.
-```
-
-### 🔧 Modificar Estructura Generada
-```
-CAMBIO SOLICITADO:
-Cambiar la estructura de carpetas para que sea:
-{api-name}/src/domain/ en lugar de {api-name}/domain/
-
-CONTEXTO: El proyecto target tiene una carpeta src/ intermedia que necesito incluir.
-```
-
-### 🎯 Ajustar Validaciones
-```
-CAMBIO SOLICITADO:
-Relajar las validaciones para permitir generar en cualquier directorio sin verificar estructura
-
-CONTEXTO: Quiero usar el generador en proyectos nuevos que aún no tienen la estructura completa.
-```
-
-### 🔐 Modificar Autenticación
-```
-CAMBIO SOLICITADO:
-Cambiar la clave de "soyia" a "nueva-clave" y extender sesión a 60 días
-
-CONTEXTO: Necesito actualizar la clave de acceso por seguridad.
-```
-
-### 📊 Personalizar Templates
-```
-CAMBIO SOLICITADO:
-Modificar el template de los Use Cases para incluir logging automático
-
-CONTEXTO: Todos los Use Cases generados deben incluir logs de entrada y salida.
-```
-
-### ✅ Corrección de Archivos Faltantes
-```
-CAMBIO SOLICITADO:
-Generar el archivo injection-platform-entities-repository.ts que no se estaba creando
-
-CONTEXTO: Los Use Cases importan InjectionPlatformEntitiesRepository pero el archivo 
-no se generaba, causando referencias rotas.
-
-SOLUCIÓN IMPLEMENTADA:
-- Función generateRepositoryInjection() que crea/actualiza el archivo automáticamente
-- Soporte para múltiples entidades en el mismo archivo
-- Patrón singleton consistente con el resto de la arquitectura
-```
-
-### 🐛 Corrección Detección de Campos del Swagger
-```
-CAMBIO SOLICITADO:
-Ajustar la lógica para que si el swagger trae el id lo agregue al DTO main y update
-
-CONTEXTO: Los DTOs de update no incluían el campo 'id' cuando estaba presente en el 
-schema del Swagger, causando incompatibilidad con las APIs que requieren ID para actualizar.
-
-PROBLEMA IDENTIFICADO:
-- SwaggerAnalyzer priorizaba ApiTokenSave sobre ApiTokenUpdate
-- El schema Save no tiene ID (correcto), pero Update sí lo tiene
-- Los DTOs generados omitían el campo ID del Swagger
-
-SOLUCIÓN IMPLEMENTADA (v1.1.8):
-- Corregida prioridad en swagger-parser.ts: Update → Base → Save
-- Detección inteligente de campo ID en correct-entity-flow-generator.ts
-- Solo incluye ID en DTOs main/update cuando está presente en el schema
-- Respeta la opcionalidad del campo según definición del Swagger
-
-RESULTADO:
-✅ Main DTO: Incluye ID con opcionalidad correcta del Swagger
-✅ Update DTO: Incluye ID según requerimientos del Swagger
-✅ Save DTO: Sin ID (correcto para creación)
-✅ Read/Delete DTOs: Siempre incluyen ID (sin cambios)
-```
-
-
-
----
-
 ## 🚀 INSTRUCCIONES DE USO
 
-1. **Copia el prompt** desde "PROMPT PARA MODIFICACIONES"
-2. **Reemplaza** `Corre el generador a ver que genera de forma local` con tu solicitud específica
-3. **Incluye contexto adicional** si es necesario
-4. **Envía el prompt** para obtener la implementación
+1. **Describe el cambio** que necesitas de forma concisa
+2. **Incluye contexto** específico del problema o funcionalidad
+3. **Menciona archivos** relevantes si los conoces
+4. **Especifica criterios** si hay restricciones particulares
 
 **¡Weaver CLI está listo para evolucionar según tus necesidades!** 🕷️✨
