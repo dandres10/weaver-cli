@@ -5,6 +5,21 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2024-12-23
+
+### 🔧 MEJORA MENOR - TIPOS USECASE
+
+#### ✨ Enhanced - TIPOS OPTIMIZADOS
+- **🔧 UseCase Generic Types**: Cambio de `UseCase<void, ...>` a `UseCase<any, ...>` para operaciones sin parámetros
+- **🎯 Better Typing**: Tipos más flexibles para casos de uso que no requieren parámetros de entrada
+- **📋 Operations Affected**: refresh-token, logout y similares
+
+#### 📚 Technical Details
+- **Before**: `UseCase<void, IAuthLogoutResponseDTO | null>` ❌
+- **After**: `UseCase<any, IAuthLogoutResponseDTO | null>` ✅
+- **Impact**: Mejor compatibilidad de TypeScript para operaciones sin input
+- **Scope**: Affects use cases without request parameters
+
 ## [2.1.1] - 2024-12-23
 
 ### 🐛 HOTFIX CRÍTICO - IMPORTS DE INTERFACES ANIDADAS
