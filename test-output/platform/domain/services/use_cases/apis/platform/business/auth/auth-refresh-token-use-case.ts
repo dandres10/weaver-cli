@@ -4,7 +4,7 @@ import { IAuthRefreshTokenResponseDTO } from "@platform/domain/models/apis/platf
 
 import { InjectionPlatformBusinessRepository } from "@platform/infrastructure/repositories/apis/platform/repositories/injection/business/injection-platform-business-repository";
 
-export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenResponseDTO | null> {
+export class AuthRefreshTokenUseCase implements UseCase<any, IAuthRefreshTokenResponseDTO | null> {
   private static instance: AuthRefreshTokenUseCase;
   private repository = InjectionPlatformBusinessRepository.AuthRepository();
 

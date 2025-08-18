@@ -4,7 +4,7 @@ import { IAuthLogoutResponseDTO } from "@platform/domain/models/apis/platform/bu
 
 import { InjectionPlatformBusinessRepository } from "@platform/infrastructure/repositories/apis/platform/repositories/injection/business/injection-platform-business-repository";
 
-export class AuthLogoutUseCase implements UseCase<void, IAuthLogoutResponseDTO | null> {
+export class AuthLogoutUseCase implements UseCase<any, IAuthLogoutResponseDTO | null> {
   private static instance: AuthLogoutUseCase;
   private repository = InjectionPlatformBusinessRepository.AuthRepository();
 

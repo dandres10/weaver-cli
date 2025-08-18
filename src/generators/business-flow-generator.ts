@@ -430,9 +430,16 @@ function generateBusinessEntityInterface(serviceName: string, operation: any, ty
       if (fieldType && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(fieldType)) {
         const typeName = toPascalCase(fieldType);
         const suffix = type === 'request' ? 'Request' : 'Response';
-        fieldType = typeName.endsWith('Response') || typeName.endsWith('Request') 
-          ? `I${typeName}Entity` 
-          : `I${typeName}${suffix}Entity`;
+        // Usar patrón completo: I<Flujo><Proceso><Tipo><Request/Response>Entity
+        // Limpiar el tipo para obtener solo el nombre base sin sufijos
+        let cleanTypeName = typeName;
+        cleanTypeName = cleanTypeName.replace(/LoginResponse$/, '');
+        cleanTypeName = cleanTypeName.replace(/LoginRequest$/, '');
+        cleanTypeName = cleanTypeName.replace(/Login$/, '');
+        cleanTypeName = cleanTypeName.replace(/Response$/, '');
+        cleanTypeName = cleanTypeName.replace(/Request$/, '');
+        
+        fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${cleanTypeName}${suffix}Entity`;
         
         // Generar nombre de archivo con patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-entity
         // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
@@ -866,10 +873,16 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
       if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
         const typeName = toPascalCase(field.type);
         const suffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request o Response
-        const fieldType = typeName.endsWith('Response') || typeName.endsWith('Request') 
-          ? `I${typeName}DTO` 
-          : `I${typeName}${suffix}DTO`;
+        // Usar patrón completo: I<Flujo><Proceso><Tipo><Request/Response>DTO
+        // Limpiar el tipo para obtener solo el nombre base sin sufijos
+        let cleanTypeName = typeName;
+        cleanTypeName = cleanTypeName.replace(/LoginResponse$/, '');
+        cleanTypeName = cleanTypeName.replace(/LoginRequest$/, '');
+        cleanTypeName = cleanTypeName.replace(/Login$/, '');
+        cleanTypeName = cleanTypeName.replace(/Response$/, '');
+        cleanTypeName = cleanTypeName.replace(/Request$/, '');
+        
+        const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${cleanTypeName}${suffix}DTO`;
         
         // Generar nombre de archivo con patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-dto
         // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
