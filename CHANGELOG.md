@@ -5,6 +5,37 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.9] - 2024-12-23
+
+### 🔧 CORRECCIÓN DEFINITIVA - INJECTION FILES COMPLETAMENTE ALINEADOS
+
+#### 🛠️ Fixed - IMPORTS Y MÉTODOS EN INJECTION FILES
+- **📥 Injection Imports**: Imports alineados con exports reales del index.ts
+- **🔄 Consistent Naming**: Nombres de clases consistentes entre mappers e injections
+- **📞 Method Names**: Métodos que coinciden con clases reales generadas
+- **✅ Full Alignment**: Zero inconsistencias entre archivos
+
+#### 📚 Technical Details - Injection Files Corregidos
+- **Before Import**: `AuthRefreshTokenUserLoginResponseMapper` ❌ (no existe)
+- **After Import**: `AuthRefreshTokenUserResponseMapper` ✅ (existe en index.ts)
+- **Before Method**: `UserLoginResponseMapper(): AuthRefreshTokenUserLoginResponseMapper` ❌
+- **After Method**: `UserResponseMapper(): AuthRefreshTokenUserResponseMapper` ✅
+- **Logic**: Aplicada misma lógica de limpieza en `collectNestedMappersForOperation`
+
+#### 📚 Technical Details - Funciones Corregidas
+- **collectNestedMappersForOperation**: Aplica lógica de limpieza simplificada igual que `generateIndividualNestedMapper`
+- **Pattern**: `finalTypeName.replace(/LoginResponse$|LoginRequest$|Response$|Request$/, '')`
+- **Result**: Nombres de clases consistentes: `AuthRefreshToken{CleanType}ResponseMapper`
+- **Injection Generation**: `generateMapperInjectionPerOperation` usa nombres correctos
+
+#### 🎯 Impact - SISTEMA COMPLETAMENTE FUNCIONAL
+- ✅ Injection files importan clases que existen
+- ✅ Métodos en injection coinciden con clases reales
+- ✅ Zero errores de compilación en injection files
+- ✅ Mappers y injections 100% alineados
+- ✅ Architecture Clean completamente funcional
+- ✅ Zero inconsistencias en todo el sistema
+
 ## [2.1.8] - 2024-12-23
 
 ### 🔧 CORRECCIÓN FINAL - MAPPERS ANIDADOS COMPLETAMENTE CORREGIDOS

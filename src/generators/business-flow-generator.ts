@@ -1636,19 +1636,14 @@ async function collectNestedMappersForOperation(operation: any, type: 'request' 
       // Limpiar caracteres especiales para nombres de clase válidos
       const cleanFormattedType = formattedFieldType.replace(/[\[\]]/g, 'Array');
       
-      // Detectar y evitar duplicación de operaciones en el nombre del tipo
+      // Aplicar la misma lógica de limpieza simplificada que en generateIndividualNestedMapper
       let finalTypeName = cleanFormattedType;
-      const operationInTypeName = cleanOperationName.toLowerCase();
-      const typeNameLower = cleanFormattedType.toLowerCase();
       
-      // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
-      if (typeNameLower.includes(operationInTypeName)) {
-        finalTypeName = cleanFormattedType.replace(new RegExp(cleanOperationName, 'gi'), '');
-      }
+      // Remover sufijos redundantes para obtener nombre base limpio (igual que en generateIndividualNestedMapper)
+      finalTypeName = finalTypeName.replace(/LoginResponse$|LoginRequest$|Response$|Request$/, '');
       
-      const className = finalTypeName.endsWith('Response') || finalTypeName.endsWith('Request') 
-        ? `${formattedServiceName}${cleanOperationName}${finalTypeName}Mapper` 
-        : `${formattedServiceName}${cleanOperationName}${finalTypeName}${classSuffix}Mapper`;
+      // Generar nombre de clase consistente con la lógica de generateIndividualNestedMapper
+      const className = `${formattedServiceName}${cleanOperationName}${finalTypeName}${classSuffix}Mapper`;
 
       nestedMappers.push({
         className,

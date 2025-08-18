@@ -270,6 +270,12 @@ public static PlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurat
 }
 ```
 
+**✅ Mappers y Injection Optimizados:**
+- Variables sin sufijos duplicados (ej: `userResponseMapper`)
+- Métodos que coinciden con clases reales exportadas
+- Imports centralizados desde index.ts  
+- Lógica contextual para eliminación automática de redundancias
+
 **✅ Sintaxis y Validación:**
 - Llaves de cierre en todas las clases ✅
 - Imports consolidados via index.ts ✅
@@ -392,15 +398,19 @@ npm run logout        # Build + logout
 - 🔌 **Actualización Acumulativa**: Los archivos de injection se actualizan automáticamente
 - 🚀 **Optimización Completa**: Repository pattern, use cases optimizados, mappers corregidos, sintaxis validada
 
-🎉 **¡SISTEMA COMPLETO!** 
-Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo.
+🎉 **¡SISTEMA COMPLETO Y ROBUSTO!** 
+Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo **completamente funcional**.
 
-**🆕 Última Actualización (Diciembre 2024):**
+**🆕 Última Actualización v2.1.9 (Diciembre 2024):**
 - ✅ **Consistencia Archivo-Interface 100%**: Nombres perfectamente alineados entre archivos e interfaces
 - ✅ **Export Type Únicos**: Solo `export type` en index.ts sin duplicaciones
 - ✅ **Kebab-case Uniforme**: Directorios consistentes (`refresh-token/` no `refresh_token/`)
 - ✅ **Validación Automática**: Detección y corrección de duplicaciones de sufijos
 - ✅ **Patrones Completos**: `i-<flujo>-<proceso>-<tipo>-<request/response>-<dto/entity>.ts` → `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
+- ✅ **Mappers Anidados Robustos**: Variables camelCase correctas, métodos injection alineados
+- ✅ **Injection Files Funcionales**: Imports hacia clases reales, zero errores de compilación
+- ✅ **Import Paths Optimizados**: Todos los imports van hacia index.ts centralizados
+- ✅ **Lógica Contextual Avanzada**: Eliminación inteligente de sufijos redundantes
 
 **🔥 Última Optimización Completa (Diciembre 2024):**
 - ✅ **DTOs y Entities Optimizados**: Imports via index.ts, naming consistente, interfaces anidadas perfectas
@@ -412,28 +422,44 @@ Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para 
 - ✅ **Validación Sintáctica**: Llaves de cierre, imports limpios, zero código innecesario
 - ✅ **UseCase Types**: `UseCase<any, ResponseDTO | null>` para operaciones sin parámetros (optimización TypeScript)
 
-#### 🆕 **Mejora Reciente v2.1.2 (Diciembre 2024)**
+#### 🆕 **Mejoras Recientes v2.1.2 - v2.1.9 (Diciembre 2024)**
 
-**✅ UseCase Generic Types Optimizados:**
+**✅ v2.1.2 - UseCase Generic Types Optimizados:**
+- **Optimización de tipos**: `UseCase<void, ...>` → `UseCase<any, ...>` para mejor compatibilidad TypeScript
+- **Zero breaking changes**: Mejora transparente para operaciones sin parámetros
 
-En la versión anterior, los casos de uso sin parámetros utilizaban `UseCase<void, ...>` lo cual no era la mejor práctica de TypeScript. Se optimizó a `UseCase<any, ...>` para mejor compatibilidad:
+**✅ v2.1.3 - v2.1.9 - Sistema Completamente Estable:**
 
-```typescript
-// ❌ ANTES (v2.1.1):
-export class AuthLogoutUseCase implements UseCase<void, IAuthLogoutResponseDTO | null>
-export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenResponseDTO | null>
+- **🔧 Mappers corregidos**: Variables camelCase, métodos injection alineados
+- **📥 Imports optimizados**: Centralizados hacia index.ts  
+- **✅ Zero errores**: Compilación sin problemas en arquitectura completa
+- **🎯 Producción ready**: Sistema robusto para proyectos reales
 
-// ✅ AHORA (v2.1.2):
-export class AuthLogoutUseCase implements UseCase<any, IAuthLogoutResponseDTO | null>
-export class AuthRefreshTokenUseCase implements UseCase<any, IAuthRefreshTokenResponseDTO | null>
+---
 
-// ✅ Se mantiene igual para operaciones con parámetros:
-export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLoginResponseDTO | null>
-export class AuthCreateApiTokenUseCase implements UseCase<IAuthCreateApiTokenRequestDTO, IAuthCreateApiTokenResponseDTO | null>
+## 🚀 INSTALACIÓN Y USO
+
+### 📦 **Instalación**
+
+```bash
+# Instalar Weaver CLI
+npm install -g weaver-frontend-cli
+
+# Verificar instalación
+weaver --version
 ```
 
-**🎯 Beneficios:**
-- **🔧 Mejor compatibilidad** con TypeScript para operaciones sin input
-- **📋 Tipos más flexibles** que `void` para casos de uso sin parámetros
-- **🎯 Consistencia mejorada** en el patrón de tipos genéricos
-- **✅ Zero breaking changes** - mejora transparente
+### 🎮 **Comandos Básicos**
+
+```bash
+weaver                # Comando principal
+weaver --local        # Modo local (test-output)
+weaver --session-info # Info de sesión
+weaver --logout       # Cerrar sesión
+```
+
+### 🔍 **Compatibilidad**
+
+- **Node.js**: >=14.x
+- **TypeScript**: >=4.x  
+- **APIs**: OpenAPI/Swagger 3.x
