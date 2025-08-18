@@ -1,23 +1,23 @@
-import { IUserLoginResponseDTO } from "./i-user-login-response-dto";
-import { ICurrencyLoginResponseDTO } from "./i-currency-login-response-dto";
-import { ILocationLoginResponseDTO } from "./i-location-login-response-dto";
-import { ILanguageLoginResponseDTO } from "./i-language-login-response-dto";
-import { IPlatformLoginResponseDTO } from "./i-platform-login-response-dto";
-import { ICountryLoginResponseDTO } from "./i-country-login-response-dto";
-import { ICompanyLoginResponseDTO } from "./i-company-login-response-dto";
-import { IRolLoginResponseDTO } from "./i-rol-login-response-dto";
-import { IPermissionLoginResponseDTO } from "./i-permission-login-response-dto";
-import { IMenuLoginResponseDTO } from "./i-menu-login-response-dto";
+import { IAuthLoginUserResponseDTO } from "./i-auth-login-user-response-dto";
+import { IAuthLoginCurrencyResponseDTO } from "./i-auth-login-currency-response-dto";
+import { IAuthLoginLocationResponseDTO } from "./i-auth-login-location-response-dto";
+import { IAuthLoginLanguageResponseDTO } from "./i-auth-login-language-response-dto";
+import { IAuthLoginPlatformResponseDTO } from "./i-auth-login-platform-response-dto";
+import { IAuthLoginCountryResponseDTO } from "./i-auth-login-country-response-dto";
+import { IAuthLoginCompanyResponseDTO } from "./i-auth-login-company-response-dto";
+import { IAuthLoginRolResponseDTO } from "./i-auth-login-rol-response-dto";
+import { IAuthLoginPermissionResponseDTO } from "./i-auth-login-permission-response-dto";
+import { IAuthLoginMenuResponseDTO } from "./i-auth-login-menu-response-dto";
 
 export interface IAuthLoginPlatformConfigurationResponseDTO {
-  user: IUserLoginResponseDTO;
-  currency: ICurrencyLoginResponseDTO;
-  location: ILocationLoginResponseDTO;
-  language: ILanguageLoginResponseDTO;
-  platform: IPlatformLoginResponseDTO;
-  country: ICountryLoginResponseDTO;
-  company: ICompanyLoginResponseDTO;
-  rol: IRolLoginResponseDTO;
-  permissions: IPermissionLoginResponseDTO[];
-  menu: IMenuLoginResponseDTO[];
+  user: IAuthLoginUserResponseDTO;
+  currency: IAuthLoginCurrencyResponseDTO;
+  location: IAuthLoginLocationResponseDTO;
+  language: IAuthLoginLanguageResponseDTO;
+  platform: IAuthLoginPlatformResponseDTO;
+  country: IAuthLoginCountryResponseDTO;
+  company: IAuthLoginCompanyResponseDTO;
+  rol: IAuthLoginRolResponseDTO;
+  permissions: IAuthLoginPermissionResponseDTO[];
+  menu: IAuthLoginMenuResponseDTO[];
 }

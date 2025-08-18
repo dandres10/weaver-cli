@@ -1,11 +1,11 @@
-import { ICurrencyLoginResponseDTO } from "./i-currency-login-response-dto";
-import { ILocationLoginResponseDTO } from "./i-location-login-response-dto";
-import { ILanguageLoginResponseDTO } from "./i-language-login-response-dto";
-import { ICompanyLoginResponseDTO } from "./i-company-login-response-dto";
+import { IAuthRefreshTokenCurrencyResponseDTO } from "./i-auth-refresh-token-currency-response-dto";
+import { IAuthRefreshTokenLocationResponseDTO } from "./i-auth-refresh-token-location-response-dto";
+import { IAuthRefreshTokenLanguageResponseDTO } from "./i-auth-refresh-token-language-response-dto";
+import { IAuthRefreshTokenCompanyResponseDTO } from "./i-auth-refresh-token-company-response-dto";
 
 export interface IAuthRefreshTokenPlatformVariationsResponseDTO {
-  currencies: ICurrencyLoginResponseDTO[];
-  locations: ILocationLoginResponseDTO[];
-  languages: ILanguageLoginResponseDTO[];
-  companies: ICompanyLoginResponseDTO[];
+  currencies: IAuthRefreshTokenCurrencyResponseDTO[];
+  locations: IAuthRefreshTokenLocationResponseDTO[];
+  languages: IAuthRefreshTokenLanguageResponseDTO[];
+  companies: IAuthRefreshTokenCompanyResponseDTO[];
 }

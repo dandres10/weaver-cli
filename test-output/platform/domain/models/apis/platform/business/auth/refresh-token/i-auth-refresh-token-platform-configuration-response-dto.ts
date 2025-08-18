@@ -1,23 +1,23 @@
-import { IUserLoginResponseDTO } from "./i-user-login-response-dto";
-import { ICurrencyLoginResponseDTO } from "./i-currency-login-response-dto";
-import { ILocationLoginResponseDTO } from "./i-location-login-response-dto";
-import { ILanguageLoginResponseDTO } from "./i-language-login-response-dto";
-import { IPlatformLoginResponseDTO } from "./i-platform-login-response-dto";
-import { ICountryLoginResponseDTO } from "./i-country-login-response-dto";
-import { ICompanyLoginResponseDTO } from "./i-company-login-response-dto";
-import { IRolLoginResponseDTO } from "./i-rol-login-response-dto";
-import { IPermissionLoginResponseDTO } from "./i-permission-login-response-dto";
-import { IMenuLoginResponseDTO } from "./i-menu-login-response-dto";
+import { IAuthRefreshTokenUserResponseDTO } from "./i-auth-refresh-token-user-response-dto";
+import { IAuthRefreshTokenCurrencyResponseDTO } from "./i-auth-refresh-token-currency-response-dto";
+import { IAuthRefreshTokenLocationResponseDTO } from "./i-auth-refresh-token-location-response-dto";
+import { IAuthRefreshTokenLanguageResponseDTO } from "./i-auth-refresh-token-language-response-dto";
+import { IAuthRefreshTokenPlatformResponseDTO } from "./i-auth-refresh-token-platform-response-dto";
+import { IAuthRefreshTokenCountryResponseDTO } from "./i-auth-refresh-token-country-response-dto";
+import { IAuthRefreshTokenCompanyResponseDTO } from "./i-auth-refresh-token-company-response-dto";
+import { IAuthRefreshTokenRolResponseDTO } from "./i-auth-refresh-token-rol-response-dto";
+import { IAuthRefreshTokenPermissionResponseDTO } from "./i-auth-refresh-token-permission-response-dto";
+import { IAuthRefreshTokenMenuResponseDTO } from "./i-auth-refresh-token-menu-response-dto";
 
 export interface IAuthRefreshTokenPlatformConfigurationResponseDTO {
-  user: IUserLoginResponseDTO;
-  currency: ICurrencyLoginResponseDTO;
-  location: ILocationLoginResponseDTO;
-  language: ILanguageLoginResponseDTO;
-  platform: IPlatformLoginResponseDTO;
-  country: ICountryLoginResponseDTO;
-  company: ICompanyLoginResponseDTO;
-  rol: IRolLoginResponseDTO;
-  permissions: IPermissionLoginResponseDTO[];
-  menu: IMenuLoginResponseDTO[];
+  user: IAuthRefreshTokenUserResponseDTO;
+  currency: IAuthRefreshTokenCurrencyResponseDTO;
+  location: IAuthRefreshTokenLocationResponseDTO;
+  language: IAuthRefreshTokenLanguageResponseDTO;
+  platform: IAuthRefreshTokenPlatformResponseDTO;
+  country: IAuthRefreshTokenCountryResponseDTO;
+  company: IAuthRefreshTokenCompanyResponseDTO;
+  rol: IAuthRefreshTokenRolResponseDTO;
+  permissions: IAuthRefreshTokenPermissionResponseDTO[];
+  menu: IAuthRefreshTokenMenuResponseDTO[];
 }

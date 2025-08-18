@@ -1,23 +1,23 @@
-import { IUserLoginResponseEntity } from "./i-user-login-response-entity";
-import { ICurrencyLoginResponseEntity } from "./i-currency-login-response-entity";
-import { ILocationLoginResponseEntity } from "./i-location-login-response-entity";
-import { ILanguageLoginResponseEntity } from "./i-language-login-response-entity";
-import { IPlatformLoginResponseEntity } from "./i-platform-login-response-entity";
-import { ICountryLoginResponseEntity } from "./i-country-login-response-entity";
-import { ICompanyLoginResponseEntity } from "./i-company-login-response-entity";
-import { IRolLoginResponseEntity } from "./i-rol-login-response-entity";
-import { IPermissionLoginResponseEntity } from "./i-permission-login-response-entity";
-import { IMenuLoginResponseEntity } from "./i-menu-login-response-entity";
+import { IAuthLoginUserResponseEntity } from "./i-auth-login-user-response-entity";
+import { IAuthLoginCurrencyResponseEntity } from "./i-auth-login-currency-response-entity";
+import { IAuthLoginLocationResponseEntity } from "./i-auth-login-location-response-entity";
+import { IAuthLoginLanguageResponseEntity } from "./i-auth-login-language-response-entity";
+import { IAuthLoginPlatformResponseEntity } from "./i-auth-login-platform-response-entity";
+import { IAuthLoginCountryResponseEntity } from "./i-auth-login-country-response-entity";
+import { IAuthLoginCompanyResponseEntity } from "./i-auth-login-company-response-entity";
+import { IAuthLoginRolResponseEntity } from "./i-auth-login-rol-response-entity";
+import { IAuthLoginPermissionResponseEntity } from "./i-auth-login-permission-response-entity";
+import { IAuthLoginMenuResponseEntity } from "./i-auth-login-menu-response-entity";
 
 export interface IAuthLoginPlatformConfigurationResponseEntity {
-  user: IUserLoginResponseEntity;
-  currency: ICurrencyLoginResponseEntity;
-  location: ILocationLoginResponseEntity;
-  language: ILanguageLoginResponseEntity;
-  platform: IPlatformLoginResponseEntity;
-  country: ICountryLoginResponseEntity;
-  company: ICompanyLoginResponseEntity;
-  rol: IRolLoginResponseEntity;
-  permissions: IPermissionLoginResponseEntity[];
-  menu: IMenuLoginResponseEntity[];
+  user: IAuthLoginUserResponseEntity;
+  currency: IAuthLoginCurrencyResponseEntity;
+  location: IAuthLoginLocationResponseEntity;
+  language: IAuthLoginLanguageResponseEntity;
+  platform: IAuthLoginPlatformResponseEntity;
+  country: IAuthLoginCountryResponseEntity;
+  company: IAuthLoginCompanyResponseEntity;
+  rol: IAuthLoginRolResponseEntity;
+  permissions: IAuthLoginPermissionResponseEntity[];
+  menu: IAuthLoginMenuResponseEntity[];
 }

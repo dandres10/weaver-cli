@@ -1,11 +1,11 @@
-import { ICurrencyLoginResponseEntity } from "./i-currency-login-response-entity";
-import { ILocationLoginResponseEntity } from "./i-location-login-response-entity";
-import { ILanguageLoginResponseEntity } from "./i-language-login-response-entity";
-import { ICompanyLoginResponseEntity } from "./i-company-login-response-entity";
+import { IAuthLoginCurrencyResponseEntity } from "./i-auth-login-currency-response-entity";
+import { IAuthLoginLocationResponseEntity } from "./i-auth-login-location-response-entity";
+import { IAuthLoginLanguageResponseEntity } from "./i-auth-login-language-response-entity";
+import { IAuthLoginCompanyResponseEntity } from "./i-auth-login-company-response-entity";
 
 export interface IAuthLoginPlatformVariationsResponseEntity {
-  currencies: ICurrencyLoginResponseEntity[];
-  locations: ILocationLoginResponseEntity[];
-  languages: ILanguageLoginResponseEntity[];
-  companies: ICompanyLoginResponseEntity[];
+  currencies: IAuthLoginCurrencyResponseEntity[];
+  locations: IAuthLoginLocationResponseEntity[];
+  languages: IAuthLoginLanguageResponseEntity[];
+  companies: IAuthLoginCompanyResponseEntity[];
 }

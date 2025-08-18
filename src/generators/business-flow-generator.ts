@@ -936,19 +936,26 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
       
       // Si es un tipo complejo, usar el tipo con el sufijo DTO
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        const nestedTypeName = toPascalCase(nestedField.type);
-        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request o Response
-        const fieldType = nestedTypeName.endsWith('Response') || nestedTypeName.endsWith('Request') 
-          ? `I${nestedTypeName}DTO` 
-          : `I${nestedTypeName}${nestedSuffix}DTO`;
+        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>DTO
+        let cleanNestedType = nestedField.type;
+        cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
+        cleanNestedType = cleanNestedType.replace(/LoginRequest$/, '');
+        cleanNestedType = cleanNestedType.replace(/Login$/, '');
+        cleanNestedType = cleanNestedType.replace(/Response$/, '');
+        cleanNestedType = cleanNestedType.replace(/Request$/, '');
         
-        // Agregar import para tipos complejos
-        const baseFileName = nestedField.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-        const needsSuffix = !nestedField.type.toLowerCase().endsWith('response') && !nestedField.type.toLowerCase().endsWith('request');
-        const importFileName = needsSuffix 
-          ? `i-${baseFileName}-${type}-dto`
-          : `i-${baseFileName}-dto`;
+        const formattedNestedTypeName = toPascalCase(cleanNestedType);
+        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+        const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}DTO`;
+        
+        // Agregar import para tipos complejos con patrón completo
+        // Patron: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts        
+        const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+        const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+        const operationNameKebab = operationName.replace(/_/g, '-');
+        const typeKebab = type === 'request' ? 'request' : 'response';
+        
+        const importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-dto`;
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
         
@@ -1066,19 +1073,26 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
       
       // Si es un tipo complejo, usar el tipo con el sufijo Entity
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        const nestedTypeName = toPascalCase(nestedField.type);
-        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request or Response
-        const fieldType = nestedTypeName.endsWith('Response') || nestedTypeName.endsWith('Request') 
-          ? `I${nestedTypeName}Entity` 
-          : `I${nestedTypeName}${nestedSuffix}Entity`;
+        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>Entity
+        let cleanNestedType = nestedField.type;
+        cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
+        cleanNestedType = cleanNestedType.replace(/LoginRequest$/, '');
+        cleanNestedType = cleanNestedType.replace(/Login$/, '');
+        cleanNestedType = cleanNestedType.replace(/Response$/, '');
+        cleanNestedType = cleanNestedType.replace(/Request$/, '');
         
-        // Agregar import para tipos complejos
-        const baseFileName = nestedField.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-        const needsSuffix = !nestedField.type.toLowerCase().endsWith('response') && !nestedField.type.toLowerCase().endsWith('request');
-        const importFileName = needsSuffix 
-          ? `i-${baseFileName}-${type}-entity`
-          : `i-${baseFileName}-entity`;
+        const formattedNestedTypeName = toPascalCase(cleanNestedType);
+        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+        const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}Entity`;
+        
+        // Agregar import para tipos complejos con patrón completo
+        // Patron: i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts        
+        const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+        const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+        const operationNameKebab = operationName.replace(/_/g, '-');
+        const typeKebab = type === 'request' ? 'request' : 'response';
+        
+        const importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-entity`;
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
         
