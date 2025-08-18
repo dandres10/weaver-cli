@@ -31,7 +31,11 @@ export async function createBusinessFlow(serviceName: string, basePath: string =
     // Injection para business Use Cases
     injectionUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${targetApiName}/injection/business`),
     // Injection para business Facades
-    injectionFacades: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/injection/business`)
+    injectionFacades: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/injection/business`),
+    // Infrastructure repositories para business
+    infraRepositories: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${targetApiName}/repositories/business/${serviceNameLower}`),
+    // Injection para infrastructure repositories de business
+    injectionRepositories: path.join(basePath, `${apiPrefix}infrastructure/repositories/apis/${targetApiName}/repositories/injection/business`)
   };
 
   try {
@@ -49,6 +53,10 @@ export async function createBusinessFlow(serviceName: string, basePath: string =
     await generateInfrastructureMappers(serviceName, paths, schema, targetApiName);
     // Generar injection files por operación (en lugar de por servicio)
     await generateMapperInjectionPerOperation(serviceName, paths, schema, targetApiName);
+    // Generar repositories de implementación por operación
+    await generateInfrastructureRepositories(serviceName, paths, schema, targetApiName);
+    // Generar injection para infrastructure repositories
+    await generateRepositoryInjectionFiles(serviceName, paths, schema, targetApiName);
     // Generar facades por servicio
     await generateBusinessFacades(serviceName, paths, schema, targetApiName);
     // Generar archivos de inyección
@@ -976,26 +984,48 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
         .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
         .join('');
 
-      const operationFolder = path.join(paths.domainUseCases, operationName);
-      await fs.ensureDir(operationFolder);
+      // Los casos de uso van directamente en la carpeta del servicio (sin subcarpetas)
+      await fs.ensureDir(paths.domainUseCases);
 
-      // Solo generar Use Case si tiene tanto request como response
-      if (operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0) {
+            // Generar Use Case si tiene responseFields (puede o no tener request)
+      if (operation.responseFields && operation.responseFields.length > 0) {
+        const hasRequest = operation.fields && operation.fields.length > 0;
         const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
         const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
         const useCaseClassName = `${toPascalCase(serviceName)}${cleanOperationName}UseCase`;
+        
+        // Convertir operationName a camelCase para el método del repository
+        const operationCamelCase = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+
+        // Seguir el patrón de entities: usar un solo mapper y estructura simple
+        const dtoImports = hasRequest ? `${requestDTOName}, ${responseDTOName}` : responseDTOName;
+        const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<void, ${responseDTOName} | null>`;
+        
+        // Usar mapper unificado (como en entities)
+        const mapperImport = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`;
+        
+        // Método execute siguiendo el patrón
+        const executeParams = hasRequest ? `params: ${requestDTOName}, ` : '';
+        const repositoryCall = hasRequest ? `this.repository.${operationCamelCase}(paramsEntity, config)` : `this.repository.${operationCamelCase}(config)`;
+        const mapperLogic = hasRequest 
+          ? `const paramsEntity = this.mapper.mapTo(params);
+    return await ${repositoryCall}.then((data) => data ?? null);` 
+          : `return await ${repositoryCall}.then((data) => data ?? null);`;
 
         const useCase = `import { IConfigDTO } from "@bus/core/interfaces";
 import { UseCase } from "@bus/core/interfaces/use-case";
-import { ${requestDTOName}, ${responseDTOName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
-import { InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/injection-${apiName}-business-${serviceNameKebab}-mapper";
+import { ${dtoImports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+${mapperImport}
 import { InjectionPlatformBusinessRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/business/injection-${apiName}-business-repository";
 
-export class ${useCaseClassName} implements UseCase<${requestDTOName}, ${responseDTOName} | null> {
+export class ${useCaseClassName} implements ${useCaseInterface} {
   private static instance: ${useCaseClassName};
   private repository = InjectionPlatformBusinessRepository.${toPascalCase(serviceName)}Repository();
-  private requestMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();
-  private responseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();
+  private mapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}${hasRequest ? 'Request' : 'Response'}Mapper();
 
   public static getInstance(): ${useCaseClassName} {
     if (!${useCaseClassName}.instance)
@@ -1003,15 +1033,13 @@ export class ${useCaseClassName} implements UseCase<${requestDTOName}, ${respons
     return ${useCaseClassName}.instance;
   }
 
-  public async execute(params: ${requestDTOName}, config?: IConfigDTO): Promise<${responseDTOName} | null> {
-    const paramsEntity = this.requestMapper.mapTo(params);
-    const response = await this.repository.${operationName}(paramsEntity, config);
-    return response ? this.responseMapper.mapFrom(response) : null;
+  public async execute(${executeParams}config?: IConfigDTO): Promise<${responseDTOName} | null> {
+    ${mapperLogic}
   }
 }`;
 
         await fs.writeFile(
-          path.join(operationFolder, `${serviceNameKebab}-${operationKebab}-use-case.ts`),
+          path.join(paths.domainUseCases, `${serviceNameKebab}-${operationKebab}-use-case.ts`),
           useCase
         );
         console.log(chalk.green(`✅ Use Case: ${serviceNameKebab}-${operationKebab}-use-case.ts`));
@@ -1031,7 +1059,7 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
     const facadeClassName = `${toPascalCase(serviceName)}Facade`;
     
     const imports = schema.businessOperations
-      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
         const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
         const cleanOperationName = operationName
@@ -1040,25 +1068,41 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         
-        return `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO, I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
-      }).join(', ');
+        const hasRequest = operation.fields && operation.fields.length > 0;
+        if (hasRequest) {
+          return `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO,\n  I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        } else {
+          return `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        }
+      }).join(',\n  ');
 
-    const useCaseImports = schema.businessOperations
-      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+    // Import del injection de use cases (como en entities)
+    const useCaseInjectionImport = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/injection/business/injection-${apiName}-business-${serviceNameKebab}-use-case";`;
+
+    // Use case instances (como en entities)
+    const useCaseInstances = schema.businessOperations
+      .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
         const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
-        const operationKebab = operationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         
-        return `import { ${toPascalCase(serviceName)}${cleanOperationName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-use-case";`;
+        // Convertir operationName a camelCase para las variables
+        const operationCamelCase = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        return `  private readonly ${operationCamelCase}UseCase = InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase.${toPascalCase(serviceName)}${cleanOperationName}UseCase();`;
       }).join('\n');
 
-    const methods = schema.businessOperations
-      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+    // Métodos del facade (como en entities)
+    const facadeMethods = schema.businessOperations
+      .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
         const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
         const cleanOperationName = operationName
@@ -1067,23 +1111,32 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         
-        const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
-        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
-        const useCaseClassName = `${toPascalCase(serviceName)}${cleanOperationName}UseCase`;
-
-        return `  public async ${operationName}(params: ${requestDTOName}, config?: IConfigDTO): Promise<${responseDTOName} | null> {
-    return await this.${operationName}UseCase.execute(params, config);
-  }
-
-  private ${operationName}UseCase = ${useCaseClassName}.getInstance();`;
+        // Convertir operationName a camelCase para métodos y variables
+        const operationCamelCase = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        const hasRequest = operation.fields && operation.fields.length > 0;
+        const params = hasRequest ? `params: I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO, ` : '';
+        const args = hasRequest ? 'params, config' : 'config';
+        
+        return `  public async ${operationCamelCase}(${params}config?: IConfigDTO): Promise<I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO | null> {
+    return await this.${operationCamelCase}UseCase.execute(${args});
+  }`;
       }).join('\n\n');
 
     const facade = `import { IConfigDTO } from "@bus/core/interfaces";
-import { ${imports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
-${useCaseImports}
+import {
+  ${imports},
+} from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+${useCaseInjectionImport}
 
 export class ${facadeClassName} {
   private static instance: ${facadeClassName};
+
+${useCaseInstances}
 
   public static getInstance(): ${facadeClassName} {
     if (!${facadeClassName}.instance)
@@ -1091,7 +1144,7 @@ export class ${facadeClassName} {
     return ${facadeClassName}.instance;
   }
 
-${methods}
+${facadeMethods}
 }`;
 
     await fs.writeFile(
@@ -1219,13 +1272,194 @@ async function collectNestedMappersForOperation(operation: any, type: 'request' 
   return nestedMappers;
 }
 
+async function generateInfrastructureRepositories(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameLower = serviceName.toLowerCase();
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+    const repositoryClassName = `${toPascalCase(serviceName)}Repository`;
+
+    // Generar imports para todas las DTOs y Entities necesarias
+    const allImports = {
+      dtos: new Set<string>(),
+      entities: new Set<string>(),
+      mapperImports: new Set<string>(),
+      mapperInstances: [] as string[]
+    };
+
+    // Generar métodos para todas las operaciones
+    const methods: string[] = [];
+
+    for (const operation of schema.businessOperations) {
+      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const operationKebab = operationName.replace(/_/g, '-');
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      // Generar método si tiene responseFields (puede o no tener request)
+      if (operation.responseFields && operation.responseFields.length > 0) {
+        const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
+        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const requestEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestEntity`;
+        const responseEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseEntity`;
+
+        // Agregar imports
+        const hasRequest = operation.fields && operation.fields.length > 0;
+        if (hasRequest) {
+          allImports.dtos.add(requestDTOName);
+          allImports.entities.add(requestEntityName);
+        }
+        allImports.dtos.add(responseDTOName);
+        allImports.entities.add(responseEntityName);
+        allImports.mapperImports.add(`import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`);
+
+        // Agregar instancias de mappers
+        const cleanOperationVarName = operationName.replace(/-/g, '');
+        if (hasRequest) {
+          allImports.mapperInstances.push(`  private ${cleanOperationVarName}RequestMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();`);
+        }
+        allImports.mapperInstances.push(`  private ${cleanOperationVarName}ResponseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();`);
+
+        // Convertir operationName a camelCase para el nombre del método
+        const operationCamelCase = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+
+        // Generar método
+        const methodParams = hasRequest ? `params: ${requestEntityName}, ` : '';
+        const methodCall = hasRequest ? 'params' : '{}';
+        const method = `  public async ${operationCamelCase}(
+    ${methodParams}config: IConfigDTO = CONST_CORE_DTO.CONFIG
+  ): Promise<${responseDTOName} | null> {
+    if (config.loadService)
+      return platformAxios
+        .post(CONST_PLATFORM_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}, ${methodCall})
+        .then(({ data }) => {
+          const entity = this.resolve.ResolveRequest<${responseEntityName}>(data);
+          if (entity)
+            return this.${cleanOperationVarName}ResponseMapper.mapFrom(entity);
+          return null;
+        });
+    return null;
+  }`;
+
+        methods.push(method);
+      }
+    }
+
+    // Generar el archivo completo
+    const dtoImports = Array.from(allImports.dtos).join(', ');
+    const entityImports = Array.from(allImports.entities).join(', ');
+    const mapperImports = Array.from(allImports.mapperImports).join('\n');
+
+    const repository = `import { IConfigDTO } from "@bus/core/interfaces";
+import platformAxios from "@bus/core/axios/platform-axios";
+import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
+import { CONST_CORE_DTO } from "@bus/core/const/const-core";
+import { InjectionCore } from "@bus/core/injection/injection-core";
+import { I${toPascalCase(serviceName)}Repository } from "@${apiName}/domain/services/repositories/apis/${apiName}/business/i-${serviceNameKebab}-repository";
+import { ${dtoImports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+import { ${entityImports} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";
+${mapperImports}
+
+export class ${repositoryClassName} extends I${toPascalCase(serviceName)}Repository {
+
+  private static instance: ${repositoryClassName};
+  private readonly resolve = InjectionCore.Resolve();
+${allImports.mapperInstances.join('\n')}
+
+  private constructor() {
+    super();
+  }
+
+  public static getInstance(): ${repositoryClassName} {
+    if (!${repositoryClassName}.instance)
+      ${repositoryClassName}.instance = new ${repositoryClassName}();
+    return ${repositoryClassName}.instance;
+  }
+
+${methods.join('\n\n')}
+}`;
+
+    await fs.writeFile(
+      path.join(paths.infraRepositories, `${serviceNameKebab}-repository.ts`),
+      repository
+    );
+    console.log(chalk.green(`✅ Infrastructure Repository: ${serviceNameKebab}-repository.ts`));
+  } else {
+    console.log(chalk.yellow('⚠️  No se generaron infrastructure repositories porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
+async function generateRepositoryInjectionFiles(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+    const injectionFilePath = path.join(paths.injectionRepositories, `injection-${apiName}-business-repository.ts`);
+    
+    // Datos del repository actual
+    const currentRepository = {
+      serviceName: toPascalCase(serviceName),
+      import: `import { ${toPascalCase(serviceName)}Repository } from "../../business/${serviceName.toLowerCase()}/${serviceNameKebab}-repository";`,
+      method: `  public static ${toPascalCase(serviceName)}Repository() { return ${toPascalCase(serviceName)}Repository.getInstance(); }`
+    };
+
+    let existingRepositories: any[] = [];
+    let existingImports: string[] = [];
+
+    // Leer archivo existente si existe
+    if (await fs.pathExists(injectionFilePath)) {
+      try {
+        const existingContent = await fs.readFile(injectionFilePath, 'utf-8');
+        
+        // Extraer imports existentes
+        const importMatches = existingContent.match(/import \{[^}]+\} from "[^"]+";/g);
+        if (importMatches) {
+          existingImports = importMatches.filter(imp => !imp.includes(`${toPascalCase(serviceName)}Repository`));
+        }
+        
+        // Extraer métodos existentes
+        const methodMatches = existingContent.match(/public static \w+Repository\(\)[^}]+}/g);
+        if (methodMatches) {
+          existingRepositories = methodMatches
+            .filter(method => !method.includes(`${toPascalCase(serviceName)}Repository`))
+            .map(method => ({ method: `  ${method}` }));
+        }
+      } catch (error) {
+        console.log(chalk.yellow(`⚠️  No se pudo leer el archivo existente: ${error}`));
+      }
+    }
+
+    // Combinar imports (existentes + actual)
+    const allImports = [...existingImports, currentRepository.import].join('\n');
+    
+    // Combinar métodos (existentes + actual)
+    const allMethods = [...existingRepositories.map(r => r.method), currentRepository.method].join('\n');
+    
+    // Generar archivo completo
+    const injectionFile = `${allImports}
+
+export class InjectionPlatformBusinessRepository {
+${allMethods}
+}`;
+
+    await fs.writeFile(injectionFilePath, injectionFile);
+    console.log(chalk.green(`✅ Repository Injection: injection-${apiName}-business-repository.ts (actualizado)`));
+  } else {
+    console.log(chalk.yellow('⚠️  No se generó repository injection porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
 async function generateBusinessInjectionFiles(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
   if (schema?.businessOperations && schema.businessOperations.length > 0) {
     const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
 
     // 1. Use Case Injection
     const useCaseImports = schema.businessOperations
-      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
         const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
         const operationKebab = operationName.replace(/_/g, '-');
@@ -1235,11 +1469,11 @@ async function generateBusinessInjectionFiles(serviceName: string, paths: any, s
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         
-        return `import { ${toPascalCase(serviceName)}${cleanOperationName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/business/${serviceName.toLowerCase()}/${operationName}/${serviceNameKebab}-${operationKebab}-use-case";`;
+        return `import { ${toPascalCase(serviceName)}${cleanOperationName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/business/${serviceName.toLowerCase()}/${serviceNameKebab}-${operationKebab}-use-case";`;
       }).join('\n');
 
     const useCaseMethods = schema.businessOperations
-      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
         const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
         const cleanOperationName = operationName
@@ -1265,21 +1499,63 @@ ${useCaseMethods}
     );
     console.log(chalk.green(`✅ Use Case Injection: injection-${apiName}-business-${serviceNameKebab}-use-case.ts`));
 
-    // 2. Facade Injection
-    const facadeInjection = `import { ${toPascalCase(serviceName)}Facade } from "@${apiName}/facade/apis/${apiName}/business/${serviceNameKebab}-facade";
-
-export class InjectionPlatformBusiness${toPascalCase(serviceName)}Facade {
-  public static ${toPascalCase(serviceName)}Facade(): ${toPascalCase(serviceName)}Facade {
-    return ${toPascalCase(serviceName)}Facade.getInstance();
-  }
-}`;
-
-    await fs.writeFile(
-      path.join(paths.injectionFacades, `injection-${apiName}-business-${serviceNameKebab}-facade.ts`),
-      facadeInjection
-    );
-    console.log(chalk.green(`✅ Facade Injection: injection-${apiName}-business-${serviceNameKebab}-facade.ts`));
+    // 2. Facade Injection (acumulativo como repositories)
+    await generateFacadeInjectionFiles(serviceName, paths, apiName);
   } else {
     console.log(chalk.yellow('⚠️  No se generaron archivos de inyección porque no hay operaciones de negocio detectadas.'));
   }
+}
+
+async function generateFacadeInjectionFiles(serviceName: string, paths: any, apiName: string = 'platform'): Promise<void> {
+  const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+  const injectionFilePath = path.join(paths.injectionFacades, `injection-${apiName}-business-facade.ts`);
+  
+  // Datos del facade actual
+  const currentFacade = {
+    serviceName: toPascalCase(serviceName),
+    import: `import { ${toPascalCase(serviceName)}Facade } from "@${apiName}/facade/apis/${apiName}/business/${serviceNameKebab}-facade";`,
+    method: `    public static ${toPascalCase(serviceName)}Facade() { return ${toPascalCase(serviceName)}Facade.getInstance(); }`
+  };
+
+  let existingFacades: any[] = [];
+  let existingImports: string[] = [];
+
+  // Leer archivo existente si existe
+  if (await fs.pathExists(injectionFilePath)) {
+    try {
+      const existingContent = await fs.readFile(injectionFilePath, 'utf-8');
+      
+      // Extraer imports existentes
+      const importMatches = existingContent.match(/import \{[^}]+\} from "[^"]+";/g);
+      if (importMatches) {
+        existingImports = importMatches.filter(imp => !imp.includes(`${toPascalCase(serviceName)}Facade`));
+      }
+      
+      // Extraer métodos existentes
+      const methodMatches = existingContent.match(/public static \w+Facade\(\)[^}]+}/g);
+      if (methodMatches) {
+        existingFacades = methodMatches
+          .filter(method => !method.includes(`${toPascalCase(serviceName)}Facade`))
+          .map(method => ({ method: `    ${method}` }));
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`⚠️  No se pudo leer el archivo existente: ${error}`));
+    }
+  }
+
+  // Combinar imports (existentes + actual)
+  const allImports = [...existingImports, currentFacade.import].join('\n');
+  
+  // Combinar métodos (existentes + actual)
+  const allMethods = [...existingFacades.map(f => f.method), currentFacade.method].join('\n');
+  
+  // Generar archivo completo
+  const injectionFile = `${allImports}
+
+export class InjectionPlatformBusinessFacade {
+${allMethods}
+}`;
+
+  await fs.writeFile(injectionFilePath, injectionFile);
+  console.log(chalk.green(`✅ Facade Injection: injection-${apiName}-business-facade.ts (actualizado)`));
 }

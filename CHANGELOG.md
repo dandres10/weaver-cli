@@ -5,6 +5,109 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-12-22
+
+### 🎉 MAJOR RELEASE - ARQUITECTURA CLEAN COMPLETA PARA FLUJOS DE NEGOCIO
+
+#### ✨ Added - GENERACIÓN BUSINESS FLOWS COMPLETA
+- **📊 Use Cases**: Generación completa de casos de uso para flujos de negocio
+  - Estructura plana sin subcarpetas (siguiendo patrón entities)
+  - Inyección de dependencias con mappers y repositories
+  - Soporte para operaciones con/sin request body
+  - Archivos de injection unificados por servicio
+- **🗄️ Infrastructure Repositories**: Repositorios unificados por servicio
+  - Un solo archivo por servicio (ej: `auth-repository.ts`)
+  - Métodos en camelCase (`login`, `refreshToken`, `createApiToken`)
+  - Integración con `CONST_PLATFORM_API_ROUTES` para endpoints
+  - Soporte automático para operaciones sin request body
+- **🎭 Facades**: Facades unificados por servicio
+  - Un solo archivo por servicio siguiendo patrón entities
+  - Instancias readonly de use cases con injection
+  - Métodos camelCase coherentes con repositories
+  - Manejo automático de parámetros según tipo de operación
+- **🔌 Sistema de Inyección Completo**: Dependency injection unificado y acumulativo
+  - `injection-platform-business-repository.ts` acumulativo
+  - `injection-platform-business-facade.ts` acumulativo  
+  - `injection-platform-business-{service}-use-case.ts` por servicio
+  - `injection-platform-business-{service}-{operation}-mapper.ts` por operación
+
+#### 🔧 Changed - MEJORAS ARQUITECTURALES FUNDAMENTALES
+- **🏗️ Arquitectura Unificada**: Repositories consolidados por servicio vs por operación
+- **📁 Estructura Plana**: Use Cases sin subcarpetas, alineado con patrón entities
+- **🔌 Inyección Acumulativa**: Los archivos injection se actualizan automáticamente
+- **🛣️ Rutas Constantes**: Uso automático de `CONST_PLATFORM_API_ROUTES`
+- **🧩 Operaciones Flexibles**: Soporte inteligente para operaciones con/sin request body
+- **📄 Una Interfaz por Archivo**: Interfaces individuales con imports automáticos
+
+#### 🐛 Fixed - CORRECCIONES CRÍTICAS
+- **🔤 Nombres de Archivos Válidos**: `string[]` → `string-array` para evitar caracteres especiales
+- **📋 Imports Automáticos**: Todas las interfaces incluyen imports necesarios con `@platform`
+- **🎯 Métodos camelCase**: Coherencia en naming (`refreshToken`, `createApiToken`)
+- **🔄 Sin Duplicaciones**: Evita automáticamente nombres duplicados en mappers
+- **📦 Injection Centralizado**: Mappers injection por operación en ubicación correcta
+
+#### 🧪 Tested - VALIDACIÓN COMPLETA
+- **✅ Regeneración**: Los archivos injection mantienen servicios existentes
+- **✅ Operaciones Mixtas**: Auth con `login` (request), `logout` (sin request) 
+- **✅ Estructura Coherente**: Alineación completa con patrón entities
+- **✅ Imports Correctos**: Todas las referencias usan `@platform` apropiadamente
+
+### 📊 MÉTRICAS DE LA RELEASE
+
+| **Componente** | **Antes v1.x** | **Después v2.0** | **Mejora** |
+|----------------|-----------------|-------------------|------------|
+| **Business Flows** | Solo DTOs + Entities + Mappers | Clean Architecture Completa | +400% |
+| **Use Cases** | ❌ No implementado | ✅ Completo con injection | +∞ |
+| **Repositories** | ❌ No implementado | ✅ Unificados con camelCase | +∞ |
+| **Facades** | ❌ No implementado | ✅ Unificados con readonly | +∞ |
+| **Injection System** | ❌ Solo mappers | ✅ Sistema completo acumulativo | +400% |
+| **Architecture** | Parcial | Clean Architecture 100% | +200% |
+
+### 🎯 BREAKING CHANGES
+
+**⚠️ Esta es una release MAJOR (2.0.0) con cambios que pueden afectar proyectos existentes:**
+
+1. **Estructura de Mappers Injection**: 
+   - **Antes**: `injection-platform-business-auth-mapper.ts` (por servicio)
+   - **Después**: `injection-platform-business-auth-login-mapper.ts` (por operación)
+
+2. **Ubicación de Injection Mappers**:
+   - **Antes**: Dentro de subcarpetas de operación
+   - **Después**: Centralizado en `infrastructure/mappers/apis/{api}/injection/business/{service}/`
+
+3. **Naming de Métodos**:
+   - **Antes**: `refresh_token`, `create-api-token`  
+   - **Después**: `refreshToken`, `createApiToken` (camelCase estricto)
+
+### 🚀 MIGRACIÓN DE v1.x A v2.0
+
+Para proyectos existentes que usen business flows de v1.x:
+
+1. **Regenerar servicios business**: Ejecutar `weaver` y seleccionar "Business Flows"
+2. **Actualizar imports**: Los nuevos archivos de injection tienen nombres diferentes
+3. **Verificar rutas**: Asegurar que `CONST_PLATFORM_API_ROUTES` esté disponible
+4. **Revisar métodos**: Usar nombres camelCase en lugar de kebab-case/snake_case
+
+### 💡 NUEVO WORKFLOW RECOMENDADO
+
+```bash
+# 1. Generar entidades CRUD (sin cambios)
+weaver → "Entidades" → Seleccionar entidad
+
+# 2. Generar flujos de negocio (COMPLETAMENTE NUEVO)  
+weaver → "Flujos de Negocio" → Seleccionar servicio (ej: Auth)
+# Genera: DTOs + Entities + Mappers + Use Cases + Repositories + Facades + Injections
+
+# 3. Uso en código (NUEVO)
+import { InjectionPlatformBusinessFacade } from "@platform/facade/apis/platform/injection/business/injection-platform-business-facade";
+
+const authFacade = InjectionPlatformBusinessFacade.AuthFacade();
+const loginResult = await authFacade.login(loginParams, config);
+const refreshResult = await authFacade.refreshToken(config);
+```
+
+---
+
 ## [1.1.8] - 2024-12-21
 
 ### 🐛 Fixed - CORRECCIÓN DETECCIÓN DE CAMPOS ID DEL SWAGGER

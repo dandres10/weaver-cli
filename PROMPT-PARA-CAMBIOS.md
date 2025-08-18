@@ -44,14 +44,19 @@ weaver-cli/
 11. **🎯 Flujo Dual Perfecto**: API name (estructura lógica) + directorio destino (ubicación física)
 12. **🔍 Detección ID Swagger**: Incluye campos ID del Swagger automáticamente en DTOs main/update
 
-#### 💼 **GENERACIÓN FLUJOS DE NEGOCIO (Nuevo)**
+#### 💼 **GENERACIÓN FLUJOS DE NEGOCIO (Completo)**
 13. **🎯 Filtrado Inteligente**: Detecta automáticamente servicios de negocio vs operaciones CRUD
-14. **📋 Generación Dinámica**: DTOs + Entities + Mappers para cualquier flujo de negocio
+14. **📋 Generación Dinámica**: DTOs + Entities + Mappers + Use Cases + Repositories + Facades completos
 15. **🔗 Interfaces Anidadas**: Archivos individuales para cada interface compleja con prefijo "I"
-16. **🗂️ Convenciones Consistentes**: Prefijo "i-" en archivos, "I" en interfaces
+16. **🗂️ Convenciones Consistentes**: Prefijo "i-" en archivos, "I" en interfaces, imports con "@"
 17. **🎨 Mapeo Inteligente**: CamelCase (DTOs) ↔ Snake_case (Entities) automático
-18. **⚙️ Inyección de Dependencias**: Mappers anidados con singleton pattern
-19. **🔄 Sin Duplicaciones**: Evita "response-response" automáticamente
+18. **⚙️ Inyección de Dependencias**: Sistema completo con mappers, repositories, use cases y facades
+19. **🔄 Sin Duplicaciones**: Evita "response-response" automáticamente y maneja nombres especiales
+20. **🏗️ Arquitectura Unificada**: Repositories consolidados por servicio con métodos camelCase
+21. **📁 Estructura Plana**: Use Cases sin subcarpetas, siguiendo patrón de entidades
+22. **🔌 Inyección Acumulativa**: Archivos injection que se actualizan automáticamente por servicio
+23. **🛣️ Rutas Constantes**: Uso de CONST_PLATFORM_API_ROUTES para endpoints
+24. **🧩 Operaciones Flexibles**: Soporte para operaciones con/sin request body automáticamente
 
 ### 🗂️ ESTRUCTURA GENERADA
 
@@ -103,17 +108,25 @@ weaver-cli/
 │       └── injection-{api-name}-entities-facade.ts
 ```
 
-#### 💼 **FLUJOS DE NEGOCIO** (Flujo Business - Nuevo)
+#### 💼 **FLUJOS DE NEGOCIO** (Flujo Business - Completo)
 ```
 {directorio-destino}/              # Ejemplo: test-output/platform/
 ├── domain/
-│   └── models/apis/{api-name}/business/{service}/        # Ejemplo: apis/platform/business/auth/
-│       ├── {operation}/                                  # Por cada operación (login, logout, etc.)
-│       │   ├── i-{service}-{operation}-request-dto.ts   # Ejemplo: i-auth-login-request-dto.ts
-│       │   ├── i-{service}-{operation}-response-dto.ts  # Ejemplo: i-auth-login-response-dto.ts
-│       │   ├── i-{nested-type}-response-dto.ts          # Para cada tipo anidado (company, user, etc.)
-│       │   └── i-{nested-type}-response-dto.ts          # Archivos individuales por interface
-│       └── index.ts                                      # Exportaciones automáticas
+│   ├── models/apis/{api-name}/business/{service}/        # Ejemplo: apis/platform/business/auth/
+│   │   ├── {operation}/                                  # Por cada operación (login, logout, etc.)
+│   │   │   ├── i-{service}-{operation}-request-dto.ts   # Ejemplo: i-auth-login-request-dto.ts
+│   │   │   ├── i-{service}-{operation}-response-dto.ts  # Ejemplo: i-auth-login-response-dto.ts
+│   │   │   ├── i-{nested-type}-response-dto.ts          # Para cada tipo anidado (company, user, etc.)
+│   │   │   └── i-{nested-type}-response-dto.ts          # Archivos individuales por interface
+│   │   └── index.ts                                      # Exportaciones automáticas
+│   └── services/
+│       ├── repositories/apis/{api-name}/business/
+│       │   └── i-{service}-repository.ts                 # Interface unificada del repositorio
+│       └── use_cases/apis/{api-name}/business/{service}/
+│           ├── {service}-{operation}-use-case.ts         # Use cases en estructura plana
+│           ├── {service}-{operation}-use-case.ts         # Por cada operación
+│           └── injection/business/
+│               └── injection-{api-name}-business-{service}-use-case.ts
 ├── infrastructure/
 │   ├── entities/apis/{api-name}/business/{service}/
 │   │   ├── {operation}/
@@ -122,13 +135,25 @@ weaver-cli/
 │   │   │   ├── i-{nested-type}-response-entity.ts          # Para cada tipo anidado
 │   │   │   └── i-{nested-type}-response-entity.ts          # Con prefijo "I"
 │   │   └── index.ts
-│   └── mappers/apis/{api-name}/business/{service}/
-│       ├── {operation}/
-│       │   ├── {service}-{operation}-request-mapper.ts     # CamelCase ↔ snake_case
-│       │   ├── {service}-{operation}-response-mapper.ts    # Dependency injection
-│       │   ├── {nested-type}-response-mapper.ts            # Mappers individuales
-│       │   └── {nested-type}-response-mapper.ts            # Singleton pattern
-│       └── index.ts
+│   ├── mappers/apis/{api-name}/business/{service}/
+│   │   ├── {operation}/
+│   │   │   ├── {service}-{operation}-request-mapper.ts     # CamelCase ↔ snake_case
+│   │   │   ├── {service}-{operation}-response-mapper.ts    # Dependency injection
+│   │   │   ├── {nested-type}-response-mapper.ts            # Mappers individuales
+│   │   │   └── {nested-type}-response-mapper.ts            # Singleton pattern
+│   │   └── injection/business/{service}/
+│   │       ├── injection-{api-name}-business-{service}-{operation}-mapper.ts  # Un injection por operación
+│   │       └── injection-{api-name}-business-{service}-{operation}-mapper.ts  # Mappers centralizados
+│   └── repositories/apis/{api-name}/repositories/
+│       ├── business/{service}/
+│       │   └── {service}-repository.ts                     # Repositorio unificado por servicio
+│       └── injection/business/
+│           └── injection-{api-name}-business-repository.ts # Injection acumulativo
+├── facade/apis/{api-name}/
+│   ├── business/
+│   │   └── {service}-facade.ts                           # Facade unificado por servicio
+│   └── injection/business/
+│       └── injection-{api-name}-business-facade.ts      # Injection acumulativo
 ```
 
 ### 📚 CONVENCIONES Y EJEMPLOS
@@ -161,6 +186,25 @@ weaver-cli/
 - Archivos: `auth-login-request-mapper.ts`, `company-login-response-mapper.ts`
 - Clases: `AuthLoginRequestMapper`, `CompanyLoginResponseMapper`
 - Mapeo automático: camelCase ↔ snake_case
+- Injection: `injection-platform-business-auth-login-mapper.ts` (por operación)
+
+**Use Cases** (domain/services/use_cases):
+- Archivos: `auth-login-use-case.ts`, `auth-refresh-token-use-case.ts`
+- Clases: `AuthLoginUseCase`, `AuthRefreshTokenUseCase`
+- Estructura plana: sin subcarpetas por operación
+- Injection: `injection-platform-business-auth-use-case.ts` (por servicio)
+
+**Repositories** (infrastructure/repositories):
+- Archivos: `auth-repository.ts` (unificado por servicio)
+- Clases: `AuthRepository` (métodos camelCase: `login`, `refreshToken`)
+- Rutas: `CONST_PLATFORM_API_ROUTES.AUTH_LOGIN`
+- Injection: `injection-platform-business-repository.ts` (acumulativo)
+
+**Facades** (facade):
+- Archivos: `auth-facade.ts` (unificado por servicio)
+- Clases: `AuthFacade` (métodos camelCase: `login`, `refreshToken`)
+- Instances: `readonly loginUseCase = Injection...`
+- Injection: `injection-platform-business-facade.ts` (acumulativo)
 
 #### 🔗 **Detección Automática de Tipos**
 
@@ -168,6 +212,8 @@ El generador evita duplicaciones automáticamente:
 - `UserLoginResponse` → `IUserLoginResponseDTO` (no `IUserLoginResponseResponseDTO`)
 - `CompanyLoginResponse` → `company-login-response-mapper.ts` (no `-response-response-`)
 - `PlatformConfiguration` → `IPlatformConfigurationResponseDTO` (agrega sufijo)
+- `string[]` → `i-string-array-response-dto.ts` (nombres válidos de archivo)
+- Una interfaz por archivo + imports automáticos de dependencias
 
 ### 🔧 TECNOLOGÍAS Y DEPENDENCIAS
 
@@ -217,8 +263,14 @@ npm run logout        # Build + logout
 7. **Business Service Selection**: Mostrar solo flujos de negocio disponibles (ej: Auth)
 8. **Operation Analysis**: Analizar operaciones específicas (login, logout, etc.)
 9. **Validation**: Verificar estructura y servicios existentes
-10. **Dynamic Generation**: Crear DTOs + Entities + Mappers por operación con interfaces anidadas
-11. **Confirmation**: Mostrar resultado y archivos generados
+10. **Complete Generation**: Crear arquitectura completa Clean Architecture:
+    - 📋 **DTOs + Entities + Mappers** por operación con interfaces anidadas
+    - 🔗 **Repository Interfaces** unificados por servicio
+    - 📊 **Use Cases** en estructura plana con inyección de dependencias
+    - 🗄️ **Infrastructure Repositories** unificados con métodos camelCase
+    - 🎭 **Facades** unificados con instancias readonly
+    - 🔌 **Sistema de Inyección** acumulativo para repositories y facades
+11. **Confirmation**: Mostrar resultado y archivos generados con arquitectura completa
 
 ---
 
@@ -234,15 +286,21 @@ npm run logout        # Build + logout
 ### 🎯 **ESTADO ACTUAL DEL PROYECTO**
 
 ✅ **Funcionalidades Completadas:**
-- 🏗️ **Generación CRUD**: 42+ archivos por entidad con Clean Architecture
-- 💼 **Generación Business**: DTOs + Entities + Mappers dinámicos para flujos de negocio
+- 🏗️ **Generación CRUD**: 42+ archivos por entidad con Clean Architecture completa
+- 💼 **Generación Business COMPLETA**: Arquitectura Clean Architecture completa para flujos de negocio
+  - 📋 **DTOs + Entities + Mappers** dinámicos con interfaces anidadas
+  - 🔗 **Repository Interfaces** unificados por servicio
+  - 📊 **Use Cases** en estructura plana con inyección de dependencias
+  - 🗄️ **Infrastructure Repositories** unificados con métodos camelCase
+  - 🎭 **Facades** unificados con instancias readonly
+  - 🔌 **Sistema de Inyección Completo** acumulativo para todos los componentes
 - 🎯 **Filtrado Inteligente**: Detecta automáticamente CRUD vs Business
-- 🔗 **Interfaces Anidadas**: Archivos individuales con convenciones consistentes
+- 🔗 **Interfaces Anidadas**: Archivos individuales con imports automáticos
 - ⚙️ **Mapeo Automático**: CamelCase ↔ snake_case con inyección de dependencias
-- 🔄 **Sin Duplicaciones**: Evita automáticamente nombres duplicados
+- 🔄 **Sin Duplicaciones**: Evita automáticamente nombres duplicados y caracteres especiales
+- 🛣️ **Integración Constantes**: Uso automático de CONST_PLATFORM_API_ROUTES
+- 🧩 **Operaciones Flexibles**: Soporte completo para operaciones con/sin request body
+- 🔌 **Actualización Acumulativa**: Los archivos de injection se actualizan automáticamente
 
-🚧 **Próximas Funcionalidades (Pendientes)**:
-- 📊 **Use Cases**: Generación de casos de uso para flujos de negocio
-- 🗄️ **Repositories**: Generación de repositorios para flujos de negocio  
-- 🎭 **Facades**: Generación de facades para flujos de negocio
-- 🔌 **Injections**: Sistema completo de inyección de dependencias
+🎉 **¡SISTEMA COMPLETO!** 
+Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo.
