@@ -542,14 +542,20 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
           ? `${formattedFieldType}Mapper` 
           : `${formattedFieldType}${suffix}Mapper`;
         
-        // Crear un nombre de variable único sin duplicaciones
-        const baseMapperVar = field.type.toLowerCase().replace(/[-_]/g, '');
-        const nestedMapperName = `${baseMapperVar}Mapper`;
+        // Crear un nombre de variable único sin duplicaciones usando camelCase correcto
+        const cleanFieldType = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
+          ? formattedFieldType.replace(/Response$|Request$/, '') 
+          : formattedFieldType;
+        const nestedMapperName = `${cleanFieldType.charAt(0).toLowerCase() + cleanFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
+        
+        // Generar nombre de método abreviado (sin prefijo de servicio y operación)
+        const formattedServiceName = toPascalCase(serviceName);
+        const methodName = mapperClassName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
         
         // Solo agregar si no existe ya
         if (!nestedMapperReferences[nestedMapperName]) {
           nestedMapperReferences[nestedMapperName] = mapperClassName;
-          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${mapperClassName}()`);
+          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
         }
         
         if (field.isArray) {
@@ -568,8 +574,12 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
       
       // Si es un tipo complejo, usar mapper específico
       if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
-        const baseMapperVar = field.type.toLowerCase().replace(/[-_]/g, '');
-        const nestedMapperName = `${baseMapperVar}Mapper`;
+        const formattedFieldType = toPascalCase(field.type);
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        const cleanFieldType = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
+          ? formattedFieldType.replace(/Response$|Request$/, '') 
+          : formattedFieldType;
+        const nestedMapperName = `${cleanFieldType.charAt(0).toLowerCase() + cleanFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
         
         if (field.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
@@ -693,14 +703,21 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
           ? `${nestedFieldTypeName}Mapper` 
           : `${nestedFieldTypeName}${nestedSuffix}Mapper`;
         
-        // Crear un nombre de variable único sin duplicaciones
-        const baseMapperVar = nestedField.type.toLowerCase().replace(/[-_]/g, '');
-        const nestedMapperName = `${baseMapperVar}Mapper`;
+        // Crear un nombre de variable único sin duplicaciones usando camelCase correcto
+        const formattedNestedFieldType = toPascalCase(nestedField.type);
+        const cleanNestedFieldType = formattedNestedFieldType.endsWith('Response') || formattedNestedFieldType.endsWith('Request') 
+          ? formattedNestedFieldType.replace(/Response$|Request$/, '') 
+          : formattedNestedFieldType;
+        const nestedMapperName = `${cleanNestedFieldType.charAt(0).toLowerCase() + cleanNestedFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
+        
+        // Generar nombre de método abreviado (sin prefijo de servicio y operación)
+        const formattedServiceName = toPascalCase(serviceName);
+        const methodName = nestedMapperClassName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
         
         // Solo agregar si no existe ya
         if (!nestedMapperReferences[nestedMapperName]) {
           nestedMapperReferences[nestedMapperName] = nestedMapperClassName;
-          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${nestedMapperClassName}()`);
+          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
         }
         
         if (nestedField.isArray) {
@@ -719,8 +736,11 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         // Usar el mismo nombre de variable que en mapFromMappings
-        const baseMapperVar = nestedField.type.toLowerCase().replace(/[-_]/g, '');
-        const nestedMapperName = `${baseMapperVar}Mapper`;
+        const formattedNestedFieldType = toPascalCase(nestedField.type);
+        const cleanNestedFieldType = formattedNestedFieldType.endsWith('Response') || formattedNestedFieldType.endsWith('Request') 
+          ? formattedNestedFieldType.replace(/Response$|Request$/, '') 
+          : formattedNestedFieldType;
+        const nestedMapperName = `${cleanNestedFieldType.charAt(0).toLowerCase() + cleanNestedFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
         
         if (nestedField.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
