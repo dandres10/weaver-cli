@@ -17,7 +17,7 @@ export class AuthRepository extends IAuthRepository {
   private readonly resolve = InjectionCore.Resolve();
   private loginRequestMapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper();
   private loginResponseMapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginResponseMapper();
-  private refresh_tokenResponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.AuthRefreshTokenResponseMapper();
+  private refreshtokenResponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.AuthRefreshTokenResponseMapper();
   private logoutResponseMapper = InjectionPlatformBusinessAuthLogoutMapper.AuthLogoutResponseMapper();
   private createapitokenRequestMapper = InjectionPlatformBusinessAuthCreateApiTokenMapper.AuthCreateApiTokenRequestMapper();
   private createapitokenResponseMapper = InjectionPlatformBusinessAuthCreateApiTokenMapper.AuthCreateApiTokenResponseMapper();
@@ -56,7 +56,7 @@ export class AuthRepository extends IAuthRepository {
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAuthRefreshTokenResponseEntity>(data);
           if (entity)
-            return this.refresh_tokenResponseMapper.mapFrom(entity);
+            return this.refreshtokenResponseMapper.mapFrom(entity);
           return null;
         });
     return null;

@@ -10,7 +10,7 @@ import {
 
 export interface IAuthRepository {
   login(params: IAuthLoginRequestDTO, config?: IConfigDTO): Promise<IAuthLoginResponseDTO | null>;
-  refresh_token(params: any, config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null>;
+  refresh-token(params: any, config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null>;
   logout(params: any, config?: IConfigDTO): Promise<IAuthLogoutResponseDTO | null>;
   create-api-token(params: IAuthCreateApiTokenRequestDTO, config?: IConfigDTO): Promise<IAuthCreateApiTokenResponseDTO | null>;
 }

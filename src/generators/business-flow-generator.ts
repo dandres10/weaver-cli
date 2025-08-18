@@ -74,7 +74,8 @@ async function generateInfrastructureEntities(serviceName: string, paths: any, s
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.infraEntities, operationName);
       await fs.ensureDir(operationFolder);
 
@@ -114,8 +115,26 @@ async function generateInfrastructureEntities(serviceName: string, paths: any, s
         await generateNestedEntitiesForOperation(serviceName, operation, 'response', operationFolder, apiName, exportStatements, operationName);
       }
     }
-    // Generar index.ts
-    const indexContent = exportStatements.join('\n') + '\n';
+    // Generar index.ts con export type (simplificado y mejor práctica)
+    const uniqueExports = new Set<string>();
+    const finalExports: string[] = [];
+    
+    exportStatements.forEach(statement => {
+      // Extraer el nombre de la interface del export
+      const match = statement.match(/export \{ (\w+) \}/);
+      if (match) {
+        const interfaceName = match[1];
+        
+        if (!uniqueExports.has(interfaceName)) {
+          uniqueExports.add(interfaceName);
+          // Convertir todos a export type (mejor práctica para interfaces)
+          const typeStatement = statement.replace('export {', 'export type {');
+          finalExports.push(typeStatement);
+        }
+      }
+    });
+    
+    const indexContent = finalExports.join('\n') + '\n';
     await fs.writeFile(
       path.join(paths.infraEntities, 'index.ts'),
       indexContent
@@ -148,7 +167,8 @@ async function generateInfrastructureMappers(serviceName: string, paths: any, sc
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.infraMappers, operationName);
       await fs.ensureDir(operationFolder);
 
@@ -209,7 +229,8 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.domainModels, operationName);
       await fs.ensureDir(operationFolder);
 
@@ -239,7 +260,7 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
           responseDTO
         );
         
-        // Generar DTOs para interfaces anidadas
+        // Generar DTOs para interfaces anidadas con patrón correcto
         await generateNestedDTOsForOperation(serviceName, operation, 'response', operationFolder, apiName, exportStatements, operationName);
         
         const cleanOperationName = operationName
@@ -252,8 +273,26 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
       }
     }
     
-    // Generar index.ts para DTOs
-    const indexContent = exportStatements.join('\n') + '\n';
+    // Generar index.ts para DTOs con export type (simplificado y mejor práctica)
+    const uniqueExports = new Set<string>();
+    const finalExports: string[] = [];
+    
+    exportStatements.forEach(statement => {
+      // Extraer el nombre de la interface del export
+      const match = statement.match(/export \{ (\w+) \}/);
+      if (match) {
+        const interfaceName = match[1];
+        
+        if (!uniqueExports.has(interfaceName)) {
+          uniqueExports.add(interfaceName);
+          // Convertir todos a export type (mejor práctica para interfaces)
+          const typeStatement = statement.replace('export {', 'export type {');
+          finalExports.push(typeStatement);
+        }
+      }
+    });
+    
+    const indexContent = finalExports.join('\n') + '\n';
     await fs.writeFile(
       path.join(paths.domainModels, 'index.ts'),
       indexContent
@@ -365,12 +404,20 @@ function generateBusinessEntityInterface(serviceName: string, operation: any, ty
           ? `I${typeName}Entity` 
           : `I${typeName}${suffix}Entity`;
         
-        // Agregar import para tipos complejos
-        const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-        const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
-        const importFileName = needsSuffix 
-          ? `i-${baseFileName}-${type}-entity`
-          : `i-${baseFileName}-entity`;
+        // Generar nombre de archivo con patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-entity
+        // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
+        let cleanType = field.type;
+        // Remover múltiples sufijos en orden específico
+        cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+        cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+        cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+        cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
+        cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+        
+        const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+        const operationKebab = operationName.replace(/_/g, '-');
+        const importFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-entity`;
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
       }
@@ -676,27 +723,51 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
     if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
       generated.add(field.type);
       
-      // Generar DTO individual para cada interface anidada
+      // Generar DTO individual para cada interface anidada con patrón correcto
       const nestedDTO = generateIndividualNestedDTO(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-      // Si el tipo ya termina en request o response, no duplicar
-      const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
-      const nestedFileName = needsSuffix 
-        ? `i-${baseFileName}-${type}-dto.ts`
-        : `i-${baseFileName}-dto.ts`;
+      
+      // Patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts
+      // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
+      let cleanType = field.type;
+      // Remover múltiples sufijos en orden específico
+      cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+      cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+      cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+      cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
+      cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+      
+      const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+      const operationKebab = operationName.replace(/_/g, '-');
+      const nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-dto.ts`;
       
       fs.writeFileSync(
         path.join(operationFolder, nestedFileName),
         nestedDTO
       );
       
-      const formattedFieldType = toPascalCase(field.type);
+      // Generar nombre de clase que coincida con el patrón del archivo
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+      
+      // Limpiar el tipo para obtener solo el nombre base
+      let cleanFieldType = field.type;
+      cleanFieldType = cleanFieldType.replace(/LoginResponse$/, '');
+      cleanFieldType = cleanFieldType.replace(/LoginRequest$/, '');
+      cleanFieldType = cleanFieldType.replace(/Login$/, '');
+      cleanFieldType = cleanFieldType.replace(/Response$/, '');
+      cleanFieldType = cleanFieldType.replace(/Request$/, '');
+      
+      const formattedFieldType = toPascalCase(cleanFieldType);
       const suffix = type === 'request' ? 'Request' : 'Response';
-      // Evitar duplicación si el tipo ya termina en Request o Response
-      const dtoClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
-        ? `I${formattedFieldType}DTO` 
-        : `I${formattedFieldType}${suffix}DTO`;
-      exportStatements.push(`export { ${dtoClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
+      const dtoClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}DTO`;
+      
+      // Export statement con el nombre correcto del archivo
+      const fileNameForExport = nestedFileName.replace('.ts', '');
+      exportStatements.push(`export { ${dtoClassName} } from './${operationName}/${fileNameForExport}';`);
 
       // Procesar campos anidados recursivamente
       if (field.nestedFields && field.nestedFields.length > 0) {
@@ -740,12 +811,20 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
           ? `I${typeName}DTO` 
           : `I${typeName}${suffix}DTO`;
         
-        // Agregar import para tipos complejos
-        const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-        const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
-        const importFileName = needsSuffix 
-          ? `i-${baseFileName}-${type}-dto`
-          : `i-${baseFileName}-dto`;
+        // Generar nombre de archivo con patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-dto
+        // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
+        let cleanType = field.type;
+        // Remover múltiples sufijos en orden específico
+        cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+        cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+        cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+        cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
+        cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+        
+        const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+        const operationKebab = operationName.replace(/_/g, '-');
+        const importFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-dto`;
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
         
@@ -766,12 +845,25 @@ ${dtoFields}
 }
 
 function generateIndividualNestedDTO(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
-  const formattedTypeName = toPascalCase(typeName);
+  // Generar nombre de interface que coincida con el patrón del archivo
+  // i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts → I<Flujo><Proceso><Tipo><Request/Response>DTO
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  // Limpiar el tipo para obtener solo el nombre base
+  let cleanType = typeName;
+  cleanType = cleanType.replace(/LoginResponse$/, '');
+  cleanType = cleanType.replace(/LoginRequest$/, '');
+  cleanType = cleanType.replace(/Login$/, '');
+  cleanType = cleanType.replace(/Response$/, '');
+  cleanType = cleanType.replace(/Request$/, '');
+  
+  const formattedTypeName = toPascalCase(cleanType);
   const suffix = type === 'request' ? 'Request' : 'Response';
-  // Evitar duplicación si el tipo ya termina en Request o Response
-  const dtoInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
-    ? `I${formattedTypeName}DTO` 
-    : `I${formattedTypeName}${suffix}DTO`;
+  const dtoInterfaceName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedTypeName}${suffix}DTO`;
   
   let dtoFields = '';
   let imports: string[] = [];
@@ -824,27 +916,51 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
     if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
       generated.add(field.type);
       
-      // Generar Entity individual para cada interface anidada
+      // Generar Entity individual para cada interface anidada con patrón correcto
       const nestedEntity = generateIndividualNestedEntity(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
-      // Si el tipo ya termina en request o response, no duplicar
-      const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
-      const nestedFileName = needsSuffix 
-        ? `i-${baseFileName}-${type}-entity.ts`
-        : `i-${baseFileName}-entity.ts`;
+      
+      // Patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts
+      // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
+      let cleanType = field.type;
+      // Remover múltiples sufijos en orden específico
+      cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+      cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+      cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+      cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
+      cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+      
+      const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+      const operationKebab = operationName.replace(/_/g, '-');
+      const nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-entity.ts`;
       
       fs.writeFileSync(
         path.join(operationFolder, nestedFileName),
         nestedEntity
       );
       
-      const formattedFieldType = toPascalCase(field.type);
+      // Generar nombre de clase que coincida con el patrón del archivo
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+      
+      // Limpiar el tipo para obtener solo el nombre base
+      let cleanFieldType = field.type;
+      cleanFieldType = cleanFieldType.replace(/LoginResponse$/, '');
+      cleanFieldType = cleanFieldType.replace(/LoginRequest$/, '');
+      cleanFieldType = cleanFieldType.replace(/Login$/, '');
+      cleanFieldType = cleanFieldType.replace(/Response$/, '');
+      cleanFieldType = cleanFieldType.replace(/Request$/, '');
+      
+      const formattedFieldType = toPascalCase(cleanFieldType);
       const suffix = type === 'request' ? 'Request' : 'Response';
-      // Evitar duplicación si el tipo ya termina en Request o Response
-      const entityClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
-        ? `I${formattedFieldType}Entity` 
-        : `I${formattedFieldType}${suffix}Entity`;
-      exportStatements.push(`export { ${entityClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
+      const entityClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}Entity`;
+      
+      // Export statement con el nombre correcto del archivo
+      const fileNameForExport = nestedFileName.replace('.ts', '');
+      exportStatements.push(`export { ${entityClassName} } from './${operationName}/${fileNameForExport}';`);
 
       // Procesar campos anidados recursivamente
       if (field.nestedFields && field.nestedFields.length > 0) {
@@ -859,12 +975,25 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
 }
 
 function generateIndividualNestedEntity(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
-  const formattedTypeName = toPascalCase(typeName);
+  // Generar nombre de interface que coincida con el patrón del archivo
+  // i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts → I<Flujo><Proceso><Tipo><Request/Response>Entity
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  // Limpiar el tipo para obtener solo el nombre base
+  let cleanType = typeName;
+  cleanType = cleanType.replace(/LoginResponse$/, '');
+  cleanType = cleanType.replace(/LoginRequest$/, '');
+  cleanType = cleanType.replace(/Login$/, '');
+  cleanType = cleanType.replace(/Response$/, '');
+  cleanType = cleanType.replace(/Request$/, '');
+  
+  const formattedTypeName = toPascalCase(cleanType);
   const suffix = type === 'request' ? 'Request' : 'Response';
-  // Evitar duplicación si el tipo ya termina en Request or Response
-  const entityInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
-    ? `I${formattedTypeName}Entity` 
-    : `I${formattedTypeName}${suffix}Entity`;
+  const entityInterfaceName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedTypeName}${suffix}Entity`;
   
   let entityFields = '';
   let imports: string[] = [];
@@ -922,7 +1051,8 @@ async function generateDomainRepositoryInterfaces(serviceName: string, paths: an
     const repositoryInterface = `import { IConfigDTO } from "@bus/core/interfaces";
 import { 
 ${schema.businessOperations.map(operation => {
-  const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+  const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+  const operationName = rawOperationName.replace(/_/g, '-');
   const cleanOperationName = operationName
     .replace(/_/g, '-')
     .split('-')
@@ -942,7 +1072,8 @@ ${schema.businessOperations.map(operation => {
 
 export interface I${toPascalCase(serviceName)}Repository {
 ${schema.businessOperations.map(operation => {
-  const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+  const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+  const operationName = rawOperationName.replace(/_/g, '-');
   const cleanOperationName = operationName
     .replace(/_/g, '-')
     .split('-')
@@ -976,7 +1107,8 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
     const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
         .replace(/_/g, '-')
@@ -1061,7 +1193,8 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
     const imports = schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
-        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
@@ -1083,7 +1216,8 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
     const useCaseInstances = schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
-        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
@@ -1104,7 +1238,8 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
     const facadeMethods = schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
-        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
@@ -1166,7 +1301,8 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
     await fs.ensureDir(paths.injectionMappers);
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
         .replace(/_/g, '-')
@@ -1290,7 +1426,8 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
     const methods: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
         .replace(/_/g, '-')
@@ -1461,7 +1598,8 @@ async function generateBusinessInjectionFiles(serviceName: string, paths: any, s
     const useCaseImports = schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
-        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
         const operationKebab = operationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
@@ -1475,7 +1613,8 @@ async function generateBusinessInjectionFiles(serviceName: string, paths: any, s
     const useCaseMethods = schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .map(operation => {
-        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const operationName = rawOperationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
