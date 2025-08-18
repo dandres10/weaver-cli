@@ -1252,6 +1252,7 @@ export class ${useCaseClassName} implements ${useCaseInterface} {
 
   public async execute(${executeParams}config?: IConfigDTO): Promise<${responseDTOName} | null> {
     ${mapperLogic}
+  }
 }`;
 
         await fs.writeFile(

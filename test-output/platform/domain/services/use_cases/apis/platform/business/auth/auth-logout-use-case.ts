@@ -16,4 +16,5 @@ export class AuthLogoutUseCase implements UseCase<void, IAuthLogoutResponseDTO |
 
   public async execute(config?: IConfigDTO): Promise<IAuthLogoutResponseDTO | null> {
     return await this.repository.logout(config).then((data) => data ?? null);
+  }
 }

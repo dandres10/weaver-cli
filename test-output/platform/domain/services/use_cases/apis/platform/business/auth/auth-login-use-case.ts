@@ -18,4 +18,5 @@ export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLogi
   public async execute(params: IAuthLoginRequestDTO, config?: IConfigDTO): Promise<IAuthLoginResponseDTO | null> {
     const paramsEntity = this.mapper.mapTo(params);
     return await this.repository.login(paramsEntity, config).then((data) => data ?? null);
+  }
 }

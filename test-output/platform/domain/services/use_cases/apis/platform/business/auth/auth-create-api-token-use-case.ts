@@ -18,4 +18,5 @@ export class AuthCreateApiTokenUseCase implements UseCase<IAuthCreateApiTokenReq
   public async execute(params: IAuthCreateApiTokenRequestDTO, config?: IConfigDTO): Promise<IAuthCreateApiTokenResponseDTO | null> {
     const paramsEntity = this.mapper.mapTo(params);
     return await this.repository.createApiToken(paramsEntity, config).then((data) => data ?? null);
+  }
 }

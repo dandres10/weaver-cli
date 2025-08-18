@@ -16,4 +16,5 @@ export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenR
 
   public async execute(config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null> {
     return await this.repository.refreshToken(config).then((data) => data ?? null);
+  }
 }
