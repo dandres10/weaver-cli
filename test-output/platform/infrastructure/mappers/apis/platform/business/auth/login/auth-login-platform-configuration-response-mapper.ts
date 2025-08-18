@@ -6,16 +6,16 @@ import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructu
 export class AuthLoginPlatformConfigurationResponseMapper extends Mapper<IAuthLoginPlatformConfigurationResponseEntity, IAuthLoginPlatformConfigurationResponseDTO> {
 
     private static instance: AuthLoginPlatformConfigurationResponseMapper;
-    private userloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserLoginResponseMapper()
-    private currencyloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CurrencyLoginResponseMapper()
-    private locationloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LocationLoginResponseMapper()
-    private languageloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LanguageLoginResponseMapper()
-    private platformloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformLoginResponseMapper()
-    private countryloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CountryLoginResponseMapper()
-    private companyloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CompanyLoginResponseMapper()
-    private rolloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.RolLoginResponseMapper()
-    private permissionloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PermissionLoginResponseMapper()
-    private menuloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.MenuLoginResponseMapper()
+    private userLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserLoginResponseMapper()
+    private currencyLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CurrencyLoginResponseMapper()
+    private locationLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LocationLoginResponseMapper()
+    private languageLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LanguageLoginResponseMapper()
+    private platformLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformLoginResponseMapper()
+    private countryLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CountryLoginResponseMapper()
+    private companyLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CompanyLoginResponseMapper()
+    private rolLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.RolLoginResponseMapper()
+    private permissionLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PermissionLoginResponseMapper()
+    private menuLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.MenuLoginResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AuthLoginPlatformConfigurationResponseMapper {
@@ -26,16 +26,16 @@ export class AuthLoginPlatformConfigurationResponseMapper extends Mapper<IAuthLo
 
     public mapFrom(param: IAuthLoginPlatformConfigurationResponseEntity): IAuthLoginPlatformConfigurationResponseDTO {
         return {
-            user: this.userloginresponseMapper.mapFrom(param.user),
-            currency: this.currencyloginresponseMapper.mapFrom(param.currency),
-            location: this.locationloginresponseMapper.mapFrom(param.location),
-            language: this.languageloginresponseMapper.mapFrom(param.language),
-            platform: this.platformloginresponseMapper.mapFrom(param.platform),
-            country: this.countryloginresponseMapper.mapFrom(param.country),
-            company: this.companyloginresponseMapper.mapFrom(param.company),
-            rol: this.rolloginresponseMapper.mapFrom(param.rol),
-            permissions: this.permissionloginresponseMapper.mapFromList(param.permissions),
-            menu: this.menuloginresponseMapper.mapFromList(param.menu)
+            user: this.userLoginresponseMapper.mapFrom(param.user),
+            currency: this.currencyLoginresponseMapper.mapFrom(param.currency),
+            location: this.locationLoginresponseMapper.mapFrom(param.location),
+            language: this.languageLoginresponseMapper.mapFrom(param.language),
+            platform: this.platformLoginresponseMapper.mapFrom(param.platform),
+            country: this.countryLoginresponseMapper.mapFrom(param.country),
+            company: this.companyLoginresponseMapper.mapFrom(param.company),
+            rol: this.rolLoginresponseMapper.mapFrom(param.rol),
+            permissions: this.permissionLoginresponseMapper.mapFromList(param.permissions),
+            menu: this.menuLoginresponseMapper.mapFromList(param.menu)
         }
     }
 
@@ -47,16 +47,16 @@ export class AuthLoginPlatformConfigurationResponseMapper extends Mapper<IAuthLo
 
     public mapTo(param: IAuthLoginPlatformConfigurationResponseDTO): IAuthLoginPlatformConfigurationResponseEntity {
         return {
-            user: this.userloginresponseMapper.mapTo(param.user),
-            currency: this.currencyloginresponseMapper.mapTo(param.currency),
-            location: this.locationloginresponseMapper.mapTo(param.location),
-            language: this.languageloginresponseMapper.mapTo(param.language),
-            platform: this.platformloginresponseMapper.mapTo(param.platform),
-            country: this.countryloginresponseMapper.mapTo(param.country),
-            company: this.companyloginresponseMapper.mapTo(param.company),
-            rol: this.rolloginresponseMapper.mapTo(param.rol),
-            permissions: this.permissionloginresponseMapper.mapToList(param.permissions),
-            menu: this.menuloginresponseMapper.mapToList(param.menu)
+            user: this.userLoginresponseMapper.mapTo(param.user),
+            currency: this.currencyLoginresponseMapper.mapTo(param.currency),
+            location: this.locationLoginresponseMapper.mapTo(param.location),
+            language: this.languageLoginresponseMapper.mapTo(param.language),
+            platform: this.platformLoginresponseMapper.mapTo(param.platform),
+            country: this.countryLoginresponseMapper.mapTo(param.country),
+            company: this.companyLoginresponseMapper.mapTo(param.company),
+            rol: this.rolLoginresponseMapper.mapTo(param.rol),
+            permissions: this.permissionLoginresponseMapper.mapToList(param.permissions),
+            menu: this.menuLoginresponseMapper.mapToList(param.menu)
         }
     }
 

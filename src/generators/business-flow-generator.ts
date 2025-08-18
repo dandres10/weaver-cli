@@ -317,7 +317,17 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
       // Aplicar el patrón correcto: <flujo>-<proceso>-<tipo>-<request/response>-mapper.ts
       const serviceNameKebab = serviceName.toLowerCase();
       const operationKebab = operationName.replace(/_/g, '-');
-      let typeKebab = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      
+      // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response (igual que DTOs y Entities)
+      let cleanType = field.type;
+      // Remover múltiples sufijos en orden específico
+      cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+      cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+      cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+      cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
+      cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+      
+      let typeKebab = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       const fileSuffix = type === 'request' ? 'request' : 'response';
       
       // Detectar y evitar duplicación de operaciones en el nombre del tipo para archivos
@@ -657,19 +667,27 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     .join('');
   
   // Aplicar el patrón correcto: <Flujo><Proceso><Tipo><Request/Response><DTO/Entity/Mapper>
-  // Si el tipo ya termina en Request o Response, no duplicar sufijo
+  // Determinar si necesita sufijo basado en el tipo original
   const needsSuffix = !formattedTypeName.endsWith('Response') && !formattedTypeName.endsWith('Request');
   
-  // Detectar y evitar duplicación de operaciones en el nombre del tipo
-  // Ejemplo: UserLoginResponse -> UserResponse (cuando operationName es "login")
+  // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response (igual que DTOs y Entities)
   let cleanTypeName = formattedTypeName;
+  // Remover múltiples sufijos en orden específico
+  cleanTypeName = cleanTypeName.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
+  cleanTypeName = cleanTypeName.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
+  cleanTypeName = cleanTypeName.replace(/Login$/, '');          // CompanyLogin -> Company
+  cleanTypeName = cleanTypeName.replace(/Response$/, '');       // CompanyResponse -> Company
+  cleanTypeName = cleanTypeName.replace(/Request$/, '');        // CompanyRequest -> Company
+  
+  // Detectar y evitar duplicación de operaciones en el nombre del tipo
+  // Ejemplo: UserRefreshToken -> User (cuando operationName es "refresh-token")
   const operationInTypeName = cleanOperationName.toLowerCase();
-  const typeNameLower = formattedTypeName.toLowerCase();
+  const typeNameLower = cleanTypeName.toLowerCase();
   
   // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
   if (typeNameLower.includes(operationInTypeName)) {
-    // Eliminar la operación del tipo: UserLoginResponse -> UserResponse
-    cleanTypeName = formattedTypeName.replace(new RegExp(cleanOperationName, 'gi'), '');
+    // Eliminar la operación del tipo: UserRefreshToken -> User
+    cleanTypeName = cleanTypeName.replace(new RegExp(cleanOperationName, 'gi'), '');
   }
   
   const dtoInterfaceName = needsSuffix 

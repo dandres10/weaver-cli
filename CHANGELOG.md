@@ -5,6 +5,57 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.5] - 2024-12-23
+
+### 🔧 CORRECCIÓN CRÍTICA - NOMBRES DE ARCHIVOS DE MAPPERS
+
+#### 🛠️ Fixed - ELIMINACIÓN DE SUFIJOS DUPLICADOS EN MAPPERS
+- **📁 File Naming**: Nombres de archivos de mappers sin sufijos "Login" duplicados en refresh-token
+- **🏷️ Class Names**: Clases de mappers con nomenclatura limpia y consistente
+- **📋 Interface Names**: Interfaces con patrones de nombres coherentes sin duplicaciones
+- **🔄 Unified Logic**: Aplicación de la misma lógica de limpieza usada en DTOs y Entities a mappers
+- **✅ Pattern Consistency**: Eliminación automática de sufijos LoginResponse, LoginRequest, Login, Response, Request
+
+#### 📚 Technical Details
+- **Before**: `auth-refresh-token-company-login-response-mapper.ts` ❌
+- **After**: `auth-refresh-token-company-mapper.ts` ✅
+- **Before**: `AuthRefreshTokenCompanyLoginResponseMapper` ❌
+- **After**: `AuthRefreshTokenCompanyMapper` ✅
+- **Before**: `IAuthRefreshTokenCompanyLoginResponseDTO` ❌
+- **After**: `IAuthRefreshTokenCompanyDTO` ✅
+- **Cleanup Pattern**: Sufijos removidos en orden: LoginResponse → LoginRequest → Login → Response → Request
+
+#### 🎯 Impact
+- ✅ Archivos de mappers con nombres limpios y sin duplicaciones
+- ✅ Clases e interfaces con nomenclatura consistente
+- ✅ Imports corregidos automáticamente
+- ✅ Eliminación de confusión entre operaciones (login vs refresh-token)
+- ✅ Patrón unificado entre DTOs, Entities y Mappers
+
+## [2.1.4] - 2024-12-23
+
+### 🔧 CORRECCIONES DE NOMENCLATURA EN MAPPERS
+
+#### 🛠️ Fixed - CORRECCION MAPPERS BUSINESS FLOWS
+- **🏷️ Variable Naming**: Variables de mappers anidados ahora usan camelCase correcto (`userResponseMapper` vs `userloginresponseMapper`)
+- **🔗 Injection Methods**: Métodos de injection alineados con llamadas en mappers (ej: `UserResponseMapper()` vs `UserLoginResponseMapper()`)
+- **🧹 Duplicate Removal**: Eliminación de duplicaciones en nombres de variables y métodos
+- **📝 Consistent Naming**: Nomenclatura consistente entre mappers principales y anidados
+- **⚡ Method Alignment**: Referencias de injection usan nombres de métodos abreviados correctos
+
+#### 📚 Technical Details
+- **Before**: `private userloginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserLoginResponseMapper()` ❌
+- **After**: `private userResponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserResponseMapper()` ✅
+- **Variable Pattern**: `{type}ResponseMapper` en lugar de `{type}{operation}responseMapper`
+- **Method Pattern**: Métodos abreviados sin prefijo de servicio/operación
+- **Zero Breaking Changes**: Solo corrección de nomenclatura interna
+
+#### 🎯 Impact
+- ✅ Mappers compilados sin errores de métodos inexistentes
+- ✅ Variables en camelCase consistente
+- ✅ Mejor legibilidad y mantenibilidad del código generado
+- ✅ Alineación perfecta entre injection definitions y usage
+
 ## [2.1.3] - 2024-12-23
 
 ### 🚨 HOTFIX CRÍTICO - IMPORTS DE INTERFACES PRINCIPALES
