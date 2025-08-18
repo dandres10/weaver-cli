@@ -5,6 +5,36 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-12-23
+
+### 🚀 OPTIMIZACIÓN COMPLETA - CLEAN ARCHITECTURE PERFECTA
+
+#### ✨ Added - NUEVAS OPTIMIZACIONES
+- **🔧 Repository Pattern Optimizado**: Abstract class en interfaces con parámetros optimizados
+- **⚙️ Use Cases Optimizados**: Solo mappers cuando hay request fields, config directo
+- **🎯 Mappers Corregidos**: Eliminación de duplicaciones, nombres camelCase, imports optimizados
+- **✅ Validación Sintáctica**: Llaves de cierre, imports limpios, zero código innecesario
+- **🏗️ Facades Perfectos**: Singleton pattern, delegación correcta, tipos explícitos
+
+#### 🔧 Changed - MEJORAS ARQUITECTURALES
+- **Repository Interface**: Ahora usa `abstract class` en lugar de `interface`
+- **Repository Methods**: Parámetros optimizados (sin params innecesarios para operaciones sin request)
+- **Use Case Mappers**: Solo se instancian mappers cuando hay request fields
+- **Config Handling**: Config directo en use cases, defaults en repository implementation
+- **Variable Naming**: Nombres camelCase consistentes (`refreshTokenResponseMapper` no `refreshtokenResponseMapper`)
+
+#### 🐛 Fixed - CORRECCIONES CRÍTICAS
+- **Mapper Imports**: Imports incorrectos corregidos en mappers de business flows
+- **Repository Interface**: Métodos ahora en camelCase (`refreshToken` no `refresh-token`)
+- **Use Case Syntax**: Llaves de cierre faltantes agregadas en todas las clases
+- **Injection Methods**: Métodos abreviados en injections (`PlatformConfigurationResponseMapper()`)
+- **Import Optimization**: Imports consolidados via index.ts donde sea posible
+
+#### 📚 Documentation
+- **Documentación Completa**: PROMPT-PARA-CAMBIOS.md actualizada con ejemplos de código
+- **Patrones Documentados**: Repository pattern, use cases, mappers y facades documentados
+- **Optimizaciones**: Nueva sección con ejemplos específicos de optimizaciones
+
 ## [2.0.0] - 2024-12-22
 
 ### 🎉 MAJOR RELEASE - ARQUITECTURA CLEAN COMPLETA PARA FLUJOS DE NEGOCIO
