@@ -1234,7 +1234,7 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
 
         // Seguir el patrón de entities: usar un solo mapper y estructura simple
         const dtoImports = hasRequest ? `${requestDTOName}, ${responseDTOName}` : responseDTOName;
-        const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<void, ${responseDTOName} | null>`;
+        const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<any, ${responseDTOName} | null>`;
         
         // Solo importar mapper si tiene request fields
         const mapperImport = hasRequest ? `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";` : '';
