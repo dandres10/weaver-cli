@@ -5,6 +5,29 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2024-12-23
+
+### 🚨 HOTFIX CRÍTICO - IMPORTS DE INTERFACES PRINCIPALES
+
+#### 🔧 Fixed - CORRECCIÓN CRÍTICA DE IMPORTS
+- **💥 Main Interface Imports**: Corregidos imports incorrectos en interfaces principales de business flows
+- **📁 Import Names**: Nombres de imports ahora usan patrón completo `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
+- **✅ TypeScript Validation**: Eliminados errores de compilación en interfaces principales
+- **🔄 Pattern Consistency**: DTOs y Entities principales siguen patrón consistente con interfaces anidadas
+- **🎯 Zero Breaking Changes**: Solo corrección de imports incorrectos sin cambios funcionales
+
+#### 📚 Technical Details
+- **Before**: `import { IPlatformConfigurationResponseDTO } from "./i-auth-login-platform-configuration-response-dto"` ❌
+- **After**: `import { IAuthLoginPlatformConfigurationResponseDTO } from "./i-auth-login-platform-configuration-response-dto"` ✅
+- **Impact**: Zero TypeScript compilation errors in main business interfaces
+- **Scope**: Affects all business flow main interfaces (login, refresh-token, logout, etc.)
+- **Files Fixed**: `generateBusinessDTO` and `generateBusinessEntityInterface` functions
+
+#### 🎯 Root Cause Analysis
+- **Issue**: Main interfaces used abbreviated import names while nested interfaces used full pattern
+- **Solution**: Modified fieldType generation to use complete `I<Service><Operation><Type><Suffix>` pattern
+- **Result**: Perfect alignment between import names and actual interface names
+
 ## [2.1.2] - 2024-12-23
 
 ### 🔧 MEJORA MENOR - TIPOS USECASE
