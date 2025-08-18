@@ -193,6 +193,7 @@ weaver-cli/
 **Use Cases** (domain/services/use_cases):
 - Archivos: `auth-login-use-case.ts`, `auth-refresh-token-use-case.ts`
 - Clases: `AuthLoginUseCase`, `AuthRefreshTokenUseCase`
+- Tipos: `UseCase<RequestDTO, ResponseDTO | null>` (con params) | `UseCase<any, ResponseDTO | null>` (sin params)
 - Estructura plana: sin subcarpetas por operación
 - Injection: `injection-platform-business-auth-use-case.ts` (por servicio)
 
@@ -247,8 +248,9 @@ export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLogi
   private mapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper(); // ✅ Presente
 }
 
-export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenResponseDTO | null> {
+export class AuthRefreshTokenUseCase implements UseCase<any, IAuthRefreshTokenResponseDTO | null> {
   // ✅ Sin mapper innecesario (no hay request fields)
+  // ✅ UseCase<any, ...> para operaciones sin parámetros (más flexible que void)
   
   public async execute(config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null> {
     return await this.repository.refreshToken(config); // ✅ Config directo
@@ -273,6 +275,7 @@ public static PlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurat
 - Imports consolidados via index.ts ✅
 - Zero código innecesario ✅
 - Variables camelCase consistentes ✅
+- UseCase types optimizados: `UseCase<any, ...>` para operaciones sin parámetros ✅
 
 #### 🎯 **Patrones de Consistencia (Última Actualización)**
 
@@ -407,3 +410,30 @@ Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para 
 - ✅ **Facades Perfectos**: Singleton pattern, delegación correcta, tipos explícitos, Clean Architecture
 - ✅ **Sistema de Injection Completo**: Factory pattern, métodos abreviados, imports consolidados
 - ✅ **Validación Sintáctica**: Llaves de cierre, imports limpios, zero código innecesario
+- ✅ **UseCase Types**: `UseCase<any, ResponseDTO | null>` para operaciones sin parámetros (optimización TypeScript)
+
+#### 🆕 **Mejora Reciente v2.1.2 (Diciembre 2024)**
+
+**✅ UseCase Generic Types Optimizados:**
+
+En la versión anterior, los casos de uso sin parámetros utilizaban `UseCase<void, ...>` lo cual no era la mejor práctica de TypeScript. Se optimizó a `UseCase<any, ...>` para mejor compatibilidad:
+
+```typescript
+// ❌ ANTES (v2.1.1):
+export class AuthLogoutUseCase implements UseCase<void, IAuthLogoutResponseDTO | null>
+export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenResponseDTO | null>
+
+// ✅ AHORA (v2.1.2):
+export class AuthLogoutUseCase implements UseCase<any, IAuthLogoutResponseDTO | null>
+export class AuthRefreshTokenUseCase implements UseCase<any, IAuthRefreshTokenResponseDTO | null>
+
+// ✅ Se mantiene igual para operaciones con parámetros:
+export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLoginResponseDTO | null>
+export class AuthCreateApiTokenUseCase implements UseCase<IAuthCreateApiTokenRequestDTO, IAuthCreateApiTokenResponseDTO | null>
+```
+
+**🎯 Beneficios:**
+- **🔧 Mejor compatibilidad** con TypeScript para operaciones sin input
+- **📋 Tipos más flexibles** que `void` para casos de uso sin parámetros
+- **🎯 Consistencia mejorada** en el patrón de tipos genéricos
+- **✅ Zero breaking changes** - mejora transparente
