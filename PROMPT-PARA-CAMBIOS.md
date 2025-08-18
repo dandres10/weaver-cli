@@ -197,7 +197,8 @@ weaver-cli/
 - Injection: `injection-platform-business-auth-use-case.ts` (por servicio)
 
 **Repositories** (infrastructure/repositories):
-- Archivos: `auth-repository.ts` (unificado por servicio)
+- **Interface**: `i-auth-repository.ts` (abstract class, métodos camelCase, parámetros optimizados)
+- **Implementation**: `auth-repository.ts` (config con defaults, solo response mappers, imports optimizados)
 - Clases: `AuthRepository` (métodos camelCase: `login`, `refreshToken`)
 - Rutas: `CONST_PLATFORM_API_ROUTES.AUTH_LOGIN`
 - Injection: `injection-platform-business-repository.ts` (acumulativo)
@@ -218,6 +219,60 @@ El generador evita duplicaciones automáticamente y mantiene consistencia:
 - Index.ts: Solo `export type { Interface }` (mejores prácticas) ✅
 - **Consistencia archivo-interface**: Nombres coinciden perfectamente entre archivo e interface ✅
 - Una interfaz por archivo + imports automáticos de dependencias
+
+#### 🚀 **Optimizaciones Avanzadas (Diciembre 2024)**
+
+**✅ Repository Pattern Optimizado:**
+```typescript
+// Interface (abstract class pattern)
+export abstract class IAuthRepository {
+  abstract login(params: IAuthLoginRequestEntity, config: IConfigDTO): Promise<IAuthLoginResponseDTO | null>;
+  abstract refreshToken(config: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null>; // Sin params innecesarios
+}
+
+// Implementation (config con defaults, imports optimizados)
+export class AuthRepository extends IAuthRepository {
+  private loginResponseMapper = Injection...ResponseMapper(); // Solo response mappers
+  
+  public async login(params: IAuthLoginRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG) {
+    // Config con valor por defecto
+  }
+}
+```
+
+**✅ Use Cases Optimizados:**
+```typescript
+// Solo mappers cuando hay request fields
+export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLoginResponseDTO | null> {
+  private mapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper(); // ✅ Presente
+}
+
+export class AuthRefreshTokenUseCase implements UseCase<void, IAuthRefreshTokenResponseDTO | null> {
+  // ✅ Sin mapper innecesario (no hay request fields)
+  
+  public async execute(config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null> {
+    return await this.repository.refreshToken(config); // ✅ Config directo
+  }
+}
+```
+
+**✅ Mappers con Naming Corregido:**
+```typescript
+// Variables en camelCase
+private loginResponseMapper = // ✅ loginResponseMapper (no loginresponseMapper)
+private refreshTokenResponseMapper = // ✅ refreshTokenResponseMapper (no refreshtokenResponseMapper)
+
+// Injection methods abreviados
+public static PlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurationResponseMapper {
+  // ✅ Método abreviado (no AuthLoginPlatformConfigurationResponseMapper())
+}
+```
+
+**✅ Sintaxis y Validación:**
+- Llaves de cierre en todas las clases ✅
+- Imports consolidados via index.ts ✅
+- Zero código innecesario ✅
+- Variables camelCase consistentes ✅
 
 #### 🎯 **Patrones de Consistencia (Última Actualización)**
 
@@ -318,10 +373,10 @@ npm run logout        # Build + logout
 - 🏗️ **Generación CRUD**: 42+ archivos por entidad con Clean Architecture completa
 - 💼 **Generación Business COMPLETA**: Arquitectura Clean Architecture completa para flujos de negocio
   - 📋 **DTOs + Entities + Mappers** dinámicos con interfaces anidadas
-  - 🔗 **Repository Interfaces** unificados por servicio
-  - 📊 **Use Cases** en estructura plana con inyección de dependencias
-  - 🗄️ **Infrastructure Repositories** unificados con métodos camelCase
-  - 🎭 **Facades** unificados con instancias readonly
+  - 🔗 **Repository Interfaces** unificados por servicio (abstract class pattern)
+  - 📊 **Use Cases** en estructura plana con inyección de dependencias optimizada
+  - 🗄️ **Infrastructure Repositories** unificados con métodos camelCase y config defaults
+  - 🎭 **Facades** unificados con instancias readonly y singleton pattern
   - 🔌 **Sistema de Inyección Completo** acumulativo para todos los componentes
 - 🎯 **Filtrado Inteligente**: Detecta automáticamente CRUD vs Business
 - 🔗 **Interfaces Anidadas**: Archivos individuales con imports automáticos
@@ -332,6 +387,7 @@ npm run logout        # Build + logout
 - 🛣️ **Integración Constantes**: Uso automático de CONST_PLATFORM_API_ROUTES
 - 🧩 **Operaciones Flexibles**: Soporte completo para operaciones con/sin request body
 - 🔌 **Actualización Acumulativa**: Los archivos de injection se actualizan automáticamente
+- 🚀 **Optimización Completa**: Repository pattern, use cases optimizados, mappers corregidos, sintaxis validada
 
 🎉 **¡SISTEMA COMPLETO!** 
 Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo.
@@ -342,3 +398,12 @@ Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para 
 - ✅ **Kebab-case Uniforme**: Directorios consistentes (`refresh-token/` no `refresh_token/`)
 - ✅ **Validación Automática**: Detección y corrección de duplicaciones de sufijos
 - ✅ **Patrones Completos**: `i-<flujo>-<proceso>-<tipo>-<request/response>-<dto/entity>.ts` → `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
+
+**🔥 Última Optimización Completa (Diciembre 2024):**
+- ✅ **DTOs y Entities Optimizados**: Imports via index.ts, naming consistente, interfaces anidadas perfectas
+- ✅ **Mappers Completamente Corregidos**: Eliminación de duplicaciones, nombres camelCase, imports optimizados
+- ✅ **Repository Pattern Perfecto**: Abstract class, métodos camelCase, parámetros optimizados, config con defaults
+- ✅ **Use Cases Optimizados**: Solo mappers necesarios, config directo, sintaxis válida, tipos correctos
+- ✅ **Facades Perfectos**: Singleton pattern, delegación correcta, tipos explícitos, Clean Architecture
+- ✅ **Sistema de Injection Completo**: Factory pattern, métodos abreviados, imports consolidados
+- ✅ **Validación Sintáctica**: Llaves de cierre, imports limpios, zero código innecesario
