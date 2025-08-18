@@ -1,16 +1,18 @@
-import { AuthRefreshTokenResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-response-mapper";
-import { AuthRefreshTokenPlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-configuration-response-mapper";
-import { AuthRefreshTokenUserLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-user-login-response-mapper";
-import { AuthRefreshTokenCurrencyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-currency-login-response-mapper";
-import { AuthRefreshTokenLocationLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-location-login-response-mapper";
-import { AuthRefreshTokenLanguageLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-language-login-response-mapper";
-import { AuthRefreshTokenPlatformLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-login-response-mapper";
-import { AuthRefreshTokenCountryLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-country-login-response-mapper";
-import { AuthRefreshTokenCompanyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-company-login-response-mapper";
-import { AuthRefreshTokenRolLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-rol-login-response-mapper";
-import { AuthRefreshTokenPermissionLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-permission-login-response-mapper";
-import { AuthRefreshTokenMenuLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-menu-login-response-mapper";
-import { AuthRefreshTokenPlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-variations-response-mapper";
+import { 
+  AuthRefreshTokenResponseMapper,
+  AuthRefreshTokenPlatformConfigurationResponseMapper,
+  AuthRefreshTokenUserLoginResponseMapper,
+  AuthRefreshTokenCurrencyLoginResponseMapper,
+  AuthRefreshTokenLocationLoginResponseMapper,
+  AuthRefreshTokenLanguageLoginResponseMapper,
+  AuthRefreshTokenPlatformLoginResponseMapper,
+  AuthRefreshTokenCountryLoginResponseMapper,
+  AuthRefreshTokenCompanyLoginResponseMapper,
+  AuthRefreshTokenRolLoginResponseMapper,
+  AuthRefreshTokenPermissionLoginResponseMapper,
+  AuthRefreshTokenMenuLoginResponseMapper,
+  AuthRefreshTokenPlatformVariationsResponseMapper
+} from "@platform/infrastructure/mappers/apis/platform/business/auth";
 
 export class InjectionPlatformBusinessAuthRefreshTokenMapper {
   public static AuthRefreshTokenResponseMapper(): AuthRefreshTokenResponseMapper {

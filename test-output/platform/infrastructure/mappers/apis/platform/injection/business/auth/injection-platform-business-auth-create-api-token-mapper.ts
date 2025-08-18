@@ -1,5 +1,7 @@
-import { AuthCreateApiTokenRequestMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/create-api-token/auth-create-api-token-request-mapper";
-import { AuthCreateApiTokenResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/create-api-token/auth-create-api-token-response-mapper";
+import { 
+  AuthCreateApiTokenRequestMapper,
+  AuthCreateApiTokenResponseMapper
+} from "@platform/infrastructure/mappers/apis/platform/business/auth";
 
 export class InjectionPlatformBusinessAuthCreateApiTokenMapper {
   public static AuthCreateApiTokenRequestMapper(): AuthCreateApiTokenRequestMapper {

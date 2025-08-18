@@ -1,17 +1,19 @@
-import { AuthLoginRequestMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-request-mapper";
-import { AuthLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-response-mapper";
-import { AuthLoginPlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-configuration-response-mapper";
-import { AuthLoginUserResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-user-response-mapper";
-import { AuthLoginCurrencyResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-currency-response-mapper";
-import { AuthLoginLocationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-location-response-mapper";
-import { AuthLoginLanguageResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-language-response-mapper";
-import { AuthLoginPlatformResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-response-mapper";
-import { AuthLoginCountryResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-country-response-mapper";
-import { AuthLoginCompanyResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-company-response-mapper";
-import { AuthLoginRolResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-rol-response-mapper";
-import { AuthLoginPermissionResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-permission-response-mapper";
-import { AuthLoginMenuResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-menu-response-mapper";
-import { AuthLoginPlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-variations-response-mapper";
+import { 
+  AuthLoginRequestMapper,
+  AuthLoginResponseMapper,
+  AuthLoginPlatformConfigurationResponseMapper,
+  AuthLoginUserResponseMapper,
+  AuthLoginCurrencyResponseMapper,
+  AuthLoginLocationResponseMapper,
+  AuthLoginLanguageResponseMapper,
+  AuthLoginPlatformResponseMapper,
+  AuthLoginCountryResponseMapper,
+  AuthLoginCompanyResponseMapper,
+  AuthLoginRolResponseMapper,
+  AuthLoginPermissionResponseMapper,
+  AuthLoginMenuResponseMapper,
+  AuthLoginPlatformVariationsResponseMapper
+} from "@platform/infrastructure/mappers/apis/platform/business/auth";
 
 export class InjectionPlatformBusinessAuthLoginMapper {
   public static AuthLoginRequestMapper(): AuthLoginRequestMapper {

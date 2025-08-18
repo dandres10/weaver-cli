@@ -1,4 +1,6 @@
-import { AuthLogoutResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/logout/auth-logout-response-mapper";
+import { 
+  AuthLogoutResponseMapper
+} from "@platform/infrastructure/mappers/apis/platform/business/auth";
 
 export class InjectionPlatformBusinessAuthLogoutMapper {
   public static AuthLogoutResponseMapper(): AuthLogoutResponseMapper {

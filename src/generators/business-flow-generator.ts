@@ -1120,17 +1120,14 @@ ${schema.businessOperations.map(operation => {
     .join('');
   
   const lines = [];
-  if (operation.fields && operation.fields.length > 0) {
-    lines.push(`  I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`);
-  }
   if (operation.responseFields && operation.responseFields.length > 0) {
     lines.push(`  I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`);
   }
   return lines.join(',\n');
 }).filter(line => line).join(',\n')}
 } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
-
-export interface I${toPascalCase(serviceName)}Repository {
+${schema.businessOperations.some(op => op.fields && op.fields.length > 0) ? 
+`import {
 ${schema.businessOperations.map(operation => {
   const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
   const operationName = rawOperationName.replace(/_/g, '-');
@@ -1140,14 +1137,42 @@ ${schema.businessOperations.map(operation => {
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
   
-  const requestType = operation.fields && operation.fields.length > 0 
-    ? `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO` 
-    : 'any';
+  const lines = [];
+  if (operation.fields && operation.fields.length > 0) {
+    lines.push(`  I${toPascalCase(serviceName)}${cleanOperationName}RequestEntity`);
+  }
+  return lines.join(',\n');
+}).filter(line => line).join(',\n')}
+} from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";` 
+: ''}
+
+export abstract class I${toPascalCase(serviceName)}Repository {
+${schema.businessOperations.map(operation => {
+  const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+  const operationName = rawOperationName.replace(/_/g, '-');
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  // Convertir operationName a camelCase para el nombre del método
+  const operationCamelCase = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
   const responseType = operation.responseFields && operation.responseFields.length > 0 
     ? `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO | null` 
     : 'any';
   
-  return `  ${operationName}(params: ${requestType}, config?: IConfigDTO): Promise<${responseType}>;`;
+  // Si tiene campos de request, incluir params, sino solo config
+  const hasRequestFields = operation.fields && operation.fields.length > 0;
+  const requestType = hasRequestFields ? `I${toPascalCase(serviceName)}${cleanOperationName}RequestEntity` : null;
+  const params = hasRequestFields ? `params: ${requestType}, ` : '';
+  
+  return `  abstract ${operationCamelCase}(${params}config: IConfigDTO): Promise<${responseType}>;`;
 }).join('\n')}
 }`;
 
@@ -1371,13 +1396,13 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
         .join('');
 
       // Recopilar todos los mappers de esta operación
-      const mapperImports: string[] = [];
+      const mapperNames: string[] = [];
       const mapperMethods: string[] = [];
 
       // Request mapper (si existe)
       if (operation.fields && operation.fields.length > 0) {
         const requestMapperName = `${toPascalCase(serviceName)}${cleanOperationName}RequestMapper`;
-        mapperImports.push(`import { ${requestMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-request-mapper";`);
+        mapperNames.push(requestMapperName);
         mapperMethods.push(`  public static ${requestMapperName}(): ${requestMapperName} {
     return ${requestMapperName}.getInstance();
   }`);
@@ -1386,7 +1411,7 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
       // Response mapper (si existe)
       if (operation.responseFields && operation.responseFields.length > 0) {
         const responseMapperName = `${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper`;
-        mapperImports.push(`import { ${responseMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-response-mapper";`);
+        mapperNames.push(responseMapperName);
         mapperMethods.push(`  public static ${responseMapperName}(): ${responseMapperName} {
     return ${responseMapperName}.getInstance();
   }`);
@@ -1395,14 +1420,13 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
         const nestedMappers = await collectNestedMappersForOperation(operation, 'response', serviceName, operationName);
         for (const nestedMapper of nestedMappers) {
           const nestedMapperName = nestedMapper.className;
-          const nestedMapperFile = nestedMapper.fileName;
           
           // Generar nombre de método abreviado removiendo el prefijo del servicio y operación
           // Ejemplo: AuthLoginPlatformConfigurationResponseMapper -> PlatformConfigurationResponseMapper
           const formattedServiceName = toPascalCase(serviceName);
           const methodName = nestedMapperName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
           
-          mapperImports.push(`import { ${nestedMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${nestedMapperFile}";`);
+          mapperNames.push(nestedMapperName);
           mapperMethods.push(`  public static ${methodName}(): ${nestedMapperName} {
     return ${nestedMapperName}.getInstance();
   }`);
@@ -1410,10 +1434,15 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
       }
 
       // Solo crear injection si hay mappers
-      if (mapperImports.length > 0) {
+      if (mapperNames.length > 0) {
         const injectionClassName = `InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper`;
         
-        const injectionContent = `${mapperImports.join('\n')}
+        // Generar import unificado usando el index.ts
+        const importStatement = `import { 
+  ${mapperNames.join(',\n  ')}
+} from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}";`;
+        
+        const injectionContent = `${importStatement}
 
 export class ${injectionClassName} {
 ${mapperMethods.join('\n\n')}
@@ -1539,22 +1568,23 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         const requestEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestEntity`;
         const responseEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseEntity`;
 
-        // Agregar imports
+        // Agregar imports (solo entities de request y DTOs de response)
         const hasRequest = operation.fields && operation.fields.length > 0;
         if (hasRequest) {
-          allImports.dtos.add(requestDTOName);
           allImports.entities.add(requestEntityName);
         }
         allImports.dtos.add(responseDTOName);
         allImports.entities.add(responseEntityName);
         allImports.mapperImports.add(`import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`);
 
-        // Agregar instancias de mappers
-        const cleanOperationVarName = operationName.replace(/-/g, '');
-        if (hasRequest) {
-          allImports.mapperInstances.push(`  private ${cleanOperationVarName}RequestMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();`);
-        }
-        allImports.mapperInstances.push(`  private ${cleanOperationVarName}ResponseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();`);
+        // Agregar instancias de mappers (solo Response mappers)
+        const operationCamelCaseVar = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        // Solo agregar Response mapper (los Request mappers no se usan en el repository)
+        allImports.mapperInstances.push(`  private ${operationCamelCaseVar}ResponseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();`);
 
         // Convertir operationName a camelCase para el nombre del método
         const operationCamelCase = operationName
@@ -1575,7 +1605,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<${responseEntityName}>(data);
           if (entity)
-            return this.${cleanOperationVarName}ResponseMapper.mapFrom(entity);
+            return this.${operationCamelCaseVar}ResponseMapper.mapFrom(entity);
           return null;
         });
     return null;

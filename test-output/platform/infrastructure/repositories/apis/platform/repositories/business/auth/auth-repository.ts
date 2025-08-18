@@ -4,7 +4,7 @@ import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
 import { CONST_CORE_DTO } from "@bus/core/const/const-core";
 import { InjectionCore } from "@bus/core/injection/injection-core";
 import { IAuthRepository } from "@platform/domain/services/repositories/apis/platform/business/i-auth-repository";
-import { IAuthLoginRequestDTO, IAuthLoginResponseDTO, IAuthRefreshTokenResponseDTO, IAuthLogoutResponseDTO, IAuthCreateApiTokenRequestDTO, IAuthCreateApiTokenResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthLoginResponseDTO, IAuthRefreshTokenResponseDTO, IAuthLogoutResponseDTO, IAuthCreateApiTokenResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
 import { IAuthLoginRequestEntity, IAuthLoginResponseEntity, IAuthRefreshTokenResponseEntity, IAuthLogoutResponseEntity, IAuthCreateApiTokenRequestEntity, IAuthCreateApiTokenResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-login-mapper";
 import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-refresh-token-mapper";
@@ -15,12 +15,10 @@ export class AuthRepository extends IAuthRepository {
 
   private static instance: AuthRepository;
   private readonly resolve = InjectionCore.Resolve();
-  private loginRequestMapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper();
   private loginResponseMapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginResponseMapper();
-  private refreshtokenResponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.AuthRefreshTokenResponseMapper();
+  private refreshTokenResponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.AuthRefreshTokenResponseMapper();
   private logoutResponseMapper = InjectionPlatformBusinessAuthLogoutMapper.AuthLogoutResponseMapper();
-  private createapitokenRequestMapper = InjectionPlatformBusinessAuthCreateApiTokenMapper.AuthCreateApiTokenRequestMapper();
-  private createapitokenResponseMapper = InjectionPlatformBusinessAuthCreateApiTokenMapper.AuthCreateApiTokenResponseMapper();
+  private createApiTokenResponseMapper = InjectionPlatformBusinessAuthCreateApiTokenMapper.AuthCreateApiTokenResponseMapper();
 
   private constructor() {
     super();
@@ -56,7 +54,7 @@ export class AuthRepository extends IAuthRepository {
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAuthRefreshTokenResponseEntity>(data);
           if (entity)
-            return this.refreshtokenResponseMapper.mapFrom(entity);
+            return this.refreshTokenResponseMapper.mapFrom(entity);
           return null;
         });
     return null;
@@ -86,7 +84,7 @@ export class AuthRepository extends IAuthRepository {
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAuthCreateApiTokenResponseEntity>(data);
           if (entity)
-            return this.createapitokenResponseMapper.mapFrom(entity);
+            return this.createApiTokenResponseMapper.mapFrom(entity);
           return null;
         });
     return null;
