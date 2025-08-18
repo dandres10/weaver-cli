@@ -1,6 +1,6 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenCompanyResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenCompanyResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenCompanyResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthRefreshTokenCompanyResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 
 export class AuthRefreshTokenCompanyResponseMapper extends Mapper<IAuthRefreshTokenCompanyResponseEntity, IAuthRefreshTokenCompanyResponseDTO> {
 

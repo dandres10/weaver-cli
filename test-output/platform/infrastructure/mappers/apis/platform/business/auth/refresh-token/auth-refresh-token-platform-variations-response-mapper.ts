@@ -1,6 +1,6 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenPlatformVariationsResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenPlatformVariationsResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenPlatformVariationsResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthRefreshTokenPlatformVariationsResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-refresh-token-mapper";
 
 export class AuthRefreshTokenPlatformVariationsResponseMapper extends Mapper<IAuthRefreshTokenPlatformVariationsResponseEntity, IAuthRefreshTokenPlatformVariationsResponseDTO> {

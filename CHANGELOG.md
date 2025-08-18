@@ -5,6 +5,31 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.7] - 2024-12-23
+
+### 🔧 CORRECCIÓN CRÍTICA - IMPORT PATHS A INDEX.TS
+
+#### 🛠️ Fixed - IMPORT PATHS HACIA INDEX.TS CORRECTO
+- **📁 Import Paths**: Imports corregidos para ir hasta index.ts del servicio, no a operación específica
+- **📋 DTOs Import**: Imports van a `/business/auth` donde está el index.ts que exporta todas las interfaces
+- **🏗️ Entities Import**: Misma corrección aplicada para entities
+- **✅ Unified Import**: Todos los mappers importan desde el mismo lugar centralizado
+- **🎯 Index.ts Usage**: Aprovecha correctamente los index.ts que exportan todas las interfaces
+
+#### 📚 Technical Details
+- **Before**: `import { IAuthRefreshTokenLocationResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";` ❌
+- **After**: `import { IAuthRefreshTokenLocationResponseDTO } from "@platform/domain/models/apis/platform/business/auth";` ✅
+- **Before**: `import { IAuthRefreshTokenLocationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";` ❌ 
+- **After**: `import { IAuthRefreshTokenLocationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";` ✅
+- **Consistent Pattern**: Todos los imports van hasta `/auth` donde están los index.ts centralizados
+
+#### 🎯 Impact
+- ✅ Imports funcionan correctamente aprovechando index.ts
+- ✅ Menos imports específicos, más centralización
+- ✅ Mejor organización usando exports centralizados
+- ✅ Consistencia total entre todos los mappers
+- ✅ Zero errores de importación por rutas incorrectas
+
 ## [2.1.6] - 2024-12-23
 
 ### 🔧 CORRECCIÓN COMPLETA - IMPORTS Y INDEX.TS DE MAPPERS

@@ -1,6 +1,6 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthLoginPlatformVariationsResponseDTO } from "@platform/domain/models/apis/platform/business/auth/login";
-import { IAuthLoginPlatformVariationsResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/login";
+import { IAuthLoginPlatformVariationsResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthLoginPlatformVariationsResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-login-mapper";
 
 export class AuthLoginPlatformVariationsResponseMapper extends Mapper<IAuthLoginPlatformVariationsResponseEntity, IAuthLoginPlatformVariationsResponseDTO> {

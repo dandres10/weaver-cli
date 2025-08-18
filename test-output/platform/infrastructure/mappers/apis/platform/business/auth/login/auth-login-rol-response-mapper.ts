@@ -1,6 +1,6 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthLoginRolResponseDTO } from "@platform/domain/models/apis/platform/business/auth/login";
-import { IAuthLoginRolResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/login";
+import { IAuthLoginRolResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthLoginRolResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 
 export class AuthLoginRolResponseMapper extends Mapper<IAuthLoginRolResponseEntity, IAuthLoginRolResponseDTO> {
 

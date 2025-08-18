@@ -835,8 +835,8 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
   }
 
   return `import { Mapper } from "@bus/core/classes";
-import { ${dtoInterfaceName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}/${operationName}";
-import { ${entityInterfaceName} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}/${operationName}";
+import { ${dtoInterfaceName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+import { ${entityInterfaceName} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";
 ${nestedMapperImports}
 export class ${mapperClassName} extends Mapper<${entityInterfaceName}, ${dtoInterfaceName}> {
 

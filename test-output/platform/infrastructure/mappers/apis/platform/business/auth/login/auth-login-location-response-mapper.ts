@@ -1,6 +1,6 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthLoginLocationResponseDTO } from "@platform/domain/models/apis/platform/business/auth/login";
-import { IAuthLoginLocationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/login";
+import { IAuthLoginLocationResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
+import { IAuthLoginLocationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
 
 export class AuthLoginLocationResponseMapper extends Mapper<IAuthLoginLocationResponseEntity, IAuthLoginLocationResponseDTO> {
 
