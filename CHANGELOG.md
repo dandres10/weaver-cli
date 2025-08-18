@@ -5,6 +5,23 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2024-12-23
+
+### 🐛 HOTFIX CRÍTICO - IMPORTS DE INTERFACES ANIDADAS
+
+#### 🔧 Fixed - CORRECCIÓN CRÍTICA
+- **💥 Nested Interface Imports**: Corregidos imports incorrectos en interfaces anidadas que causaban errores de TypeScript
+- **📁 Import Paths**: Rutas de import ahora usan el patrón completo `i-<flujo>-<proceso>-<tipo>-<request/response>-<dto/entity>`
+- **🏷️ Interface Names**: Nombres de interfaces corregidos para usar patrón completo `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
+- **✅ TypeScript Validation**: Eliminados todos los errores de linter en archivos generados
+- **🔄 Consistency**: DTOs y Entities ahora siguen el mismo patrón de naming e imports
+
+#### 📚 Technical Details
+- **Before**: `import { IUserLoginResponseEntity } from "./i-user-login-response-entity"` ❌
+- **After**: `import { IAuthLoginUserResponseEntity } from "./i-auth-login-user-response-entity"` ✅
+- **Impact**: Zero TypeScript compilation errors in generated nested interfaces
+- **Scope**: Affects all business flow generations with complex nested types
+
 ## [2.1.0] - 2024-12-23
 
 ### 🚀 OPTIMIZACIÓN COMPLETA - CLEAN ARCHITECTURE PERFECTA
