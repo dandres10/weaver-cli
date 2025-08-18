@@ -1,17 +1,17 @@
 import { AuthLoginRequestMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-request-mapper";
 import { AuthLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-response-mapper";
-import { PlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/platform-configuration-response-mapper";
-import { UserLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/user-login-response-mapper";
-import { CurrencyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/currency-login-response-mapper";
-import { LocationLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/location-login-response-mapper";
-import { LanguageLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/language-login-response-mapper";
-import { PlatformLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/platform-login-response-mapper";
-import { CountryLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/country-login-response-mapper";
-import { CompanyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/company-login-response-mapper";
-import { RolLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/rol-login-response-mapper";
-import { PermissionLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/permission-login-response-mapper";
-import { MenuLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/menu-login-response-mapper";
-import { PlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/platform-variations-response-mapper";
+import { AuthLoginPlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-configuration-response-mapper";
+import { AuthLoginUserResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-user-response-mapper";
+import { AuthLoginCurrencyResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-currency-response-mapper";
+import { AuthLoginLocationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-location-response-mapper";
+import { AuthLoginLanguageResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-language-response-mapper";
+import { AuthLoginPlatformResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-response-mapper";
+import { AuthLoginCountryResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-country-response-mapper";
+import { AuthLoginCompanyResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-company-response-mapper";
+import { AuthLoginRolResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-rol-response-mapper";
+import { AuthLoginPermissionResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-permission-response-mapper";
+import { AuthLoginMenuResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-menu-response-mapper";
+import { AuthLoginPlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/login/auth-login-platform-variations-response-mapper";
 
 export class InjectionPlatformBusinessAuthLoginMapper {
   public static AuthLoginRequestMapper(): AuthLoginRequestMapper {
@@ -22,51 +22,51 @@ export class InjectionPlatformBusinessAuthLoginMapper {
     return AuthLoginResponseMapper.getInstance();
   }
 
-  public static PlatformConfigurationResponseMapper(): PlatformConfigurationResponseMapper {
-    return PlatformConfigurationResponseMapper.getInstance();
+  public static AuthLoginPlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurationResponseMapper {
+    return AuthLoginPlatformConfigurationResponseMapper.getInstance();
   }
 
-  public static UserLoginResponseMapper(): UserLoginResponseMapper {
-    return UserLoginResponseMapper.getInstance();
+  public static AuthLoginUserResponseMapper(): AuthLoginUserResponseMapper {
+    return AuthLoginUserResponseMapper.getInstance();
   }
 
-  public static CurrencyLoginResponseMapper(): CurrencyLoginResponseMapper {
-    return CurrencyLoginResponseMapper.getInstance();
+  public static AuthLoginCurrencyResponseMapper(): AuthLoginCurrencyResponseMapper {
+    return AuthLoginCurrencyResponseMapper.getInstance();
   }
 
-  public static LocationLoginResponseMapper(): LocationLoginResponseMapper {
-    return LocationLoginResponseMapper.getInstance();
+  public static AuthLoginLocationResponseMapper(): AuthLoginLocationResponseMapper {
+    return AuthLoginLocationResponseMapper.getInstance();
   }
 
-  public static LanguageLoginResponseMapper(): LanguageLoginResponseMapper {
-    return LanguageLoginResponseMapper.getInstance();
+  public static AuthLoginLanguageResponseMapper(): AuthLoginLanguageResponseMapper {
+    return AuthLoginLanguageResponseMapper.getInstance();
   }
 
-  public static PlatformLoginResponseMapper(): PlatformLoginResponseMapper {
-    return PlatformLoginResponseMapper.getInstance();
+  public static AuthLoginPlatformResponseMapper(): AuthLoginPlatformResponseMapper {
+    return AuthLoginPlatformResponseMapper.getInstance();
   }
 
-  public static CountryLoginResponseMapper(): CountryLoginResponseMapper {
-    return CountryLoginResponseMapper.getInstance();
+  public static AuthLoginCountryResponseMapper(): AuthLoginCountryResponseMapper {
+    return AuthLoginCountryResponseMapper.getInstance();
   }
 
-  public static CompanyLoginResponseMapper(): CompanyLoginResponseMapper {
-    return CompanyLoginResponseMapper.getInstance();
+  public static AuthLoginCompanyResponseMapper(): AuthLoginCompanyResponseMapper {
+    return AuthLoginCompanyResponseMapper.getInstance();
   }
 
-  public static RolLoginResponseMapper(): RolLoginResponseMapper {
-    return RolLoginResponseMapper.getInstance();
+  public static AuthLoginRolResponseMapper(): AuthLoginRolResponseMapper {
+    return AuthLoginRolResponseMapper.getInstance();
   }
 
-  public static PermissionLoginResponseMapper(): PermissionLoginResponseMapper {
-    return PermissionLoginResponseMapper.getInstance();
+  public static AuthLoginPermissionResponseMapper(): AuthLoginPermissionResponseMapper {
+    return AuthLoginPermissionResponseMapper.getInstance();
   }
 
-  public static MenuLoginResponseMapper(): MenuLoginResponseMapper {
-    return MenuLoginResponseMapper.getInstance();
+  public static AuthLoginMenuResponseMapper(): AuthLoginMenuResponseMapper {
+    return AuthLoginMenuResponseMapper.getInstance();
   }
 
-  public static PlatformVariationsResponseMapper(): PlatformVariationsResponseMapper {
-    return PlatformVariationsResponseMapper.getInstance();
+  public static AuthLoginPlatformVariationsResponseMapper(): AuthLoginPlatformVariationsResponseMapper {
+    return AuthLoginPlatformVariationsResponseMapper.getInstance();
   }
 }

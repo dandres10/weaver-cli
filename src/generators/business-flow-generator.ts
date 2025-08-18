@@ -313,12 +313,25 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
       
       // Generar mapper individual para cada interface anidada
       const nestedMapper = generateIndividualNestedMapper(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      
+      // Aplicar el patrón correcto: <flujo>-<proceso>-<tipo>-<request/response>-mapper.ts
+      const serviceNameKebab = serviceName.toLowerCase();
+      const operationKebab = operationName.replace(/_/g, '-');
+      let typeKebab = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      const fileSuffix = type === 'request' ? 'request' : 'response';
+      
+      // Detectar y evitar duplicación de operaciones en el nombre del tipo para archivos
+      const operationInFileName = operationKebab.toLowerCase();
+      if (typeKebab.includes(operationInFileName)) {
+        // Eliminar la operación del tipo: user-login-response -> user-response
+        typeKebab = typeKebab.replace(new RegExp(`-${operationInFileName}`, 'gi'), '');
+      }
+      
       // Si el tipo ya termina en request o response, no duplicar
       const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
       const nestedFileName = needsSuffix 
-        ? `${baseFileName}-${type}-mapper.ts`
-        : `${baseFileName}-mapper.ts`;
+        ? `${serviceNameKebab}-${operationKebab}-${typeKebab}-${fileSuffix}-mapper.ts`
+        : `${serviceNameKebab}-${operationKebab}-${typeKebab}-mapper.ts`;
       
       fs.writeFileSync(
         path.join(operationFolder, nestedFileName),
@@ -326,11 +339,28 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
       );
       
       const formattedFieldType = toPascalCase(field.type);
-      const suffix = type === 'request' ? 'Request' : 'Response';
-      // Evitar duplicación si el tipo ya termina en Request o Response
-      const mapperClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
-        ? `${formattedFieldType}Mapper` 
-        : `${formattedFieldType}${suffix}Mapper`;
+      const formattedServiceName = toPascalCase(serviceName);
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+      const classSuffix = type === 'request' ? 'Request' : 'Response';
+      
+      // Detectar y evitar duplicación de operaciones en el nombre del tipo
+      let finalFieldType = formattedFieldType;
+      const operationInTypeName = cleanOperationName.toLowerCase();
+      const typeNameLower = formattedFieldType.toLowerCase();
+      
+      // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
+      if (typeNameLower.includes(operationInTypeName)) {
+        finalFieldType = formattedFieldType.replace(new RegExp(cleanOperationName, 'gi'), '');
+      }
+      
+      // Generar nombre con patrón correcto: <Flujo><Proceso><Tipo><Request/Response>Mapper
+      const mapperClassName = finalFieldType.endsWith('Response') || finalFieldType.endsWith('Request') 
+        ? `${formattedServiceName}${cleanOperationName}${finalFieldType}Mapper` 
+        : `${formattedServiceName}${cleanOperationName}${finalFieldType}${classSuffix}Mapper`;
       exportStatements.push(`export { ${mapperClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
 
       // Procesar campos anidados recursivamente
@@ -491,6 +521,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
   
   if (fields && fields.length > 0) {
     const nestedMappers: string[] = [];
+    const nestedMapperReferences: { [key: string]: string } = {}; // Para evitar duplicados
     
     const mapFromMappings = fields.map((field: any) => {
       const dtoFieldName = convertToCamelCase(field.name); // DTO usa camelCase
@@ -503,8 +534,16 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
         const mapperClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
           ? `${formattedFieldType}Mapper` 
           : `${formattedFieldType}${suffix}Mapper`;
-        const nestedMapperName = `${field.type.toLowerCase()}${suffix.toLowerCase()}Mapper`;
-        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${mapperClassName}()`);
+        
+        // Crear un nombre de variable único sin duplicaciones
+        const baseMapperVar = field.type.toLowerCase().replace(/[-_]/g, '');
+        const nestedMapperName = `${baseMapperVar}Mapper`;
+        
+        // Solo agregar si no existe ya
+        if (!nestedMapperReferences[nestedMapperName]) {
+          nestedMapperReferences[nestedMapperName] = mapperClassName;
+          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${mapperClassName}()`);
+        }
         
         if (field.isArray) {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
@@ -522,9 +561,8 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
       
       // Si es un tipo complejo, usar mapper específico
       if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
-        const formattedFieldType = toPascalCase(field.type);
-        const suffix = type === 'request' ? 'Request' : 'Response';
-        const nestedMapperName = `${field.type.toLowerCase()}${suffix.toLowerCase()}Mapper`;
+        const baseMapperVar = field.type.toLowerCase().replace(/[-_]/g, '');
+        const nestedMapperName = `${baseMapperVar}Mapper`;
         
         if (field.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
@@ -538,7 +576,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
     
     // Agregar imports e instancias de mappers anidados si existen
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName}-mapper";\n`;
+      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     
@@ -591,6 +629,7 @@ ${mapToFields}
 function generateIndividualNestedMapper(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
   const serviceNameLower = serviceName.toLowerCase();
   const formattedTypeName = toPascalCase(typeName);
+  const formattedServiceName = toPascalCase(serviceName);
   const suffix = type === 'request' ? 'Request' : 'Response';
   
   // Crear cleanOperationName aquí también
@@ -600,16 +639,31 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
   
-  // Evitar duplicación si el tipo ya termina en Request o Response
-  const dtoInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
-    ? `I${formattedTypeName}DTO` 
-    : `I${formattedTypeName}${suffix}DTO`;
-  const entityInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
-    ? `I${formattedTypeName}Entity` 
-    : `I${formattedTypeName}${suffix}Entity`;
-  const mapperClassName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
-    ? `${formattedTypeName}Mapper` 
-    : `${formattedTypeName}${suffix}Mapper`;
+  // Aplicar el patrón correcto: <Flujo><Proceso><Tipo><Request/Response><DTO/Entity/Mapper>
+  // Si el tipo ya termina en Request o Response, no duplicar sufijo
+  const needsSuffix = !formattedTypeName.endsWith('Response') && !formattedTypeName.endsWith('Request');
+  
+  // Detectar y evitar duplicación de operaciones en el nombre del tipo
+  // Ejemplo: UserLoginResponse -> UserResponse (cuando operationName es "login")
+  let cleanTypeName = formattedTypeName;
+  const operationInTypeName = cleanOperationName.toLowerCase();
+  const typeNameLower = formattedTypeName.toLowerCase();
+  
+  // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
+  if (typeNameLower.includes(operationInTypeName)) {
+    // Eliminar la operación del tipo: UserLoginResponse -> UserResponse
+    cleanTypeName = formattedTypeName.replace(new RegExp(cleanOperationName, 'gi'), '');
+  }
+  
+  const dtoInterfaceName = needsSuffix 
+    ? `I${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}DTO`
+    : `I${formattedServiceName}${cleanOperationName}${cleanTypeName}DTO`;
+  const entityInterfaceName = needsSuffix 
+    ? `I${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}Entity`
+    : `I${formattedServiceName}${cleanOperationName}${cleanTypeName}Entity`;
+  const mapperClassName = needsSuffix 
+    ? `${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}Mapper`
+    : `${formattedServiceName}${cleanOperationName}${cleanTypeName}Mapper`;
   
   let mapFromFields = '';
   let mapToFields = '';
@@ -618,6 +672,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
   
   if (field.nestedFields && field.nestedFields.length > 0) {
     const nestedMappers: string[] = [];
+    const nestedMapperReferences: { [key: string]: string } = {}; // Para evitar duplicados
     
     const mapFromMappings = field.nestedFields.map((nestedField: any) => {
       const dtoFieldName = convertToCamelCase(nestedField.name);
@@ -630,8 +685,16 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
         const nestedMapperClassName = nestedFieldTypeName.endsWith('Response') || nestedFieldTypeName.endsWith('Request') 
           ? `${nestedFieldTypeName}Mapper` 
           : `${nestedFieldTypeName}${nestedSuffix}Mapper`;
-        const nestedMapperName = `${nestedField.type.toLowerCase()}${nestedSuffix.toLowerCase()}Mapper`;
-        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${nestedMapperClassName}()`);
+        
+        // Crear un nombre de variable único sin duplicaciones
+        const baseMapperVar = nestedField.type.toLowerCase().replace(/[-_]/g, '');
+        const nestedMapperName = `${baseMapperVar}Mapper`;
+        
+        // Solo agregar si no existe ya
+        if (!nestedMapperReferences[nestedMapperName]) {
+          nestedMapperReferences[nestedMapperName] = nestedMapperClassName;
+          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${nestedMapperClassName}()`);
+        }
         
         if (nestedField.isArray) {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
@@ -648,12 +711,9 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       const entityFieldName = nestedField.name;
       
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        const nestedFieldTypeName = toPascalCase(nestedField.type);
-        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request o Response
-        const nestedMapperName = nestedFieldTypeName.endsWith('Response') || nestedFieldTypeName.endsWith('Request') 
-          ? `${nestedField.type.toLowerCase()}Mapper` 
-          : `${nestedField.type.toLowerCase()}${nestedSuffix.toLowerCase()}Mapper`;
+        // Usar el mismo nombre de variable que en mapFromMappings
+        const baseMapperVar = nestedField.type.toLowerCase().replace(/[-_]/g, '');
+        const nestedMapperName = `${baseMapperVar}Mapper`;
         
         if (nestedField.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
@@ -666,7 +726,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     });
     
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName}-mapper";\n`;
+      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     
@@ -1332,7 +1392,7 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
   }`);
 
         // Mappers anidados (si existen)
-        const nestedMappers = await collectNestedMappersForOperation(operation, 'response');
+        const nestedMappers = await collectNestedMappersForOperation(operation, 'response', serviceName, operationName);
         for (const nestedMapper of nestedMappers) {
           const nestedMapperName = nestedMapper.className;
           const nestedMapperFile = nestedMapper.fileName;
@@ -1366,28 +1426,59 @@ ${mapperMethods.join('\n\n')}
   }
 }
 
-async function collectNestedMappersForOperation(operation: any, type: 'request' | 'response'): Promise<Array<{className: string, fileName: string}>> {
+async function collectNestedMappersForOperation(operation: any, type: 'request' | 'response', serviceName: string, operationName: string): Promise<Array<{className: string, fileName: string}>> {
   const fields = type === 'request' ? operation.fields : operation.responseFields;
   const nestedMappers: Array<{className: string, fileName: string}> = [];
   const generated = new Set<string>();
 
-  function processNestedFields(field: any) {
+  function processNestedFields(field: any, serviceName: string, operationName: string) {
     if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
       generated.add(field.type);
       
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      // Aplicar el patrón correcto: <flujo>-<proceso>-<tipo>-<request/response>-mapper
+      const serviceNameKebab = serviceName.toLowerCase();
+      const operationKebab = operationName.replace(/_/g, '-');
+      let typeKebab = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      const suffix = type === 'request' ? 'request' : 'response';
+      
+      // Detectar y evitar duplicación de operaciones en el nombre del tipo para archivos
+      const operationInFileName = operationKebab.toLowerCase();
+      if (typeKebab.includes(operationInFileName)) {
+        // Eliminar la operación del tipo: user-login-response -> user-response
+        typeKebab = typeKebab.replace(new RegExp(`-${operationInFileName}`, 'gi'), '');
+      }
+      
       const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
       const fileName = needsSuffix 
-        ? `${baseFileName}-${type}-mapper`
-        : `${baseFileName}-mapper`;
+        ? `${serviceNameKebab}-${operationKebab}-${typeKebab}-${suffix}-mapper`
+        : `${serviceNameKebab}-${operationKebab}-${typeKebab}-mapper`;
       
+      // Para el nombre de la clase: <Flujo><Proceso><Tipo><Request/Response>Mapper
+      const formattedServiceName = toPascalCase(serviceName);
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
       const formattedFieldType = toPascalCase(field.type);
-      const suffix = type === 'request' ? 'Request' : 'Response';
+      const classSuffix = type === 'request' ? 'Request' : 'Response';
+      
       // Limpiar caracteres especiales para nombres de clase válidos
       const cleanFormattedType = formattedFieldType.replace(/[\[\]]/g, 'Array');
-      const className = cleanFormattedType.endsWith('Response') || cleanFormattedType.endsWith('Request') 
-        ? `${cleanFormattedType}Mapper` 
-        : `${cleanFormattedType}${suffix}Mapper`;
+      
+      // Detectar y evitar duplicación de operaciones en el nombre del tipo
+      let finalTypeName = cleanFormattedType;
+      const operationInTypeName = cleanOperationName.toLowerCase();
+      const typeNameLower = cleanFormattedType.toLowerCase();
+      
+      // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
+      if (typeNameLower.includes(operationInTypeName)) {
+        finalTypeName = cleanFormattedType.replace(new RegExp(cleanOperationName, 'gi'), '');
+      }
+      
+      const className = finalTypeName.endsWith('Response') || finalTypeName.endsWith('Request') 
+        ? `${formattedServiceName}${cleanOperationName}${finalTypeName}Mapper` 
+        : `${formattedServiceName}${cleanOperationName}${finalTypeName}${classSuffix}Mapper`;
 
       nestedMappers.push({
         className,
@@ -1396,13 +1487,13 @@ async function collectNestedMappersForOperation(operation: any, type: 'request' 
 
       // Procesar campos anidados recursivamente
       if (field.nestedFields && field.nestedFields.length > 0) {
-        field.nestedFields.forEach(processNestedFields);
+        field.nestedFields.forEach((nestedField: any) => processNestedFields(nestedField, serviceName, operationName));
       }
     }
   }
 
   if (fields && fields.length > 0) {
-    fields.forEach(processNestedFields);
+    fields.forEach((field: any) => processNestedFields(field, serviceName, operationName));
   }
 
   return nestedMappers;

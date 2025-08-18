@@ -1,13 +1,13 @@
 import { Mapper } from "@bus/core/classes";
 import { IAuthRefreshTokenResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
 import { IAuthRefreshTokenResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth";
-import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-refresh_token-mapper";
+import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-refresh-token-mapper";
 
 export class AuthRefreshTokenResponseMapper extends Mapper<IAuthRefreshTokenResponseEntity, IAuthRefreshTokenResponseDTO> {
 
     private static instance: AuthRefreshTokenResponseMapper;
-    private platformconfigurationresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.PlatformConfigurationResponseMapper()
-    private platformvariationsresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.PlatformVariationsResponseMapper()
+    private platformconfigurationMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.PlatformConfigurationResponseMapper()
+    private platformvariationsMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.PlatformVariationsResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AuthRefreshTokenResponseMapper {
@@ -18,8 +18,8 @@ export class AuthRefreshTokenResponseMapper extends Mapper<IAuthRefreshTokenResp
 
     public mapFrom(param: IAuthRefreshTokenResponseEntity): IAuthRefreshTokenResponseDTO {
         return {
-            platformConfiguration: this.platformconfigurationresponseMapper.mapFrom(param.platform_configuration),
-            platformVariations: this.platformvariationsresponseMapper.mapFrom(param.platform_variations),
+            platformConfiguration: this.platformconfigurationMapper.mapFrom(param.platform_configuration),
+            platformVariations: this.platformvariationsMapper.mapFrom(param.platform_variations),
             token: param.token
         }
     }
@@ -32,8 +32,8 @@ export class AuthRefreshTokenResponseMapper extends Mapper<IAuthRefreshTokenResp
 
     public mapTo(param: IAuthRefreshTokenResponseDTO): IAuthRefreshTokenResponseEntity {
         return {
-            platform_configuration: this.platformconfigurationresponseMapper.mapTo(param.platformConfiguration),
-            platform_variations: this.platformvariationsresponseMapper.mapTo(param.platformVariations),
+            platform_configuration: this.platformconfigurationMapper.mapTo(param.platformConfiguration),
+            platform_variations: this.platformvariationsMapper.mapTo(param.platformVariations),
             token: param.token
         }
     }

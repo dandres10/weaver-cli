@@ -6,8 +6,8 @@ import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructu
 export class AuthLoginResponseMapper extends Mapper<IAuthLoginResponseEntity, IAuthLoginResponseDTO> {
 
     private static instance: AuthLoginResponseMapper;
-    private platformconfigurationresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformConfigurationResponseMapper()
-    private platformvariationsresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformVariationsResponseMapper()
+    private platformconfigurationMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformConfigurationResponseMapper()
+    private platformvariationsMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformVariationsResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AuthLoginResponseMapper {
@@ -18,8 +18,8 @@ export class AuthLoginResponseMapper extends Mapper<IAuthLoginResponseEntity, IA
 
     public mapFrom(param: IAuthLoginResponseEntity): IAuthLoginResponseDTO {
         return {
-            platformConfiguration: this.platformconfigurationresponseMapper.mapFrom(param.platform_configuration),
-            platformVariations: this.platformvariationsresponseMapper.mapFrom(param.platform_variations),
+            platformConfiguration: this.platformconfigurationMapper.mapFrom(param.platform_configuration),
+            platformVariations: this.platformvariationsMapper.mapFrom(param.platform_variations),
             token: param.token
         }
     }
@@ -32,8 +32,8 @@ export class AuthLoginResponseMapper extends Mapper<IAuthLoginResponseEntity, IA
 
     public mapTo(param: IAuthLoginResponseDTO): IAuthLoginResponseEntity {
         return {
-            platform_configuration: this.platformconfigurationresponseMapper.mapTo(param.platformConfiguration),
-            platform_variations: this.platformvariationsresponseMapper.mapTo(param.platformVariations),
+            platform_configuration: this.platformconfigurationMapper.mapTo(param.platformConfiguration),
+            platform_variations: this.platformvariationsMapper.mapTo(param.platformVariations),
             token: param.token
         }
     }

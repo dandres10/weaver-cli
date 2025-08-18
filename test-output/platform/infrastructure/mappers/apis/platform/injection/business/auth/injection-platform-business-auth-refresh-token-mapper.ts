@@ -1,67 +1,67 @@
 import { AuthRefreshTokenResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-response-mapper";
-import { PlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/platform-configuration-response-mapper";
-import { UserLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/user-login-response-mapper";
-import { CurrencyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/currency-login-response-mapper";
-import { LocationLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/location-login-response-mapper";
-import { LanguageLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/language-login-response-mapper";
-import { PlatformLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/platform-login-response-mapper";
-import { CountryLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/country-login-response-mapper";
-import { CompanyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/company-login-response-mapper";
-import { RolLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/rol-login-response-mapper";
-import { PermissionLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/permission-login-response-mapper";
-import { MenuLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/menu-login-response-mapper";
-import { PlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/platform-variations-response-mapper";
+import { AuthRefreshTokenPlatformConfigurationResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-configuration-response-mapper";
+import { AuthRefreshTokenUserLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-user-login-response-mapper";
+import { AuthRefreshTokenCurrencyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-currency-login-response-mapper";
+import { AuthRefreshTokenLocationLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-location-login-response-mapper";
+import { AuthRefreshTokenLanguageLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-language-login-response-mapper";
+import { AuthRefreshTokenPlatformLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-login-response-mapper";
+import { AuthRefreshTokenCountryLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-country-login-response-mapper";
+import { AuthRefreshTokenCompanyLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-company-login-response-mapper";
+import { AuthRefreshTokenRolLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-rol-login-response-mapper";
+import { AuthRefreshTokenPermissionLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-permission-login-response-mapper";
+import { AuthRefreshTokenMenuLoginResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-menu-login-response-mapper";
+import { AuthRefreshTokenPlatformVariationsResponseMapper } from "@platform/infrastructure/mappers/apis/platform/business/auth/refresh-token/auth-refresh-token-platform-variations-response-mapper";
 
 export class InjectionPlatformBusinessAuthRefreshTokenMapper {
   public static AuthRefreshTokenResponseMapper(): AuthRefreshTokenResponseMapper {
     return AuthRefreshTokenResponseMapper.getInstance();
   }
 
-  public static PlatformConfigurationResponseMapper(): PlatformConfigurationResponseMapper {
-    return PlatformConfigurationResponseMapper.getInstance();
+  public static AuthRefreshTokenPlatformConfigurationResponseMapper(): AuthRefreshTokenPlatformConfigurationResponseMapper {
+    return AuthRefreshTokenPlatformConfigurationResponseMapper.getInstance();
   }
 
-  public static UserLoginResponseMapper(): UserLoginResponseMapper {
-    return UserLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenUserLoginResponseMapper(): AuthRefreshTokenUserLoginResponseMapper {
+    return AuthRefreshTokenUserLoginResponseMapper.getInstance();
   }
 
-  public static CurrencyLoginResponseMapper(): CurrencyLoginResponseMapper {
-    return CurrencyLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenCurrencyLoginResponseMapper(): AuthRefreshTokenCurrencyLoginResponseMapper {
+    return AuthRefreshTokenCurrencyLoginResponseMapper.getInstance();
   }
 
-  public static LocationLoginResponseMapper(): LocationLoginResponseMapper {
-    return LocationLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenLocationLoginResponseMapper(): AuthRefreshTokenLocationLoginResponseMapper {
+    return AuthRefreshTokenLocationLoginResponseMapper.getInstance();
   }
 
-  public static LanguageLoginResponseMapper(): LanguageLoginResponseMapper {
-    return LanguageLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenLanguageLoginResponseMapper(): AuthRefreshTokenLanguageLoginResponseMapper {
+    return AuthRefreshTokenLanguageLoginResponseMapper.getInstance();
   }
 
-  public static PlatformLoginResponseMapper(): PlatformLoginResponseMapper {
-    return PlatformLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenPlatformLoginResponseMapper(): AuthRefreshTokenPlatformLoginResponseMapper {
+    return AuthRefreshTokenPlatformLoginResponseMapper.getInstance();
   }
 
-  public static CountryLoginResponseMapper(): CountryLoginResponseMapper {
-    return CountryLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenCountryLoginResponseMapper(): AuthRefreshTokenCountryLoginResponseMapper {
+    return AuthRefreshTokenCountryLoginResponseMapper.getInstance();
   }
 
-  public static CompanyLoginResponseMapper(): CompanyLoginResponseMapper {
-    return CompanyLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenCompanyLoginResponseMapper(): AuthRefreshTokenCompanyLoginResponseMapper {
+    return AuthRefreshTokenCompanyLoginResponseMapper.getInstance();
   }
 
-  public static RolLoginResponseMapper(): RolLoginResponseMapper {
-    return RolLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenRolLoginResponseMapper(): AuthRefreshTokenRolLoginResponseMapper {
+    return AuthRefreshTokenRolLoginResponseMapper.getInstance();
   }
 
-  public static PermissionLoginResponseMapper(): PermissionLoginResponseMapper {
-    return PermissionLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenPermissionLoginResponseMapper(): AuthRefreshTokenPermissionLoginResponseMapper {
+    return AuthRefreshTokenPermissionLoginResponseMapper.getInstance();
   }
 
-  public static MenuLoginResponseMapper(): MenuLoginResponseMapper {
-    return MenuLoginResponseMapper.getInstance();
+  public static AuthRefreshTokenMenuLoginResponseMapper(): AuthRefreshTokenMenuLoginResponseMapper {
+    return AuthRefreshTokenMenuLoginResponseMapper.getInstance();
   }
 
-  public static PlatformVariationsResponseMapper(): PlatformVariationsResponseMapper {
-    return PlatformVariationsResponseMapper.getInstance();
+  public static AuthRefreshTokenPlatformVariationsResponseMapper(): AuthRefreshTokenPlatformVariationsResponseMapper {
+    return AuthRefreshTokenPlatformVariationsResponseMapper.getInstance();
   }
 }
