@@ -116,8 +116,8 @@ weaver-cli/
 │   │   ├── {operation}/                                  # Por cada operación (login, logout, etc.)
 │   │   │   ├── i-{service}-{operation}-request-dto.ts   # Ejemplo: i-auth-login-request-dto.ts
 │   │   │   ├── i-{service}-{operation}-response-dto.ts  # Ejemplo: i-auth-login-response-dto.ts
-│   │   │   ├── i-{nested-type}-response-dto.ts          # Para cada tipo anidado (company, user, etc.)
-│   │   │   └── i-{nested-type}-response-dto.ts          # Archivos individuales por interface
+│   │   │   ├── i-{service}-{operation}-{nested-type}-response-dto.ts  # Para cada tipo anidado con patrón completo
+│   │   │   └── i-{service}-{operation}-{nested-type}-request-dto.ts   # Archivos individuales por interface
 │   │   └── index.ts                                      # Exportaciones automáticas
 │   └── services/
 │       ├── repositories/apis/{api-name}/business/
@@ -132,8 +132,8 @@ weaver-cli/
 │   │   ├── {operation}/
 │   │   │   ├── i-{service}-{operation}-request-entity.ts   # snake_case attributes
 │   │   │   ├── i-{service}-{operation}-response-entity.ts  # snake_case attributes  
-│   │   │   ├── i-{nested-type}-response-entity.ts          # Para cada tipo anidado
-│   │   │   └── i-{nested-type}-response-entity.ts          # Con prefijo "I"
+│   │   │   ├── i-{service}-{operation}-{nested-type}-response-entity.ts  # Para cada tipo anidado con patrón completo
+│   │   │   └── i-{service}-{operation}-{nested-type}-request-entity.ts   # Con prefijo "I" y patrón consistente
 │   │   └── index.ts
 │   ├── mappers/apis/{api-name}/business/{service}/
 │   │   ├── {operation}/
@@ -173,13 +173,15 @@ weaver-cli/
 #### 🎯 **Convenciones de Nombres**
 
 **DTOs** (domain/models):
-- Archivos: `i-auth-login-request-dto.ts`, `i-company-login-response-dto.ts`
-- Interfaces: `IAuthLoginRequestDTO`, `ICompanyLoginResponseDTO`
+- Archivos: `i-auth-login-request-dto.ts`, `i-auth-login-company-response-dto.ts`
+- Interfaces: `IAuthLoginRequestDTO`, `IAuthLoginCompanyResponseDTO`  
+- Patrón: `i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts` → `I<Flujo><Proceso><Tipo><Request/Response>DTO`
 - Atributos: camelCase (`firstName`, `emailAddress`)
 
 **Entities** (infrastructure/entities):
-- Archivos: `i-auth-login-request-entity.ts`, `i-company-login-response-entity.ts`
-- Interfaces: `IAuthLoginRequestEntity`, `ICompanyLoginResponseEntity`
+- Archivos: `i-auth-login-request-entity.ts`, `i-auth-login-company-response-entity.ts`
+- Interfaces: `IAuthLoginRequestEntity`, `IAuthLoginCompanyResponseEntity`
+- Patrón: `i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts` → `I<Flujo><Proceso><Tipo><Request/Response>Entity`
 - Atributos: snake_case (`first_name`, `email_address`)
 
 **Mappers** (infrastructure/mappers):
@@ -208,12 +210,39 @@ weaver-cli/
 
 #### 🔗 **Detección Automática de Tipos**
 
-El generador evita duplicaciones automáticamente:
-- `UserLoginResponse` → `IUserLoginResponseDTO` (no `IUserLoginResponseResponseDTO`)
-- `CompanyLoginResponse` → `company-login-response-mapper.ts` (no `-response-response-`)
-- `PlatformConfiguration` → `IPlatformConfigurationResponseDTO` (agrega sufijo)
-- `string[]` → `i-string-array-response-dto.ts` (nombres válidos de archivo)
+El generador evita duplicaciones automáticamente y mantiene consistencia:
+- `UserLoginResponse` → `i-auth-login-user-response-dto.ts` → `IAuthLoginUserResponseDTO` ✅
+- `CompanyLoginResponse` → `i-auth-login-company-response-dto.ts` → `IAuthLoginCompanyResponseDTO` ✅  
+- Directorio: `refresh_token` → `refresh-token` (kebab-case consistente) ✅
+- Sin duplicaciones: No `i-auth-login-company-login-response-dto.ts` ✅
+- Index.ts: Solo `export type { Interface }` (mejores prácticas) ✅
+- **Consistencia archivo-interface**: Nombres coinciden perfectamente entre archivo e interface ✅
 - Una interfaz por archivo + imports automáticos de dependencias
+
+#### 🎯 **Patrones de Consistencia (Última Actualización)**
+
+**✅ Validación Archivo-Interface Perfecta:**
+```typescript
+// Archivo: i-auth-login-user-response-dto.ts
+export interface IAuthLoginUserResponseDTO {
+  // Patrón: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts 
+  //    ↓     ↓      ↓        ↓      ↓           ↓         ↓
+  // IAuth Login    User   Response  DTO
+}
+
+// Archivo: i-auth-refresh-token-company-response-dto.ts  
+export interface IAuthRefreshTokenCompanyResponseDTO {
+  // Consistencia 100% garantizada entre nombre de archivo e interface
+}
+```
+
+**✅ Index.ts con Export Type:**
+```typescript
+// Todas las exportaciones utilizan 'export type' para mejores prácticas
+export type { IAuthLoginUserResponseDTO } from './login/i-auth-login-user-response-dto';
+export type { IAuthRefreshTokenUserResponseDTO } from './refresh-token/i-auth-refresh-token-user-response-dto';
+// Sin duplicaciones automáticamente detectadas y eliminadas
+```
 
 ### 🔧 TECNOLOGÍAS Y DEPENDENCIAS
 
@@ -297,10 +326,19 @@ npm run logout        # Build + logout
 - 🎯 **Filtrado Inteligente**: Detecta automáticamente CRUD vs Business
 - 🔗 **Interfaces Anidadas**: Archivos individuales con imports automáticos
 - ⚙️ **Mapeo Automático**: CamelCase ↔ snake_case con inyección de dependencias
-- 🔄 **Sin Duplicaciones**: Evita automáticamente nombres duplicados y caracteres especiales
+- 🔄 **Sin Duplicaciones**: Evita automáticamente nombres duplicados, caracteres especiales y consistencia archivo-interface
+- ✅ **Nombres Consistentes**: Patrón perfectamente alineado entre archivos e interfaces con validación automática
+- 🎯 **Kebab-case Uniforme**: Directorios y archivos siguen convención kebab-case (`refresh-token/` no `refresh_token/`)
 - 🛣️ **Integración Constantes**: Uso automático de CONST_PLATFORM_API_ROUTES
 - 🧩 **Operaciones Flexibles**: Soporte completo para operaciones con/sin request body
 - 🔌 **Actualización Acumulativa**: Los archivos de injection se actualizan automáticamente
 
 🎉 **¡SISTEMA COMPLETO!** 
 Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo.
+
+**🆕 Última Actualización (Diciembre 2024):**
+- ✅ **Consistencia Archivo-Interface 100%**: Nombres perfectamente alineados entre archivos e interfaces
+- ✅ **Export Type Únicos**: Solo `export type` en index.ts sin duplicaciones
+- ✅ **Kebab-case Uniforme**: Directorios consistentes (`refresh-token/` no `refresh_token/`)
+- ✅ **Validación Automática**: Detección y corrección de duplicaciones de sufijos
+- ✅ **Patrones Completos**: `i-<flujo>-<proceso>-<tipo>-<request/response>-<dto/entity>.ts` → `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
