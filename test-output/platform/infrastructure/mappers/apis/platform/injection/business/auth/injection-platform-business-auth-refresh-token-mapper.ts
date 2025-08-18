@@ -17,51 +17,51 @@ export class InjectionPlatformBusinessAuthRefreshTokenMapper {
     return AuthRefreshTokenResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenPlatformConfigurationResponseMapper(): AuthRefreshTokenPlatformConfigurationResponseMapper {
+  public static PlatformConfigurationResponseMapper(): AuthRefreshTokenPlatformConfigurationResponseMapper {
     return AuthRefreshTokenPlatformConfigurationResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenUserLoginResponseMapper(): AuthRefreshTokenUserLoginResponseMapper {
+  public static UserLoginResponseMapper(): AuthRefreshTokenUserLoginResponseMapper {
     return AuthRefreshTokenUserLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenCurrencyLoginResponseMapper(): AuthRefreshTokenCurrencyLoginResponseMapper {
+  public static CurrencyLoginResponseMapper(): AuthRefreshTokenCurrencyLoginResponseMapper {
     return AuthRefreshTokenCurrencyLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenLocationLoginResponseMapper(): AuthRefreshTokenLocationLoginResponseMapper {
+  public static LocationLoginResponseMapper(): AuthRefreshTokenLocationLoginResponseMapper {
     return AuthRefreshTokenLocationLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenLanguageLoginResponseMapper(): AuthRefreshTokenLanguageLoginResponseMapper {
+  public static LanguageLoginResponseMapper(): AuthRefreshTokenLanguageLoginResponseMapper {
     return AuthRefreshTokenLanguageLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenPlatformLoginResponseMapper(): AuthRefreshTokenPlatformLoginResponseMapper {
+  public static PlatformLoginResponseMapper(): AuthRefreshTokenPlatformLoginResponseMapper {
     return AuthRefreshTokenPlatformLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenCountryLoginResponseMapper(): AuthRefreshTokenCountryLoginResponseMapper {
+  public static CountryLoginResponseMapper(): AuthRefreshTokenCountryLoginResponseMapper {
     return AuthRefreshTokenCountryLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenCompanyLoginResponseMapper(): AuthRefreshTokenCompanyLoginResponseMapper {
+  public static CompanyLoginResponseMapper(): AuthRefreshTokenCompanyLoginResponseMapper {
     return AuthRefreshTokenCompanyLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenRolLoginResponseMapper(): AuthRefreshTokenRolLoginResponseMapper {
+  public static RolLoginResponseMapper(): AuthRefreshTokenRolLoginResponseMapper {
     return AuthRefreshTokenRolLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenPermissionLoginResponseMapper(): AuthRefreshTokenPermissionLoginResponseMapper {
+  public static PermissionLoginResponseMapper(): AuthRefreshTokenPermissionLoginResponseMapper {
     return AuthRefreshTokenPermissionLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenMenuLoginResponseMapper(): AuthRefreshTokenMenuLoginResponseMapper {
+  public static MenuLoginResponseMapper(): AuthRefreshTokenMenuLoginResponseMapper {
     return AuthRefreshTokenMenuLoginResponseMapper.getInstance();
   }
 
-  public static AuthRefreshTokenPlatformVariationsResponseMapper(): AuthRefreshTokenPlatformVariationsResponseMapper {
+  public static PlatformVariationsResponseMapper(): AuthRefreshTokenPlatformVariationsResponseMapper {
     return AuthRefreshTokenPlatformVariationsResponseMapper.getInstance();
   }
 }

@@ -1,6 +1,4 @@
-// Login Operation Mappers
 export { AuthLoginRequestMapper } from './login/auth-login-request-mapper';
-export { AuthLoginResponseMapper } from './login/auth-login-response-mapper';
 export { AuthLoginPlatformConfigurationResponseMapper } from './login/auth-login-platform-configuration-response-mapper';
 export { AuthLoginUserResponseMapper } from './login/auth-login-user-response-mapper';
 export { AuthLoginCurrencyResponseMapper } from './login/auth-login-currency-response-mapper';
@@ -13,9 +11,7 @@ export { AuthLoginRolResponseMapper } from './login/auth-login-rol-response-mapp
 export { AuthLoginPermissionResponseMapper } from './login/auth-login-permission-response-mapper';
 export { AuthLoginMenuResponseMapper } from './login/auth-login-menu-response-mapper';
 export { AuthLoginPlatformVariationsResponseMapper } from './login/auth-login-platform-variations-response-mapper';
-
-// Refresh Token Operation Mappers  
-export { AuthRefreshTokenResponseMapper } from './refresh-token/auth-refresh-token-response-mapper';
+export { AuthLoginResponseMapper } from './login/auth-login-response-mapper';
 export { AuthRefreshTokenPlatformConfigurationResponseMapper } from './refresh-token/auth-refresh-token-platform-configuration-response-mapper';
 export { AuthRefreshTokenUserLoginResponseMapper } from './refresh-token/auth-refresh-token-user-login-response-mapper';
 export { AuthRefreshTokenCurrencyLoginResponseMapper } from './refresh-token/auth-refresh-token-currency-login-response-mapper';
@@ -28,10 +24,7 @@ export { AuthRefreshTokenRolLoginResponseMapper } from './refresh-token/auth-ref
 export { AuthRefreshTokenPermissionLoginResponseMapper } from './refresh-token/auth-refresh-token-permission-login-response-mapper';
 export { AuthRefreshTokenMenuLoginResponseMapper } from './refresh-token/auth-refresh-token-menu-login-response-mapper';
 export { AuthRefreshTokenPlatformVariationsResponseMapper } from './refresh-token/auth-refresh-token-platform-variations-response-mapper';
-
-// Logout Operation Mappers
+export { AuthRefreshTokenResponseMapper } from './refresh-token/auth-refresh-token-response-mapper';
 export { AuthLogoutResponseMapper } from './logout/auth-logout-response-mapper';
-
-// Create API Token Operation Mappers
 export { AuthCreateApiTokenRequestMapper } from './create-api-token/auth-create-api-token-request-mapper';
 export { AuthCreateApiTokenResponseMapper } from './create-api-token/auth-create-api-token-response-mapper';

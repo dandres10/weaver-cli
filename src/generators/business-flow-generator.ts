@@ -1396,8 +1396,14 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
         for (const nestedMapper of nestedMappers) {
           const nestedMapperName = nestedMapper.className;
           const nestedMapperFile = nestedMapper.fileName;
+          
+          // Generar nombre de método abreviado removiendo el prefijo del servicio y operación
+          // Ejemplo: AuthLoginPlatformConfigurationResponseMapper -> PlatformConfigurationResponseMapper
+          const formattedServiceName = toPascalCase(serviceName);
+          const methodName = nestedMapperName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
+          
           mapperImports.push(`import { ${nestedMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${nestedMapperFile}";`);
-          mapperMethods.push(`  public static ${nestedMapperName}(): ${nestedMapperName} {
+          mapperMethods.push(`  public static ${methodName}(): ${nestedMapperName} {
     return ${nestedMapperName}.getInstance();
   }`);
         }

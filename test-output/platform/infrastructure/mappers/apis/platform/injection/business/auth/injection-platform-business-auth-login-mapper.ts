@@ -22,51 +22,51 @@ export class InjectionPlatformBusinessAuthLoginMapper {
     return AuthLoginResponseMapper.getInstance();
   }
 
-  public static AuthLoginPlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurationResponseMapper {
+  public static PlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurationResponseMapper {
     return AuthLoginPlatformConfigurationResponseMapper.getInstance();
   }
 
-  public static AuthLoginUserResponseMapper(): AuthLoginUserResponseMapper {
+  public static UserResponseMapper(): AuthLoginUserResponseMapper {
     return AuthLoginUserResponseMapper.getInstance();
   }
 
-  public static AuthLoginCurrencyResponseMapper(): AuthLoginCurrencyResponseMapper {
+  public static CurrencyResponseMapper(): AuthLoginCurrencyResponseMapper {
     return AuthLoginCurrencyResponseMapper.getInstance();
   }
 
-  public static AuthLoginLocationResponseMapper(): AuthLoginLocationResponseMapper {
+  public static LocationResponseMapper(): AuthLoginLocationResponseMapper {
     return AuthLoginLocationResponseMapper.getInstance();
   }
 
-  public static AuthLoginLanguageResponseMapper(): AuthLoginLanguageResponseMapper {
+  public static LanguageResponseMapper(): AuthLoginLanguageResponseMapper {
     return AuthLoginLanguageResponseMapper.getInstance();
   }
 
-  public static AuthLoginPlatformResponseMapper(): AuthLoginPlatformResponseMapper {
+  public static PlatformResponseMapper(): AuthLoginPlatformResponseMapper {
     return AuthLoginPlatformResponseMapper.getInstance();
   }
 
-  public static AuthLoginCountryResponseMapper(): AuthLoginCountryResponseMapper {
+  public static CountryResponseMapper(): AuthLoginCountryResponseMapper {
     return AuthLoginCountryResponseMapper.getInstance();
   }
 
-  public static AuthLoginCompanyResponseMapper(): AuthLoginCompanyResponseMapper {
+  public static CompanyResponseMapper(): AuthLoginCompanyResponseMapper {
     return AuthLoginCompanyResponseMapper.getInstance();
   }
 
-  public static AuthLoginRolResponseMapper(): AuthLoginRolResponseMapper {
+  public static RolResponseMapper(): AuthLoginRolResponseMapper {
     return AuthLoginRolResponseMapper.getInstance();
   }
 
-  public static AuthLoginPermissionResponseMapper(): AuthLoginPermissionResponseMapper {
+  public static PermissionResponseMapper(): AuthLoginPermissionResponseMapper {
     return AuthLoginPermissionResponseMapper.getInstance();
   }
 
-  public static AuthLoginMenuResponseMapper(): AuthLoginMenuResponseMapper {
+  public static MenuResponseMapper(): AuthLoginMenuResponseMapper {
     return AuthLoginMenuResponseMapper.getInstance();
   }
 
-  public static AuthLoginPlatformVariationsResponseMapper(): AuthLoginPlatformVariationsResponseMapper {
+  public static PlatformVariationsResponseMapper(): AuthLoginPlatformVariationsResponseMapper {
     return AuthLoginPlatformVariationsResponseMapper.getInstance();
   }
 }
