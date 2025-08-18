@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenMenuDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenMenuEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenMenuResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenMenuResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenMenuMapper extends Mapper<IAuthRefreshTokenMenuEntity, IAuthRefreshTokenMenuDTO> {
+export class AuthRefreshTokenMenuResponseMapper extends Mapper<IAuthRefreshTokenMenuResponseEntity, IAuthRefreshTokenMenuResponseDTO> {
 
-    private static instance: AuthRefreshTokenMenuMapper;
+    private static instance: AuthRefreshTokenMenuResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenMenuMapper {
-        if (!AuthRefreshTokenMenuMapper.instance)
-            AuthRefreshTokenMenuMapper.instance = new AuthRefreshTokenMenuMapper();
-        return AuthRefreshTokenMenuMapper.instance;
+    public static getInstance(): AuthRefreshTokenMenuResponseMapper {
+        if (!AuthRefreshTokenMenuResponseMapper.instance)
+            AuthRefreshTokenMenuResponseMapper.instance = new AuthRefreshTokenMenuResponseMapper();
+        return AuthRefreshTokenMenuResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenMenuEntity): IAuthRefreshTokenMenuDTO {
+    public mapFrom(param: IAuthRefreshTokenMenuResponseEntity): IAuthRefreshTokenMenuResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -27,13 +27,13 @@ export class AuthRefreshTokenMenuMapper extends Mapper<IAuthRefreshTokenMenuEnti
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenMenuEntity[]): IAuthRefreshTokenMenuDTO[] {
-        return params.map((param: IAuthRefreshTokenMenuEntity) => {
+    public mapFromList(params: IAuthRefreshTokenMenuResponseEntity[]): IAuthRefreshTokenMenuResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenMenuResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenMenuDTO): IAuthRefreshTokenMenuEntity {
+    public mapTo(param: IAuthRefreshTokenMenuResponseDTO): IAuthRefreshTokenMenuResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -46,8 +46,8 @@ export class AuthRefreshTokenMenuMapper extends Mapper<IAuthRefreshTokenMenuEnti
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenMenuDTO[]): IAuthRefreshTokenMenuEntity[] {
-        return params.map((param: IAuthRefreshTokenMenuDTO) => {
+    public mapToList(params: IAuthRefreshTokenMenuResponseDTO[]): IAuthRefreshTokenMenuResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenMenuResponseDTO) => {
             return this.mapTo(param);
         })
     }

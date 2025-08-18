@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenUserDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenUserEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenUserResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenUserResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenUserMapper extends Mapper<IAuthRefreshTokenUserEntity, IAuthRefreshTokenUserDTO> {
+export class AuthRefreshTokenUserResponseMapper extends Mapper<IAuthRefreshTokenUserResponseEntity, IAuthRefreshTokenUserResponseDTO> {
 
-    private static instance: AuthRefreshTokenUserMapper;
+    private static instance: AuthRefreshTokenUserResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenUserMapper {
-        if (!AuthRefreshTokenUserMapper.instance)
-            AuthRefreshTokenUserMapper.instance = new AuthRefreshTokenUserMapper();
-        return AuthRefreshTokenUserMapper.instance;
+    public static getInstance(): AuthRefreshTokenUserResponseMapper {
+        if (!AuthRefreshTokenUserResponseMapper.instance)
+            AuthRefreshTokenUserResponseMapper.instance = new AuthRefreshTokenUserResponseMapper();
+        return AuthRefreshTokenUserResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenUserEntity): IAuthRefreshTokenUserDTO {
+    public mapFrom(param: IAuthRefreshTokenUserResponseEntity): IAuthRefreshTokenUserResponseDTO {
         return {
             id: param.id,
             email: param.email,
@@ -25,13 +25,13 @@ export class AuthRefreshTokenUserMapper extends Mapper<IAuthRefreshTokenUserEnti
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenUserEntity[]): IAuthRefreshTokenUserDTO[] {
-        return params.map((param: IAuthRefreshTokenUserEntity) => {
+    public mapFromList(params: IAuthRefreshTokenUserResponseEntity[]): IAuthRefreshTokenUserResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenUserResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenUserDTO): IAuthRefreshTokenUserEntity {
+    public mapTo(param: IAuthRefreshTokenUserResponseDTO): IAuthRefreshTokenUserResponseEntity {
         return {
             id: param.id,
             email: param.email,
@@ -42,8 +42,8 @@ export class AuthRefreshTokenUserMapper extends Mapper<IAuthRefreshTokenUserEnti
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenUserDTO[]): IAuthRefreshTokenUserEntity[] {
-        return params.map((param: IAuthRefreshTokenUserDTO) => {
+    public mapToList(params: IAuthRefreshTokenUserResponseDTO[]): IAuthRefreshTokenUserResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenUserResponseDTO) => {
             return this.mapTo(param);
         })
     }

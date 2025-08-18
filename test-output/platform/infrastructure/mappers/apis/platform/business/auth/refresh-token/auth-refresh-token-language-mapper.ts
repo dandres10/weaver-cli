@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenLanguageDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenLanguageEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenLanguageResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenLanguageResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenLanguageMapper extends Mapper<IAuthRefreshTokenLanguageEntity, IAuthRefreshTokenLanguageDTO> {
+export class AuthRefreshTokenLanguageResponseMapper extends Mapper<IAuthRefreshTokenLanguageResponseEntity, IAuthRefreshTokenLanguageResponseDTO> {
 
-    private static instance: AuthRefreshTokenLanguageMapper;
+    private static instance: AuthRefreshTokenLanguageResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenLanguageMapper {
-        if (!AuthRefreshTokenLanguageMapper.instance)
-            AuthRefreshTokenLanguageMapper.instance = new AuthRefreshTokenLanguageMapper();
-        return AuthRefreshTokenLanguageMapper.instance;
+    public static getInstance(): AuthRefreshTokenLanguageResponseMapper {
+        if (!AuthRefreshTokenLanguageResponseMapper.instance)
+            AuthRefreshTokenLanguageResponseMapper.instance = new AuthRefreshTokenLanguageResponseMapper();
+        return AuthRefreshTokenLanguageResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenLanguageEntity): IAuthRefreshTokenLanguageDTO {
+    public mapFrom(param: IAuthRefreshTokenLanguageResponseEntity): IAuthRefreshTokenLanguageResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -24,13 +24,13 @@ export class AuthRefreshTokenLanguageMapper extends Mapper<IAuthRefreshTokenLang
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenLanguageEntity[]): IAuthRefreshTokenLanguageDTO[] {
-        return params.map((param: IAuthRefreshTokenLanguageEntity) => {
+    public mapFromList(params: IAuthRefreshTokenLanguageResponseEntity[]): IAuthRefreshTokenLanguageResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenLanguageResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenLanguageDTO): IAuthRefreshTokenLanguageEntity {
+    public mapTo(param: IAuthRefreshTokenLanguageResponseDTO): IAuthRefreshTokenLanguageResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -40,8 +40,8 @@ export class AuthRefreshTokenLanguageMapper extends Mapper<IAuthRefreshTokenLang
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenLanguageDTO[]): IAuthRefreshTokenLanguageEntity[] {
-        return params.map((param: IAuthRefreshTokenLanguageDTO) => {
+    public mapToList(params: IAuthRefreshTokenLanguageResponseDTO[]): IAuthRefreshTokenLanguageResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenLanguageResponseDTO) => {
             return this.mapTo(param);
         })
     }

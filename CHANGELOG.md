@@ -5,6 +5,32 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.6] - 2024-12-23
+
+### 🔧 CORRECCIÓN COMPLETA - IMPORTS Y INDEX.TS DE MAPPERS
+
+#### 🛠️ Fixed - CORRECCIÓN FINAL DE IMPORTS Y EXPORTS
+- **📋 Interface Imports**: Imports corregidos en mappers para usar nombres de interfaces correctos
+- **📁 Index.ts Consistency**: Exports en index.ts alineados con nombres reales de clases
+- **🔄 Contextual Logic**: Lógica contextual aplicada tanto en contenido como en exports
+- **✅ Complete Alignment**: Perfecta consistencia entre nombres de archivos, clases, imports y exports
+- **🎯 Unified Naming**: Sistema unificado de nomenclatura para todas las operaciones
+
+#### 📚 Technical Details
+- **DTOs Import Before**: `import { IAuthRefreshTokenCompanyDTO }` ❌
+- **DTOs Import After**: `import { IAuthRefreshTokenCompanyResponseDTO }` ✅
+- **Index Export Before**: `AuthRefreshTokenUserLoginResponseMapper` ❌
+- **Index Export After**: `AuthRefreshTokenUserResponseMapper` ✅
+- **Login Operations**: Mantienen "Response" correctamente (ej: `IAuthLoginCountryResponseDTO`)
+- **Refresh-Token Operations**: Remueven "Login" duplicado pero mantienen "Response"
+
+#### 🎯 Impact
+- ✅ Imports de mappers coinciden con interfaces reales existentes
+- ✅ Index.ts exporta nombres que coinciden con clases reales
+- ✅ Zero errores de importación en TypeScript
+- ✅ Nomenclatura contextual perfecta (login vs refresh-token)
+- ✅ Consistencia total entre archivos, clases, imports y exports
+
 ## [2.1.5] - 2024-12-23
 
 ### 🔧 CORRECCIÓN CRÍTICA - NOMBRES DE ARCHIVOS DE MAPPERS

@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenPermissionDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenPermissionEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenPermissionResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenPermissionResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenPermissionMapper extends Mapper<IAuthRefreshTokenPermissionEntity, IAuthRefreshTokenPermissionDTO> {
+export class AuthRefreshTokenPermissionResponseMapper extends Mapper<IAuthRefreshTokenPermissionResponseEntity, IAuthRefreshTokenPermissionResponseDTO> {
 
-    private static instance: AuthRefreshTokenPermissionMapper;
+    private static instance: AuthRefreshTokenPermissionResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenPermissionMapper {
-        if (!AuthRefreshTokenPermissionMapper.instance)
-            AuthRefreshTokenPermissionMapper.instance = new AuthRefreshTokenPermissionMapper();
-        return AuthRefreshTokenPermissionMapper.instance;
+    public static getInstance(): AuthRefreshTokenPermissionResponseMapper {
+        if (!AuthRefreshTokenPermissionResponseMapper.instance)
+            AuthRefreshTokenPermissionResponseMapper.instance = new AuthRefreshTokenPermissionResponseMapper();
+        return AuthRefreshTokenPermissionResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenPermissionEntity): IAuthRefreshTokenPermissionDTO {
+    public mapFrom(param: IAuthRefreshTokenPermissionResponseEntity): IAuthRefreshTokenPermissionResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -23,13 +23,13 @@ export class AuthRefreshTokenPermissionMapper extends Mapper<IAuthRefreshTokenPe
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenPermissionEntity[]): IAuthRefreshTokenPermissionDTO[] {
-        return params.map((param: IAuthRefreshTokenPermissionEntity) => {
+    public mapFromList(params: IAuthRefreshTokenPermissionResponseEntity[]): IAuthRefreshTokenPermissionResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenPermissionResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenPermissionDTO): IAuthRefreshTokenPermissionEntity {
+    public mapTo(param: IAuthRefreshTokenPermissionResponseDTO): IAuthRefreshTokenPermissionResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -38,8 +38,8 @@ export class AuthRefreshTokenPermissionMapper extends Mapper<IAuthRefreshTokenPe
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenPermissionDTO[]): IAuthRefreshTokenPermissionEntity[] {
-        return params.map((param: IAuthRefreshTokenPermissionDTO) => {
+    public mapToList(params: IAuthRefreshTokenPermissionResponseDTO[]): IAuthRefreshTokenPermissionResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenPermissionResponseDTO) => {
             return this.mapTo(param);
         })
     }

@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenCountryDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenCountryEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenCountryResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenCountryResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenCountryMapper extends Mapper<IAuthRefreshTokenCountryEntity, IAuthRefreshTokenCountryDTO> {
+export class AuthRefreshTokenCountryResponseMapper extends Mapper<IAuthRefreshTokenCountryResponseEntity, IAuthRefreshTokenCountryResponseDTO> {
 
-    private static instance: AuthRefreshTokenCountryMapper;
+    private static instance: AuthRefreshTokenCountryResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenCountryMapper {
-        if (!AuthRefreshTokenCountryMapper.instance)
-            AuthRefreshTokenCountryMapper.instance = new AuthRefreshTokenCountryMapper();
-        return AuthRefreshTokenCountryMapper.instance;
+    public static getInstance(): AuthRefreshTokenCountryResponseMapper {
+        if (!AuthRefreshTokenCountryResponseMapper.instance)
+            AuthRefreshTokenCountryResponseMapper.instance = new AuthRefreshTokenCountryResponseMapper();
+        return AuthRefreshTokenCountryResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenCountryEntity): IAuthRefreshTokenCountryDTO {
+    public mapFrom(param: IAuthRefreshTokenCountryResponseEntity): IAuthRefreshTokenCountryResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -24,13 +24,13 @@ export class AuthRefreshTokenCountryMapper extends Mapper<IAuthRefreshTokenCount
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenCountryEntity[]): IAuthRefreshTokenCountryDTO[] {
-        return params.map((param: IAuthRefreshTokenCountryEntity) => {
+    public mapFromList(params: IAuthRefreshTokenCountryResponseEntity[]): IAuthRefreshTokenCountryResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenCountryResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenCountryDTO): IAuthRefreshTokenCountryEntity {
+    public mapTo(param: IAuthRefreshTokenCountryResponseDTO): IAuthRefreshTokenCountryResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -40,8 +40,8 @@ export class AuthRefreshTokenCountryMapper extends Mapper<IAuthRefreshTokenCount
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenCountryDTO[]): IAuthRefreshTokenCountryEntity[] {
-        return params.map((param: IAuthRefreshTokenCountryDTO) => {
+    public mapToList(params: IAuthRefreshTokenCountryResponseDTO[]): IAuthRefreshTokenCountryResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenCountryResponseDTO) => {
             return this.mapTo(param);
         })
     }

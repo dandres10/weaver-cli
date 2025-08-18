@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenPlatformDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenPlatformEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenPlatformResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenPlatformResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenPlatformMapper extends Mapper<IAuthRefreshTokenPlatformEntity, IAuthRefreshTokenPlatformDTO> {
+export class AuthRefreshTokenPlatformResponseMapper extends Mapper<IAuthRefreshTokenPlatformResponseEntity, IAuthRefreshTokenPlatformResponseDTO> {
 
-    private static instance: AuthRefreshTokenPlatformMapper;
+    private static instance: AuthRefreshTokenPlatformResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenPlatformMapper {
-        if (!AuthRefreshTokenPlatformMapper.instance)
-            AuthRefreshTokenPlatformMapper.instance = new AuthRefreshTokenPlatformMapper();
-        return AuthRefreshTokenPlatformMapper.instance;
+    public static getInstance(): AuthRefreshTokenPlatformResponseMapper {
+        if (!AuthRefreshTokenPlatformResponseMapper.instance)
+            AuthRefreshTokenPlatformResponseMapper.instance = new AuthRefreshTokenPlatformResponseMapper();
+        return AuthRefreshTokenPlatformResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenPlatformEntity): IAuthRefreshTokenPlatformDTO {
+    public mapFrom(param: IAuthRefreshTokenPlatformResponseEntity): IAuthRefreshTokenPlatformResponseDTO {
         return {
             id: param.id,
             languageId: param.language_id,
@@ -24,13 +24,13 @@ export class AuthRefreshTokenPlatformMapper extends Mapper<IAuthRefreshTokenPlat
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenPlatformEntity[]): IAuthRefreshTokenPlatformDTO[] {
-        return params.map((param: IAuthRefreshTokenPlatformEntity) => {
+    public mapFromList(params: IAuthRefreshTokenPlatformResponseEntity[]): IAuthRefreshTokenPlatformResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenPlatformResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenPlatformDTO): IAuthRefreshTokenPlatformEntity {
+    public mapTo(param: IAuthRefreshTokenPlatformResponseDTO): IAuthRefreshTokenPlatformResponseEntity {
         return {
             id: param.id,
             language_id: param.languageId,
@@ -40,8 +40,8 @@ export class AuthRefreshTokenPlatformMapper extends Mapper<IAuthRefreshTokenPlat
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenPlatformDTO[]): IAuthRefreshTokenPlatformEntity[] {
-        return params.map((param: IAuthRefreshTokenPlatformDTO) => {
+    public mapToList(params: IAuthRefreshTokenPlatformResponseDTO[]): IAuthRefreshTokenPlatformResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenPlatformResponseDTO) => {
             return this.mapTo(param);
         })
     }

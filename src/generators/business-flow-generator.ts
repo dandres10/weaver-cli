@@ -318,14 +318,28 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
       const serviceNameKebab = serviceName.toLowerCase();
       const operationKebab = operationName.replace(/_/g, '-');
       
-      // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response (igual que DTOs y Entities)
+      // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response 
+      // pero preservando Response/Request cuando es la operación actual
       let cleanType = field.type;
-      // Remover múltiples sufijos en orden específico
-      cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
-      cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
-      cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
-      cleanType = cleanType.replace(/Response$/, '');       // CompanyResponse -> Company
-      cleanType = cleanType.replace(/Request$/, '');        // CompanyRequest -> Company
+      const currentOperationClean = operationName.replace(/_/g, '').toLowerCase();
+      
+      // Solo remover "Login" si no estamos en la operación login
+      if (currentOperationClean !== 'login') {
+        cleanType = cleanType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> CompanyResponse
+        cleanType = cleanType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> CompanyRequest  
+        cleanType = cleanType.replace(/Login$/, '');          // CompanyLogin -> Company
+      }
+      
+      // Solo remover Response/Request si el tipo ya los incluye redundantemente
+      if (type === 'response' && cleanType.endsWith('Response')) {
+        // No hacer nada - mantener Response
+      } else if (type === 'request' && cleanType.endsWith('Request')) {
+        // No hacer nada - mantener Request
+      } else {
+        // Remover sufijos generales solo si no coinciden con el tipo actual
+        cleanType = cleanType.replace(/Response$/, '');       
+        cleanType = cleanType.replace(/Request$/, '');        
+      }
       
       let typeKebab = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       const fileSuffix = type === 'request' ? 'request' : 'response';
@@ -357,20 +371,44 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
         .join('');
       const classSuffix = type === 'request' ? 'Request' : 'Response';
       
-      // Detectar y evitar duplicación de operaciones en el nombre del tipo
+      // Aplicar la misma lógica de limpieza contextual que en generateIndividualNestedMapper
       let finalFieldType = formattedFieldType;
+      const currentOperationCleanForExport = operationName.replace(/_/g, '').toLowerCase();
+      
+      // Solo remover "Login" si no estamos en la operación login
+      if (currentOperationCleanForExport !== 'login') {
+        finalFieldType = finalFieldType.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> CompanyResponse
+        finalFieldType = finalFieldType.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> CompanyRequest  
+        finalFieldType = finalFieldType.replace(/Login$/, '');          // CompanyLogin -> Company
+      }
+      
+      // Solo remover Response/Request si el tipo ya los incluye redundantemente
+      if (type === 'response' && finalFieldType.endsWith('Response')) {
+        // No hacer nada - mantener Response
+      } else if (type === 'request' && finalFieldType.endsWith('Request')) {
+        // No hacer nada - mantener Request
+      } else {
+        // Remover sufijos generales solo si no coinciden con el tipo actual
+        finalFieldType = finalFieldType.replace(/Response$/, '');       
+        finalFieldType = finalFieldType.replace(/Request$/, '');        
+      }
+      
+      // Detectar y evitar duplicación de operaciones en el nombre del tipo
       const operationInTypeName = cleanOperationName.toLowerCase();
-      const typeNameLower = formattedFieldType.toLowerCase();
+      const typeNameLower = finalFieldType.toLowerCase();
       
       // Si el tipo incluye el nombre de la operación, removerlo para evitar duplicación
       if (typeNameLower.includes(operationInTypeName)) {
-        finalFieldType = formattedFieldType.replace(new RegExp(cleanOperationName, 'gi'), '');
+        finalFieldType = finalFieldType.replace(new RegExp(cleanOperationName, 'gi'), '');
       }
       
+      // Determinar si necesita sufijo después de la limpieza
+      const finalNeedsSuffix = !finalFieldType.endsWith('Response') && !finalFieldType.endsWith('Request');
+      
       // Generar nombre con patrón correcto: <Flujo><Proceso><Tipo><Request/Response>Mapper
-      const mapperClassName = finalFieldType.endsWith('Response') || finalFieldType.endsWith('Request') 
-        ? `${formattedServiceName}${cleanOperationName}${finalFieldType}Mapper` 
-        : `${formattedServiceName}${cleanOperationName}${finalFieldType}${classSuffix}Mapper`;
+      const mapperClassName = finalNeedsSuffix 
+        ? `${formattedServiceName}${cleanOperationName}${finalFieldType}${classSuffix}Mapper`
+        : `${formattedServiceName}${cleanOperationName}${finalFieldType}Mapper`;
       exportStatements.push(`export { ${mapperClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
 
       // Procesar campos anidados recursivamente
@@ -670,14 +708,28 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
   // Determinar si necesita sufijo basado en el tipo original
   const needsSuffix = !formattedTypeName.endsWith('Response') && !formattedTypeName.endsWith('Request');
   
-  // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response (igual que DTOs y Entities)
+  // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response 
+  // pero preservando Response/Request cuando es la operación actual
   let cleanTypeName = formattedTypeName;
-  // Remover múltiples sufijos en orden específico
-  cleanTypeName = cleanTypeName.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> Company
-  cleanTypeName = cleanTypeName.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> Company  
-  cleanTypeName = cleanTypeName.replace(/Login$/, '');          // CompanyLogin -> Company
-  cleanTypeName = cleanTypeName.replace(/Response$/, '');       // CompanyResponse -> Company
-  cleanTypeName = cleanTypeName.replace(/Request$/, '');        // CompanyRequest -> Company
+  const currentOperationClean = operationName.replace(/_/g, '').toLowerCase();
+  
+  // Solo remover "Login" si no estamos en la operación login
+  if (currentOperationClean !== 'login') {
+    cleanTypeName = cleanTypeName.replace(/LoginResponse$/, ''); // CompanyLoginResponse -> CompanyResponse
+    cleanTypeName = cleanTypeName.replace(/LoginRequest$/, '');   // CompanyLoginRequest -> CompanyRequest  
+    cleanTypeName = cleanTypeName.replace(/Login$/, '');          // CompanyLogin -> Company
+  }
+  
+  // Solo remover Response/Request si el tipo ya los incluye redundantemente
+  if (type === 'response' && cleanTypeName.endsWith('Response')) {
+    // No hacer nada - mantener Response
+  } else if (type === 'request' && cleanTypeName.endsWith('Request')) {
+    // No hacer nada - mantener Request
+  } else {
+    // Remover sufijos generales solo si no coinciden con el tipo actual
+    cleanTypeName = cleanTypeName.replace(/Response$/, '');       
+    cleanTypeName = cleanTypeName.replace(/Request$/, '');        
+  }
   
   // Detectar y evitar duplicación de operaciones en el nombre del tipo
   // Ejemplo: UserRefreshToken -> User (cuando operationName es "refresh-token")
@@ -690,13 +742,16 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     cleanTypeName = cleanTypeName.replace(new RegExp(cleanOperationName, 'gi'), '');
   }
   
-  const dtoInterfaceName = needsSuffix 
+  // Determinar si necesita sufijo después de la limpieza
+  const finalNeedsSuffix = !cleanTypeName.endsWith('Response') && !cleanTypeName.endsWith('Request');
+  
+  const dtoInterfaceName = finalNeedsSuffix 
     ? `I${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}DTO`
     : `I${formattedServiceName}${cleanOperationName}${cleanTypeName}DTO`;
-  const entityInterfaceName = needsSuffix 
+  const entityInterfaceName = finalNeedsSuffix 
     ? `I${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}Entity`
     : `I${formattedServiceName}${cleanOperationName}${cleanTypeName}Entity`;
-  const mapperClassName = needsSuffix 
+  const mapperClassName = finalNeedsSuffix 
     ? `${formattedServiceName}${cleanOperationName}${cleanTypeName}${suffix}Mapper`
     : `${formattedServiceName}${cleanOperationName}${cleanTypeName}Mapper`;
   

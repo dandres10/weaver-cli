@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenLocationDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenLocationEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenLocationResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenLocationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenLocationMapper extends Mapper<IAuthRefreshTokenLocationEntity, IAuthRefreshTokenLocationDTO> {
+export class AuthRefreshTokenLocationResponseMapper extends Mapper<IAuthRefreshTokenLocationResponseEntity, IAuthRefreshTokenLocationResponseDTO> {
 
-    private static instance: AuthRefreshTokenLocationMapper;
+    private static instance: AuthRefreshTokenLocationResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenLocationMapper {
-        if (!AuthRefreshTokenLocationMapper.instance)
-            AuthRefreshTokenLocationMapper.instance = new AuthRefreshTokenLocationMapper();
-        return AuthRefreshTokenLocationMapper.instance;
+    public static getInstance(): AuthRefreshTokenLocationResponseMapper {
+        if (!AuthRefreshTokenLocationResponseMapper.instance)
+            AuthRefreshTokenLocationResponseMapper.instance = new AuthRefreshTokenLocationResponseMapper();
+        return AuthRefreshTokenLocationResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenLocationEntity): IAuthRefreshTokenLocationDTO {
+    public mapFrom(param: IAuthRefreshTokenLocationResponseEntity): IAuthRefreshTokenLocationResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -27,13 +27,13 @@ export class AuthRefreshTokenLocationMapper extends Mapper<IAuthRefreshTokenLoca
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenLocationEntity[]): IAuthRefreshTokenLocationDTO[] {
-        return params.map((param: IAuthRefreshTokenLocationEntity) => {
+    public mapFromList(params: IAuthRefreshTokenLocationResponseEntity[]): IAuthRefreshTokenLocationResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenLocationResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenLocationDTO): IAuthRefreshTokenLocationEntity {
+    public mapTo(param: IAuthRefreshTokenLocationResponseDTO): IAuthRefreshTokenLocationResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -46,8 +46,8 @@ export class AuthRefreshTokenLocationMapper extends Mapper<IAuthRefreshTokenLoca
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenLocationDTO[]): IAuthRefreshTokenLocationEntity[] {
-        return params.map((param: IAuthRefreshTokenLocationDTO) => {
+    public mapToList(params: IAuthRefreshTokenLocationResponseDTO[]): IAuthRefreshTokenLocationResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenLocationResponseDTO) => {
             return this.mapTo(param);
         })
     }

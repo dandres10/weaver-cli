@@ -1,20 +1,20 @@
 import { Mapper } from "@bus/core/classes";
-import { IAuthRefreshTokenCurrencyDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
-import { IAuthRefreshTokenCurrencyEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenCurrencyResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh-token";
+import { IAuthRefreshTokenCurrencyResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh-token";
 
-export class AuthRefreshTokenCurrencyMapper extends Mapper<IAuthRefreshTokenCurrencyEntity, IAuthRefreshTokenCurrencyDTO> {
+export class AuthRefreshTokenCurrencyResponseMapper extends Mapper<IAuthRefreshTokenCurrencyResponseEntity, IAuthRefreshTokenCurrencyResponseDTO> {
 
-    private static instance: AuthRefreshTokenCurrencyMapper;
+    private static instance: AuthRefreshTokenCurrencyResponseMapper;
 
     public constructor() { super(); }
 
-    public static getInstance(): AuthRefreshTokenCurrencyMapper {
-        if (!AuthRefreshTokenCurrencyMapper.instance)
-            AuthRefreshTokenCurrencyMapper.instance = new AuthRefreshTokenCurrencyMapper();
-        return AuthRefreshTokenCurrencyMapper.instance;
+    public static getInstance(): AuthRefreshTokenCurrencyResponseMapper {
+        if (!AuthRefreshTokenCurrencyResponseMapper.instance)
+            AuthRefreshTokenCurrencyResponseMapper.instance = new AuthRefreshTokenCurrencyResponseMapper();
+        return AuthRefreshTokenCurrencyResponseMapper.instance;
     }
 
-    public mapFrom(param: IAuthRefreshTokenCurrencyEntity): IAuthRefreshTokenCurrencyDTO {
+    public mapFrom(param: IAuthRefreshTokenCurrencyResponseEntity): IAuthRefreshTokenCurrencyResponseDTO {
         return {
             id: param.id,
             name: param.name,
@@ -24,13 +24,13 @@ export class AuthRefreshTokenCurrencyMapper extends Mapper<IAuthRefreshTokenCurr
         }
     }
 
-    public mapFromList(params: IAuthRefreshTokenCurrencyEntity[]): IAuthRefreshTokenCurrencyDTO[] {
-        return params.map((param: IAuthRefreshTokenCurrencyEntity) => {
+    public mapFromList(params: IAuthRefreshTokenCurrencyResponseEntity[]): IAuthRefreshTokenCurrencyResponseDTO[] {
+        return params.map((param: IAuthRefreshTokenCurrencyResponseEntity) => {
             return this.mapFrom(param)
         })
     }
 
-    public mapTo(param: IAuthRefreshTokenCurrencyDTO): IAuthRefreshTokenCurrencyEntity {
+    public mapTo(param: IAuthRefreshTokenCurrencyResponseDTO): IAuthRefreshTokenCurrencyResponseEntity {
         return {
             id: param.id,
             name: param.name,
@@ -40,8 +40,8 @@ export class AuthRefreshTokenCurrencyMapper extends Mapper<IAuthRefreshTokenCurr
         }
     }
 
-    public mapToList(params: IAuthRefreshTokenCurrencyDTO[]): IAuthRefreshTokenCurrencyEntity[] {
-        return params.map((param: IAuthRefreshTokenCurrencyDTO) => {
+    public mapToList(params: IAuthRefreshTokenCurrencyResponseDTO[]): IAuthRefreshTokenCurrencyResponseEntity[] {
+        return params.map((param: IAuthRefreshTokenCurrencyResponseDTO) => {
             return this.mapTo(param);
         })
     }
