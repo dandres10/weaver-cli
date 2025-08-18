@@ -3,6 +3,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { createCorrectEntityFlow } from './generators/correct-entity-flow-generator';
+import { createBusinessFlow } from './generators/business-flow-generator';
 import { detectGeneratedEntities, cleanupEntity } from './generators/cleanup-generator';
 import { SwaggerAnalyzer } from './parsers/swagger-parser';
 import { ProjectValidator } from './validators/project-validator';
@@ -20,6 +21,10 @@ const menuChoices: MenuChoice[] = [
   {
     name: '🏗️  Crear flujo entity',
     value: 'create-entity-flow'
+  },
+  {
+    name: '💼 Crear flujo de negocio',
+    value: 'create-business-flow'
   },
   {
     name: '🧹 Limpiar/Eliminar código generado',
@@ -56,6 +61,9 @@ async function showMainMenu(isLocalMode: boolean = false): Promise<void> {
   switch (action) {
     case 'create-entity-flow':
       await handleCreateEntityFlow(isLocalMode);
+      break;
+    case 'create-business-flow':
+      await handleCreateBusinessFlow(isLocalMode);
       break;
     case 'cleanup':
       await handleCleanup(isLocalMode);
@@ -478,6 +486,479 @@ async function handleCreateEntityFlow(isLocalMode: boolean = false): Promise<voi
   } catch (error) {
     console.error(chalk.red('\n❌ Error al generar el flujo:'), error);
     await showMainMenu(isLocalMode);
+  }
+}
+
+/**
+ * Maneja la creación de un flujo de negocio completo basado en swagger
+ */
+async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<void> {
+  try {
+    console.log(chalk.yellow('\n📋 Configurando flujo de negocio...'));
+
+    // 🔍 DETECTAR DIRECTORIO ACTUAL Y APIs DISPONIBLES
+    console.log(chalk.blue('🔍 Analizando estructura del directorio...'));
+    const directoryInfo = await DirectoryDetector.detectCurrentApi();
+    
+    if (directoryInfo.currentApiName) {
+      console.log(chalk.green(`✅ API detectada en directorio actual: ${directoryInfo.currentApiName}`));
+    } else {
+      console.log(chalk.yellow('⚠️  No se detectó estructura de API en el directorio actual'));
+    }
+
+    if (directoryInfo.possibleApiNames.length > 0) {
+      console.log(chalk.gray(`📁 APIs disponibles: ${directoryInfo.possibleApiNames.join(', ')}`));
+    }
+
+    // 1. Solicitar URL del OpenAPI/Swagger
+    const { swaggerUrl } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'swaggerUrl',
+        message: 'URL del OpenAPI/Swagger JSON:',
+        default: 'http://backend-platform-prod-env.eba-dddmvypu.us-east-1.elasticbeanstalk.com/openapi.json',
+        validate: (input: string) => {
+          if (!input.trim()) {
+            return 'La URL del swagger es requerida';
+          }
+          try {
+            new URL(input.trim());
+            return true;
+          } catch {
+            return 'Por favor ingresa una URL válida';
+          }
+        }
+      }
+    ]);
+
+    // Cargar y analizar el swagger
+    console.log(chalk.blue('\n🔍 Analizando OpenAPI...'));
+    const swaggerAnalyzer = new SwaggerAnalyzer();
+
+    try {
+      await swaggerAnalyzer.loadFromUrl(swaggerUrl.trim());
+    } catch (error) {
+      console.error(chalk.red('\n❌ Error cargando el swagger:'), error);
+      return await handleCreateBusinessFlow(isLocalMode);
+    }
+
+    const availableBusinessServices = swaggerAnalyzer.getAvailableBusinessServices();
+
+    if (availableBusinessServices.length === 0) {
+      console.log(chalk.yellow('\n⚠️  No se encontraron servicios de negocio en el swagger'));
+      return await showMainMenu(isLocalMode);
+    }
+
+    console.log(chalk.green(`\n✅ Se encontraron ${availableBusinessServices.length} servicios de negocio disponibles`));
+
+    // 🔗 CONFIGURAR NOMBRE DE LA API
+    const detectedApiName = swaggerAnalyzer.getDetectedApiName();
+    const suggestedNames = swaggerAnalyzer.suggestApiNames();
+
+    let apiName: string;
+
+    if (detectedApiName) {
+      const { useDetectedApi } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'useDetectedApi',
+          message: `¿Usar la API detectada "${detectedApiName}"?`,
+          default: true
+        }
+      ]);
+
+      if (useDetectedApi) {
+        apiName = detectedApiName;
+      } else {
+        const { selectedApiName } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedApiName',
+            message: 'Selecciona el nombre de la API:',
+            choices: [
+              ...suggestedNames.map(name => ({ name, value: name })),
+              { name: '📝 Ingresar nombre personalizado', value: 'custom' }
+            ]
+          }
+        ]);
+
+        if (selectedApiName === 'custom') {
+          const { customApiName } = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'customApiName',
+              message: 'Nombre de la API:',
+              validate: (input: string) => {
+                if (!input.trim()) {
+                  return 'El nombre de la API es requerido';
+                }
+                return true;
+              }
+            }
+          ]);
+          apiName = customApiName.trim();
+        } else {
+          apiName = selectedApiName;
+        }
+      }
+    } else {
+      // No se detectó API, solicitar nombre
+      const choices = [
+        ...suggestedNames.map(name => ({ name, value: name })),
+        { name: '📝 Ingresar nombre personalizado', value: 'custom' }
+      ];
+
+      const { selectedApiName } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedApiName',
+          message: 'Selecciona el nombre de la API:',
+          choices
+        }
+      ]);
+
+      if (selectedApiName === 'custom') {
+        const { customApiName } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'customApiName',
+            message: 'Nombre de la API:',
+            validate: (input: string) => {
+              if (!input.trim()) {
+                return 'El nombre de la API es requerido';
+              }
+              return true;
+            }
+          }
+        ]);
+        apiName = customApiName.trim();
+      } else {
+        apiName = selectedApiName;
+      }
+    }
+
+    console.log(chalk.green(`🔗 API configurada: ${apiName}`));
+
+    // 📁 CONFIGURAR DIRECTORIO DE DESTINO
+    console.log(chalk.blue('\n📁 Configurando directorio de destino...'));
+
+    let targetDirectory: string;
+
+    if (isLocalMode) {
+      // En modo local, usar test-output con opciones más flexibles
+      const localTestPath = './test-output';
+      
+      // Crear test-output si no existe
+      await fs.ensureDir(localTestPath);
+      
+      // Obtener carpetas existentes en test-output
+      const existingFolders = (await fs.readdir(localTestPath, { withFileTypes: true }))
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+
+      const folderChoices = [
+        ...existingFolders.map(folder => ({
+          name: `📁 ${folder} (existente)`,
+          value: folder
+        })),
+        {
+          name: '✨ Crear nueva carpeta',
+          value: 'new-folder'
+        }
+      ];
+
+      if (folderChoices.length === 1) {
+        // Solo la opción de crear nueva carpeta
+        const { newFolderName } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'newFolderName',
+            message: '¿En qué directorio crear la entidad?',
+            default: apiName,
+            validate: (input: string) => {
+              if (!input.trim()) {
+                return 'El nombre del directorio es requerido';
+              }
+              return true;
+            }
+          }
+        ]);
+        targetDirectory = path.join(localTestPath, newFolderName.trim());
+      } else {
+        const { selectedFolder } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedFolder',
+            message: '¿En qué directorio crear la entidad?',
+            choices: folderChoices
+          }
+        ]);
+
+        if (selectedFolder === 'new-folder') {
+          const { newFolderName } = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'newFolderName',
+              message: 'Nombre del nuevo directorio:',
+              default: apiName,
+              validate: (input: string) => {
+                if (!input.trim()) {
+                  return 'El nombre del directorio es requerido';
+                }
+                return true;
+              }
+            }
+          ]);
+          targetDirectory = path.join(localTestPath, newFolderName.trim());
+        } else {
+          targetDirectory = path.join(localTestPath, selectedFolder);
+        }
+      }
+    } else {
+      // Modo producción: detectar APIs hermanas
+      const currentDir = process.cwd();
+      
+      // Buscar directorios hermanos que puedan ser APIs
+      const parentDir = path.dirname(currentDir);
+      const siblingDirs = (await fs.readdir(parentDir, { withFileTypes: true }))
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name)
+        .filter(name => !name.startsWith('.'));
+
+      if (siblingDirs.length > 0) {
+        const dirChoices = siblingDirs.map(dir => ({
+          name: `📁 ${dir}`,
+          value: path.join(parentDir, dir)
+        }));
+
+        const { selectedDir } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedDir',
+            message: 'Selecciona el directorio de destino:',
+            choices: dirChoices
+          }
+        ]);
+        targetDirectory = selectedDir;
+      } else {
+        targetDirectory = currentDir;
+      }
+    }
+
+    // Validar que el directorio target es válido
+    try {
+      await fs.ensureDir(targetDirectory);
+      console.log(chalk.green(`✅ Directorio target válido: ${targetDirectory}`));
+    } catch (error) {
+      console.error(chalk.red(`❌ Error accediendo al directorio target: ${targetDirectory}`));
+      return await showMainMenu(isLocalMode);
+    }
+
+    console.log(chalk.cyan(`🎯 Generando servicio de negocio en API: ${apiName}`));
+    console.log(chalk.gray(`📁 Estructura: ${targetDirectory}/domain/models/apis/${apiName}/business/...`));
+
+    // 4. Seleccionar servicio de negocio a generar
+    const serviceChoices = availableBusinessServices.map(service => ({
+      name: service,
+      value: service
+    }));
+
+    const { selectedService } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedService',
+        message: 'Selecciona el servicio de negocio a generar:',
+        choices: serviceChoices,
+        pageSize: 15
+      }
+    ]);
+
+    // 5. Obtener schema del servicio de negocio seleccionado
+    const serviceSchema = swaggerAnalyzer.getBusinessServiceSchema(selectedService);
+
+    if (!serviceSchema) {
+      console.log(chalk.red(`❌ No se pudo obtener el schema para el servicio: ${selectedService}`));
+      return await showMainMenu(isLocalMode);
+    }
+
+    // 6. Mostrar información del servicio de negocio
+    console.log(chalk.cyan(`\n📋 Información del servicio: ${selectedService}`));
+    
+    if (serviceSchema.businessOperations && serviceSchema.businessOperations.length > 0) {
+      console.log(chalk.blue('\n🔧 Operaciones de negocio:'));
+      serviceSchema.businessOperations.forEach(op => {
+        console.log(`  • ${op.method} ${op.path} - ${op.summary || 'Sin descripción'}`);
+        if (op.requestSchema) {
+          console.log(`    📥 Request: ${op.requestSchema}`);
+        }
+        if (op.responseSchema) {
+          console.log(`    📤 Response: ${op.responseSchema}`);
+        }
+        if (op.fields.length > 0) {
+          console.log(chalk.gray(`    📊 Campos (${op.fields.length}):`));
+          op.fields.forEach(field => {
+            const required = field.required ? '🔴' : '🔵';
+            console.log(chalk.gray(`      ${required} ${field.name}: ${field.type}`));
+          });
+        }
+        console.log('');
+      });
+    } else {
+      console.log(chalk.blue('\n🔧 Operaciones disponibles:'));
+      console.log(`  • Crear: ${serviceSchema.operations.create ? '✅' : '❌'}`);
+      console.log(`  • Leer: ${serviceSchema.operations.read ? '✅' : '❌'}`);
+      console.log(`  • Actualizar: ${serviceSchema.operations.update ? '✅' : '❌'}`);
+      console.log(`  • Eliminar: ${serviceSchema.operations.delete ? '✅' : '❌'}`);
+      console.log(`  • Listar: ${serviceSchema.operations.list ? '✅' : '❌'}`);
+
+      console.log(chalk.blue(`\n📊 Campos (${serviceSchema.fields.length}):`));
+      serviceSchema.fields.forEach(field => {
+        const required = field.required ? '🔴' : '🔵';
+        console.log(`  ${required} ${field.name}: ${field.type}`);
+      });
+    }
+
+    // 7. Confirmar generación
+    const { shouldGenerate } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'shouldGenerate',
+        message: `¿Generar flujo de negocio completo para el servicio "${selectedService}"?`,
+        default: true
+      }
+    ]);
+
+    if (!shouldGenerate) {
+      return await showMainMenu(isLocalMode);
+    }
+
+    // 8. Ejecutar validaciones pre-generación
+    console.log(chalk.blue('\n🔍 Ejecutando validaciones pre-generación...'));
+    
+    const validation = await ProjectValidator.validateProjectStructure(targetDirectory);
+    
+    console.log(chalk.blue('\n🔍 Validando estructura del proyecto...'));
+    console.log(chalk.blue(`🔍 Verificando si el servicio "${selectedService}" ya existe...`));
+    
+    // Validar que el servicio no existe en business (similar a entities)
+    const businessEntityExists = await ProjectValidator.checkBusinessEntityExists(selectedService, targetDirectory, apiName);
+    
+    if (validation.isValid) {
+      console.log(chalk.green('✅ Estructura del proyecto válida'));
+    }
+
+    // Mostrar warnings si los hay
+    if (validation.warnings && validation.warnings.length > 0) {
+      validation.warnings.forEach((warning: string) => {
+        console.log(chalk.yellow(`⚠️  ${warning}`));
+      });
+    }
+
+    if (businessEntityExists.exists) {
+      console.log(chalk.yellow(`⚠️  El servicio "${selectedService}" ya existe parcial o completamente en business`));
+      
+      if (businessEntityExists.conflictingFiles.length > 0) {
+        console.log(chalk.yellow('\nArchivos/directorios existentes:'));
+        businessEntityExists.conflictingFiles.forEach((detail: string) => {
+          console.log(chalk.gray(`  ${detail}`));
+        });
+      }
+    }
+
+    // Mostrar warnings de validación
+    if ((validation.warnings && validation.warnings.length > 0) || businessEntityExists.exists) {
+      console.log(chalk.yellow('\n⚠️  Advertencias:'));
+      
+      if (businessEntityExists.exists) {
+        console.log(chalk.yellow('  • La entidad ya existe. Si continúas, se sobrescribirán los archivos existentes'));
+        console.log(chalk.yellow('  • Considera hacer un backup antes de continuar'));
+      }
+      
+      if (validation.warnings) {
+        validation.warnings.forEach((warning: string) => {
+          console.log(chalk.yellow(`  • ${warning}`));
+        });
+      }
+    }
+
+    // 9. Mostrar resumen antes de generar
+    console.log(chalk.blue('\n📋 Resumen de generación:'));
+    console.log(chalk.white(`Servicio: ${selectedService}`));
+    console.log(chalk.white(`Ubicación: ${targetDirectory}`));
+    console.log(chalk.white(`Archivos a generar: ~29 archivos TypeScript`));
+    
+    if (businessEntityExists.exists) {
+      console.log(chalk.yellow('⚠️  Se sobrescribirán archivos existentes'));
+    }
+
+    console.log(chalk.gray('\n📁 Directorios que se crearán/utilizarán:'));
+    const serviceNameLower = selectedService.toLowerCase();
+    console.log(chalk.gray(`  📂 domain/models/apis/${apiName}/business/${serviceNameLower}/`));
+    console.log(chalk.gray(`  📂 domain/services/use_cases/apis/${apiName}/business/${serviceNameLower}/`));
+    console.log(chalk.gray(`  📂 infrastructure/entities/apis/${apiName}/business/${serviceNameLower}/`));
+    console.log(chalk.gray(`  📂 infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/`));
+    console.log(chalk.gray(`  📂 infrastructure/repositories/.../business/${serviceNameLower}/`));
+    console.log(chalk.gray(`  📂 facade/apis/${apiName}/business/`));
+    console.log(chalk.gray(`  📂 injection folders...`));
+
+    // Confirmación final si hay advertencias
+    if ((validation.warnings && validation.warnings.length > 0) || businessEntityExists.exists) {
+      const { shouldContinue } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'shouldContinue',
+          message: '⚠️  ¿Continuar y sobrescribir los archivos existentes?',
+          default: false
+        }
+      ]);
+
+      if (!shouldContinue) {
+        console.log(chalk.yellow('Operación cancelada por el usuario'));
+        return await showMainMenu(isLocalMode);
+      }
+    }
+
+    // 10. Generar el flujo de negocio
+    console.log(chalk.green(`\n🔧 Generando flujo de negocio para ${selectedService}...`));
+    await createBusinessFlow(selectedService, targetDirectory, serviceSchema, apiName);
+
+    console.log(chalk.green(`\n✅ Flujo de negocio ${selectedService} generado exitosamente!`));
+    console.log(chalk.cyan(`📁 Archivos generados en: ${targetDirectory}`));
+    console.log(chalk.gray('💡 Puedes revisar los archivos en la carpeta especificada'));
+
+    // Preguntar si quiere continuar
+    const { continueWorking } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continueWorking',
+        message: '¿Volver al menú principal?',
+        default: true
+      }
+    ]);
+
+    if (continueWorking) {
+      await showMainMenu(isLocalMode);
+    } else {
+      console.log(chalk.blue('\n👋 ¡Hasta luego!'));
+    }
+
+  } catch (error) {
+    console.error(chalk.red('\n❌ Error en el flujo de negocio:'), error);
+    
+    const { retry } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'retry',
+        message: '¿Intentar nuevamente?',
+        default: true
+      }
+    ]);
+
+    if (retry) {
+      await handleCreateBusinessFlow(isLocalMode);
+    } else {
+      await showMainMenu(isLocalMode);
+    }
   }
 }
 

@@ -12,6 +12,7 @@ export interface EntityField {
   isArray?: boolean;
   isEnum?: boolean;
   enumValues?: string[];
+  nestedFields?: EntityField[];
 }
 
 export interface EntitySchema {
@@ -25,6 +26,16 @@ export interface EntitySchema {
     delete?: boolean;
     list?: boolean;
   };
+  businessOperations?: {
+    operationId: string;
+    method: string;
+    path: string;
+    summary?: string;
+    requestSchema?: string;
+    responseSchema?: string;
+    fields: EntityField[];
+    responseFields?: EntityField[];
+  }[];
 }
 
 export class SwaggerAnalyzer {
@@ -47,25 +58,348 @@ export class SwaggerAnalyzer {
   }
 
   getAvailableEntities(): string[] {
-    if (!this.openApiDoc?.components?.schemas) {
+    if (!this.openApiDoc?.paths || !this.openApiDoc?.components?.schemas) {
       return [];
     }
 
-    const schemas = this.openApiDoc.components.schemas;
-    const entities: string[] = [];
+    const allTags = new Set<string>();
+    const tagOperations = new Map<string, Set<string>>();
 
-    // Buscar schemas que parecen entidades (que tienen Save, Update o están en operaciones CRUD)
-    for (const schemaName in schemas) {
-      // Filtrar schemas que son entidades (no son request/response/error schemas)
-      if (this.isEntitySchema(schemaName)) {
-        const entityName = this.extractEntityName(schemaName);
-        if (entityName && !entities.includes(entityName)) {
-          entities.push(entityName);
+    // Recopilar todos los tags y sus operaciones
+    for (const path in this.openApiDoc.paths) {
+      const pathItem = this.openApiDoc.paths[path];
+      if (!pathItem || typeof pathItem !== 'object') continue;
+
+      const methods = ['get', 'post', 'put', 'delete', 'patch'] as const;
+      
+      for (const method of methods) {
+        const operation = pathItem[method];
+        if (operation && operation.tags) {
+          operation.tags.forEach(tag => {
+            allTags.add(tag);
+            
+            if (!tagOperations.has(tag)) {
+              tagOperations.set(tag, new Set());
+            }
+            
+            // Mapear método HTTP a operación CRUD
+            const crudOperation = this.mapHttpMethodToCrud(method, path);
+            if (crudOperation) {
+              tagOperations.get(tag)!.add(crudOperation);
+            }
+          });
         }
       }
     }
 
+    // Filtrar tags que SÍ tienen CRUD completo (son entidades)
+    const entities: string[] = [];
+    
+    for (const tag of allTags) {
+      const operations = tagOperations.get(tag) || new Set();
+      const hasCompleteCrud = this.hasCompleteCrudOperations(operations);
+      
+      if (hasCompleteCrud) {
+        entities.push(tag);
+      }
+    }
+
     return entities.sort();
+  }
+
+  /**
+   * Obtiene los servicios de negocio disponibles basándose en tags que NO tienen CRUD completo
+   */
+  getAvailableBusinessServices(): string[] {
+    if (!this.openApiDoc?.paths) {
+      return [];
+    }
+
+    const allTags = new Set<string>();
+    const tagOperations = new Map<string, Set<string>>();
+
+    // Recopilar todos los tags y sus operaciones
+    for (const path in this.openApiDoc.paths) {
+      const pathItem = this.openApiDoc.paths[path];
+      if (!pathItem || typeof pathItem !== 'object') continue;
+
+      const methods = ['get', 'post', 'put', 'delete', 'patch'] as const;
+      
+      for (const method of methods) {
+        const operation = pathItem[method];
+        if (operation && operation.tags) {
+          operation.tags.forEach(tag => {
+            allTags.add(tag);
+            
+            if (!tagOperations.has(tag)) {
+              tagOperations.set(tag, new Set());
+            }
+            
+            // Mapear método HTTP a operación CRUD
+            const crudOperation = this.mapHttpMethodToCrud(method, path);
+            if (crudOperation) {
+              tagOperations.get(tag)!.add(crudOperation);
+            }
+          });
+        }
+      }
+    }
+
+    // Filtrar tags que NO tienen CRUD completo (son servicios de negocio)
+    const businessServices: string[] = [];
+    
+    for (const tag of allTags) {
+      const operations = tagOperations.get(tag) || new Set();
+      const hasCompleteCrud = this.hasCompleteCrudOperations(operations);
+      
+      if (!hasCompleteCrud) {
+        businessServices.push(tag);
+      }
+    }
+
+    return businessServices.sort();
+  }
+
+  /**
+   * Mapea un método HTTP y path a una operación CRUD
+   */
+  private mapHttpMethodToCrud(method: string, path: string): string | null {
+    switch (method.toLowerCase()) {
+      case 'post':
+        // POST /entity/list es list, no save
+        if (path.includes('/list')) {
+          return 'list';
+        }
+        return 'save';
+      case 'get':
+        // Si el path tiene parámetros, es read; si no, es list
+        return (path.includes('{') || path.includes('/:')) ? 'read' : 'list';
+      case 'put':
+      case 'patch':
+        return 'update';
+      case 'delete':
+        return 'delete';
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Verifica si un conjunto de operaciones incluye CRUD completo
+   */
+  private hasCompleteCrudOperations(operations: Set<string>): boolean {
+    const requiredOperations = ['save', 'update', 'list', 'delete', 'read'];
+    return requiredOperations.every(op => operations.has(op));
+  }
+
+  /**
+   * Obtiene el schema de un servicio de negocio basándose en sus operaciones Request/Response
+   */
+  getBusinessServiceSchema(serviceName: string): EntitySchema | null {
+    if (!this.openApiDoc?.paths) {
+      return null;
+    }
+
+    const operations = {
+      create: false,
+      read: false,
+      update: false,
+      delete: false,
+      list: false
+    };
+
+    const businessOperations: any[] = [];
+    let description = '';
+
+    // Buscar operaciones relacionadas con este servicio
+    for (const path in this.openApiDoc.paths) {
+      const pathItem = this.openApiDoc.paths[path];
+      if (!pathItem || typeof pathItem !== 'object') continue;
+
+      const methods = ['get', 'post', 'put', 'delete', 'patch'] as const;
+      
+      for (const method of methods) {
+        const operation = pathItem[method];
+        if (operation && operation.tags && operation.tags.includes(serviceName)) {
+          // Determinar tipo de operación
+          if (method === 'post') operations.create = true;
+          if (method === 'get') {
+            if (path.includes('{') || path.includes('/:')) {
+              operations.read = true;
+            } else {
+              operations.list = true;
+            }
+          }
+          if (method === 'put' || method === 'patch') operations.update = true;
+          if (method === 'delete') operations.delete = true;
+
+          // Obtener descripción
+          if (operation.description && !description) {
+            description = operation.description;
+          }
+
+          // Extraer información de la operación de negocio
+          const businessOp: any = {
+            operationId: operation.operationId,
+            method: method.toUpperCase(),
+            path: path,
+            summary: operation.summary,
+            requestSchema: null,
+            responseSchema: null,
+            fields: []
+          };
+
+          // Extraer schema del requestBody
+          if (operation.requestBody && 'content' in operation.requestBody) {
+            const content = operation.requestBody.content;
+            if (content['application/json'] && content['application/json'].schema) {
+              const schema = content['application/json'].schema as any;
+              if (schema.$ref) {
+                businessOp.requestSchema = schema.$ref.split('/').pop();
+              }
+              
+              // Extraer campos del request
+              if (schema.properties) {
+                for (const [fieldName, fieldSchema] of Object.entries(schema.properties)) {
+                  if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                    const field = this.parseFieldSchema(
+                      fieldName, 
+                      fieldSchema as any, 
+                      schema.required || []
+                    );
+                    businessOp.fields.push(field);
+                  }
+                }
+              }
+            }
+          }
+
+          // Extraer schema de la response
+          if (operation.responses && operation.responses['200']) {
+            const response200 = operation.responses['200'];
+            if ('content' in response200 && response200.content && response200.content['application/json'] && response200.content['application/json'].schema) {
+              const schema = response200.content['application/json'].schema as any;
+              
+              // Manejar tanto referencias ($ref) como schemas expandidos
+              let responseSchemaObj = null;
+              let responseSchemaName = null;
+              
+              if (schema.$ref) {
+                // Schema por referencia
+                responseSchemaName = schema.$ref.split('/').pop();
+                businessOp.responseSchema = responseSchemaName;
+                if (this.openApiDoc?.components?.schemas && responseSchemaName) {
+                  responseSchemaObj = this.openApiDoc.components.schemas[responseSchemaName] as any;
+                }
+              } else if (schema.properties) {
+                // Schema expandido directamente
+                responseSchemaObj = schema;
+                businessOp.responseSchema = 'InlineResponse';
+              }
+              
+              if (responseSchemaObj && responseSchemaObj.properties) {
+                businessOp.responseFields = [];
+                
+                // Buscar específicamente el campo "response" y extraer su contenido
+                if (responseSchemaObj.properties.response) {
+                  const responseField = responseSchemaObj.properties.response as any;
+
+                  
+                  // Si el campo response tiene propiedades (es un objeto)
+                  if (responseField.properties) {
+                    for (const [fieldName, fieldSchema] of Object.entries(responseField.properties)) {
+                      if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                        const field = this.parseFieldSchemaWithRefs(
+                          fieldName, 
+                          fieldSchema as any, 
+                          responseField.required || []
+                        );
+                        businessOp.responseFields.push(field);
+                      }
+                    }
+                  } else if (responseField.anyOf || responseField.oneOf) {
+                    // Manejar casos donde response tiene anyOf/oneOf
+                    const schemas = responseField.anyOf || responseField.oneOf;
+                    let foundSpecificSchema = false;
+                    
+                    // Buscar el primer schema útil en anyOf (que no sea null)
+                    for (const subSchema of schemas) {
+                      if (subSchema.$ref) {
+                        // Si es una referencia directa, resolver y usar sus propiedades
+                        const refName = subSchema.$ref.split('/').pop();
+                        if (this.openApiDoc?.components?.schemas && refName) {
+                          const refSchemaObj = this.openApiDoc.components.schemas[refName] as any;
+                          if (refSchemaObj && refSchemaObj.properties) {
+                            for (const [fieldName, fieldSchema] of Object.entries(refSchemaObj.properties)) {
+                              if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                                const field = this.parseFieldSchemaWithRefs(
+                                  fieldName, 
+                                  fieldSchema as any, 
+                                  refSchemaObj.required || []
+                                );
+                                
+
+                                
+                                businessOp.responseFields.push(field);
+                              }
+                            }
+                            foundSpecificSchema = true;
+                            break;
+                          }
+                        }
+                      } else if (subSchema.properties && Object.keys(subSchema.properties).length > 0) {
+                        // Encontramos un schema específico con propiedades directas
+                        for (const [fieldName, fieldSchema] of Object.entries(subSchema.properties)) {
+                          if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                            const field = this.parseFieldSchemaWithRefs(
+                              fieldName, 
+                              fieldSchema as any, 
+                              subSchema.required || []
+                            );
+
+                            
+                            businessOp.responseFields.push(field);
+                          }
+                        }
+                        foundSpecificSchema = true;
+                        break;
+                      }
+                    }
+                    
+                    // Si no encontramos schema específico, generar campos por contexto
+                    if (!foundSpecificSchema) {
+                      this.generateContextualResponseFields(operation.operationId || '', businessOp);
+                    }
+                  }
+                } else {
+                  // Si no hay campo response específico, usar todos los campos del schema
+                  for (const [fieldName, fieldSchema] of Object.entries(responseSchemaObj.properties)) {
+                    if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                      const field = this.parseFieldSchemaWithRefs(
+                        fieldName, 
+                        fieldSchema as any, 
+                        responseSchemaObj.required || []
+                      );
+                      businessOp.responseFields.push(field);
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          businessOperations.push(businessOp);
+        }
+      }
+    }
+
+    return {
+      name: serviceName,
+      description: description || `Servicio de negocio ${serviceName}`,
+      fields: businessOperations.length > 0 ? businessOperations[0].fields : [], // Para compatibilidad
+      operations,
+      businessOperations // Nueva propiedad con operaciones de negocio
+    };
   }
 
   getEntitySchema(entityName: string): EntitySchema | null {
@@ -175,10 +509,36 @@ export class SwaggerAnalyzer {
     let enumValues: string[] | undefined;
 
     // Manejar arrays
+    let nestedFields: EntityField[] | undefined;
     if (schema.type === 'array' && schema.items && typeof schema.items === 'object') {
       isArray = true;
-      const itemSchema = schema.items as OpenAPIV3.SchemaObject;
-      type = this.getTypeFromSchema(itemSchema);
+      const itemSchema = schema.items as any;
+      
+      // Si el item es una referencia, obtener el tipo de la referencia
+      if (itemSchema.$ref) {
+        const refName = itemSchema.$ref.split('/').pop();
+        type = refName || 'any';
+        
+        // Extraer los campos anidados del elemento del array si es un objeto
+        if (this.openApiDoc?.components?.schemas && refName) {
+          const refSchema = this.openApiDoc.components.schemas[refName] as any;
+          if (refSchema && refSchema.type === 'object' && refSchema.properties) {
+            nestedFields = [];
+            for (const [propName, propSchema] of Object.entries(refSchema.properties)) {
+              if (typeof propSchema === 'object' && propSchema !== null) {
+                const nestedField = this.parseFieldSchemaWithRefs(
+                  propName,
+                  propSchema,
+                  refSchema.required || []
+                );
+                nestedFields.push(nestedField);
+              }
+            }
+          }
+        }
+      } else {
+        type = this.getTypeFromSchema(itemSchema);
+      }
     } else {
       type = this.getTypeFromSchema(schema);
     }
@@ -210,7 +570,8 @@ export class SwaggerAnalyzer {
       maxLength: schema.maxLength,
       isArray,
       isEnum,
-      enumValues
+      enumValues,
+      nestedFields
     };
   }
 
@@ -392,11 +753,200 @@ export class SwaggerAnalyzer {
     console.log(`  • Listar: ${schema.operations.list ? '✅' : '❌'}`);
 
     console.log(`\n📊 Campos (${schema.fields.length}):`);
-    schema.fields.forEach(field => {
+    schema.    fields.forEach(field => {
       const required = field.required ? '🔴' : '🔵';
       const array = field.isArray ? '[]' : '';
       const description = field.description ? ` - ${field.description}` : '';
       console.log(`  ${required} ${field.name}: ${field.type}${array}${description}`);
     });
+  }
+
+  /**
+   * Genera campos de respuesta basándose en el contexto de la operación
+   */
+  private generateContextualResponseFields(operationId: string, businessOp: any): void {
+    const opId = operationId.toLowerCase();
+    
+    if (opId.includes('login')) {
+      // Para login, típicamente se retorna información del usuario/rol
+      businessOp.responseFields.push(
+        { name: 'user_id', type: 'string', required: false },
+        { name: 'rol_id', type: 'string', required: false },
+        { name: 'rol_code', type: 'string', required: false },
+        { name: 'permissions', type: 'string[]', required: false, isArray: true },
+        { name: 'token', type: 'string', required: false },
+        { name: 'expires_at', type: 'string', required: false }
+      );
+    } else if (opId.includes('refresh')) {
+      // Para refresh token
+      businessOp.responseFields.push(
+        { name: 'token', type: 'string', required: false },
+        { name: 'expires_at', type: 'string', required: false }
+      );
+    } else if (opId.includes('create') && opId.includes('token')) {
+      // Para crear API token
+      businessOp.responseFields.push(
+        { name: 'token', type: 'string', required: false },
+        { name: 'token_id', type: 'string', required: false },
+        { name: 'expires_at', type: 'string', required: false }
+      );
+    } else {
+      // Fallback genérico
+      businessOp.responseFields.push(
+        { name: 'data', type: 'any', required: false }
+      );
+    }
+  }
+
+  /**
+   * Parsea un campo resolviendo referencias $ref
+   */
+  private parseFieldSchemaWithRefs(name: string, schema: any, required: string[]): EntityField {
+    // Si es una referencia, resolverla
+    if (schema.$ref) {
+      const refName = schema.$ref.split('/').pop();
+      if (this.openApiDoc?.components?.schemas && refName) {
+        const refSchema = this.openApiDoc.components.schemas[refName] as any;
+        if (refSchema) {
+          // Para enums o tipos simples, usar el nombre de la referencia
+          if (refSchema.enum) {
+            return {
+              name,
+              type: refName, // Usar el nombre del enum
+              required: required.includes(name),
+              isEnum: true,
+              enumValues: refSchema.enum
+            };
+          }
+          // Para objetos complejos, usar el nombre de la referencia y extraer campos anidados
+          if (refSchema.type === 'object') {
+            let nestedFields: EntityField[] | undefined;
+            if (refSchema.properties) {
+              nestedFields = [];
+              for (const [propName, propSchema] of Object.entries(refSchema.properties)) {
+                if (typeof propSchema === 'object' && propSchema !== null) {
+                  let nestedField: EntityField;
+                  if ((propSchema as any).$ref) {
+                    nestedField = this.parseFieldSchemaWithRefs(
+                      propName,
+                      propSchema,
+                      refSchema.required || []
+                    );
+                  } else if ((propSchema as any).type === 'object' && (propSchema as any).properties) {
+                    // Recursividad para objetos anidados inline
+                    nestedField = this.parseFieldSchemaWithRefs(
+                      propName,
+                      propSchema,
+                      refSchema.required || []
+                    );
+                  } else if ((propSchema as any).type === 'array' && (propSchema as any).items) {
+                    // Recursividad para arrays anidados
+                    nestedField = this.parseFieldSchemaWithRefs(
+                      propName,
+                      propSchema,
+                      refSchema.required || []
+                    );
+                  } else {
+                    nestedField = this.parseFieldSchema(propName, propSchema as any, refSchema.required || []);
+                    if ((propSchema as any).title && nestedField.type === 'object') {
+                      nestedField.type = (propSchema as any).title;
+                    }
+                  }
+                  nestedFields.push(nestedField);
+                }
+              }
+            }
+            return {
+              name,
+              type: refName,
+              required: required.includes(name),
+              nestedFields: nestedFields
+            };
+          }
+          // Para arrays referenciados
+          if (refSchema.type === 'array' && refSchema.items) {
+            const itemField = this.parseFieldSchemaWithRefs(
+              name,
+              refSchema.items,
+              refSchema.required || []
+            );
+            return {
+              name,
+              type: itemField.type,
+              required: required.includes(name),
+              isArray: true,
+              nestedFields: itemField.nestedFields
+            };
+          }
+          // Para tipos primitivos, usar el tipo base
+          if (refSchema.type) {
+            return {
+              name,
+              type: this.getTypeFromSchema(refSchema),
+              required: required.includes(name)
+            };
+          }
+        }
+      }
+    }
+    // Si es un objeto con propiedades directas (ya expandido por el parser de Swagger)
+    if (schema.type === 'object' && schema.properties) {
+      const nestedFields: EntityField[] = [];
+      for (const [propName, propSchema] of Object.entries(schema.properties)) {
+        if (typeof propSchema === 'object' && propSchema !== null) {
+          let nestedField: EntityField;
+          if ((propSchema as any).$ref) {
+            nestedField = this.parseFieldSchemaWithRefs(
+              propName,
+              propSchema,
+              schema.required || []
+            );
+          } else if ((propSchema as any).type === 'object' && (propSchema as any).properties) {
+            // Recursividad para objetos anidados inline
+            nestedField = this.parseFieldSchemaWithRefs(
+              propName,
+              propSchema,
+              schema.required || []
+            );
+          } else if ((propSchema as any).type === 'array' && (propSchema as any).items) {
+            // Recursividad para arrays anidados
+            nestedField = this.parseFieldSchemaWithRefs(
+              propName,
+              propSchema,
+              schema.required || []
+            );
+          } else {
+            nestedField = this.parseFieldSchema(propName, propSchema as any, schema.required || []);
+            if ((propSchema as any).title && nestedField.type === 'object') {
+              nestedField.type = (propSchema as any).title;
+            }
+          }
+          nestedFields.push(nestedField);
+        }
+      }
+      return {
+        name,
+        type: schema.title || 'object',
+        required: required.includes(name),
+        nestedFields: nestedFields
+      };
+    }
+    // Si es un array, manejar el tipo del elemento y sus nestedFields
+    if (schema.type === 'array' && schema.items) {
+      const itemField = this.parseFieldSchemaWithRefs(
+        name,
+        schema.items,
+        required
+      );
+      return {
+        name,
+        type: itemField.type,
+        required: required.includes(name),
+        isArray: true,
+        nestedFields: itemField.nestedFields
+      };
+    }
+    // Si no es una referencia, usar el parser normal
+    return this.parseFieldSchema(name, schema, required);
   }
 }

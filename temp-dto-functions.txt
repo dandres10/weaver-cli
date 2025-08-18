@@ -1,0 +1,96 @@
+async function generateNestedDTOsForOperation(serviceName: string, operation: any, type: 'request' | 'response', operationFolder: string, apiName: string, exportStatements: string[], operationName: string): Promise<void> {
+  const fields = type === 'request' ? operation.fields : operation.responseFields;
+  const generated = new Set<string>();
+
+  function processNestedFields(field: any) {
+    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
+      generated.add(field.type);
+      
+      // Generar DTO individual para cada interface anidada
+      const nestedDTO = generateIndividualNestedDTO(field.type, field, apiName, serviceName, operationName);
+      const nestedFileName = `${field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '')}-response-dto.ts`;
+      
+      fs.writeFileSync(
+        path.join(operationFolder, nestedFileName),
+        nestedDTO
+      );
+      
+      const dtoClassName = `I${toPascalCase(field.type)}ResponseDTO`;
+      exportStatements.push(`export { ${dtoClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
+
+      // Procesar campos anidados recursivamente
+      if (field.nestedFields && field.nestedFields.length > 0) {
+        field.nestedFields.forEach(processNestedFields);
+      }
+    }
+  }
+
+  if (fields && fields.length > 0) {
+    fields.forEach(processNestedFields);
+  }
+}
+
+function generateBusinessDTO(serviceName: string, operation: any, type: 'request' | 'response', apiName: string = 'platform'): string {
+  const operationName = operation.path.split('/').pop() || type;
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  const dtoInterfaceName = `I${toPascalCase(serviceName)}${cleanOperationName}${type === 'request' ? 'Request' : 'Response'}DTO`;
+  
+  const fields = type === 'request' ? operation.fields : operation.responseFields;
+  
+  let dtoFields = '';
+  
+  if (fields && fields.length > 0) {
+    const fieldMappings = fields.map((field: any) => {
+      const fieldName = convertToCamelCase(field.name); // DTO usa camelCase
+      const optionalMark = field.required ? '' : '?';
+      const arrayMark = field.isArray ? '[]' : '';
+      
+      // Si es un tipo complejo, usar el tipo con el sufijo DTO
+      if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
+        const fieldType = `${toPascalCase(field.type)}ResponseDTO`;
+        return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
+      } else {
+        return `  ${fieldName}${optionalMark}: ${field.type}${arrayMark};`;
+      }
+    });
+    
+    dtoFields = fieldMappings.join('\n');
+  }
+
+  return `export interface ${dtoInterfaceName} {
+${dtoFields}
+}`;
+}
+
+function generateIndividualNestedDTO(typeName: string, field: any, apiName: string, serviceName: string, operationName: string): string {
+  const dtoInterfaceName = `I${toPascalCase(typeName)}ResponseDTO`;
+  
+  let dtoFields = '';
+  
+  if (field.nestedFields && field.nestedFields.length > 0) {
+    const fieldMappings = field.nestedFields.map((nestedField: any) => {
+      const fieldName = convertToCamelCase(nestedField.name); // DTO usa camelCase
+      const optionalMark = nestedField.required ? '' : '?';
+      const arrayMark = nestedField.isArray ? '[]' : '';
+      
+      // Si es un tipo complejo, usar el tipo con el sufijo DTO
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
+        const fieldType = `${toPascalCase(nestedField.type)}ResponseDTO`;
+        return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
+      } else {
+        return `  ${fieldName}${optionalMark}: ${nestedField.type}${arrayMark};`;
+      }
+    });
+    
+    dtoFields = fieldMappings.join('\n');
+  }
+
+  return `export interface ${dtoInterfaceName} {
+${dtoFields}
+}`;
+}

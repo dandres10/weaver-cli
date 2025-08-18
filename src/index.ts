@@ -1,5 +1,6 @@
 // Punto de entrada principal para la librería
 export { createCorrectEntityFlow } from './generators/correct-entity-flow-generator';
+export { createBusinessFlow } from './generators/business-flow-generator';
 export { showMainMenu } from './cli';
 
 // Tipos y interfaces principales

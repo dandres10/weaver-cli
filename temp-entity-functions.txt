@@ -1,0 +1,79 @@
+async function generateNestedEntitiesForOperation(serviceName: string, operation: any, type: 'request' | 'response', operationFolder: string, apiName: string, exportStatements: string[], operationName: string): Promise<void> {
+  const fields = type === 'request' ? operation.fields : operation.responseFields;
+  const generated = new Set<string>();
+
+  function processNestedFields(field: any) {
+    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
+      generated.add(field.type);
+      
+      // Generar Entity individual para cada interface anidada
+      const nestedEntity = generateIndividualNestedEntity(field.type, field, apiName, serviceName, operationName, type);
+      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+      // Si el tipo ya termina en request o response, no duplicar
+      const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
+      const nestedFileName = needsSuffix 
+        ? `i-${baseFileName}-${type}-entity.ts`
+        : `i-${baseFileName}-entity.ts`;
+      
+      fs.writeFileSync(
+        path.join(operationFolder, nestedFileName),
+        nestedEntity
+      );
+      
+      const formattedFieldType = toPascalCase(field.type);
+      const suffix = type === 'request' ? 'Request' : 'Response';
+      // Evitar duplicación si el tipo ya termina en Request o Response
+      const entityClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
+        ? `${formattedFieldType}Entity` 
+        : `${formattedFieldType}${suffix}Entity`;
+      exportStatements.push(`export { ${entityClassName} } from './${operationName}/${nestedFileName.replace('.ts', '')}';`);
+
+      // Procesar campos anidados recursivamente
+      if (field.nestedFields && field.nestedFields.length > 0) {
+        field.nestedFields.forEach(processNestedFields);
+      }
+    }
+  }
+
+  if (fields && fields.length > 0) {
+    fields.forEach(processNestedFields);
+  }
+}
+
+function generateIndividualNestedEntity(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
+  const formattedTypeName = toPascalCase(typeName);
+  const suffix = type === 'request' ? 'Request' : 'Response';
+  // Evitar duplicación si el tipo ya termina en Request o Response
+  const entityInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
+    ? `${formattedTypeName}Entity` 
+    : `${formattedTypeName}${suffix}Entity`;
+  
+  let entityFields = '';
+  
+  if (field.nestedFields && field.nestedFields.length > 0) {
+    const fieldMappings = field.nestedFields.map((nestedField: any) => {
+      const fieldName = nestedField.name; // Entity usa snake_case como viene del swagger
+      const optionalMark = nestedField.required ? '' : '?';
+      const arrayMark = nestedField.isArray ? '[]' : '';
+      
+      // Si es un tipo complejo, usar el tipo con el sufijo Entity
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
+        const nestedTypeName = toPascalCase(nestedField.type);
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        // Evitar duplicación si el tipo ya termina en Request o Response
+        const fieldType = nestedTypeName.endsWith('Response') || nestedTypeName.endsWith('Request') 
+          ? `${nestedTypeName}Entity` 
+          : `${nestedTypeName}${suffix}Entity`;
+        return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
+      } else {
+        return `  ${fieldName}${optionalMark}: ${nestedField.type}${arrayMark};`;
+      }
+    });
+    
+    entityFields = fieldMappings.join('\n');
+  }
+
+  return `export interface ${entityInterfaceName} {
+${entityFields}
+}`;
+}

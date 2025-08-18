@@ -1,0 +1,9 @@
+export { ICompanyCompanyRequestEntity } from './company/i-company-company-request-entity';
+export { ICompanyCompanyResponseEntity } from './company/i-company-company-response-entity';
+export { ICompanyCompanyRequestEntity } from './company/i-company-company-request-entity';
+export { ICompanyCompanyResponseEntity } from './company/i-company-company-response-entity';
+export { ICompanyListRequestEntity } from './list/i-company-list-request-entity';
+export { IAny[]RequestEntity } from './list/i-any[]-request-entity';
+export { ICompanyListResponseEntity } from './list/i-company-list-response-entity';
+export { ICompany{id}ResponseEntity } from './{id}/i-company-{id}-response-entity';
+export { ICompany{id}ResponseEntity } from './{id}/i-company-{id}-response-entity';

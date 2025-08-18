@@ -157,6 +157,60 @@ export class ProjectValidator {
   }
 
   /**
+   * Verifica si una entidad de negocio ya existe en el proyecto
+   */
+  static async checkBusinessEntityExists(entityName: string, basePath: string, apiName: string = 'platform'): Promise<EntityExistsResult> {
+    const entityNameLower = entityName.toLowerCase();
+    const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
+    
+    const conflictingFiles: string[] = [];
+
+    // Determinar si estamos en el directorio de la API o necesitamos crear uno
+    const currentDirName = path.basename(basePath);
+    const shouldCreateApiDir = currentDirName !== apiName;
+    const apiPrefix = shouldCreateApiDir ? `${apiName}/` : '';
+
+    // Directorios donde buscar archivos de la entidad de negocio (usando business en lugar de entities)
+    const searchPaths = [
+      `${apiPrefix}domain/models/apis/${apiName}/business/${entityNameLower}`,
+      `${apiPrefix}domain/services/repositories/apis/${apiName}/business/i-${entityNameKebab}-repository.ts`,
+      `${apiPrefix}domain/services/use_cases/apis/${apiName}/business/${entityNameLower}`,
+      `${apiPrefix}infrastructure/entities/apis/${apiName}/business/${entityNameLower}`,
+      `${apiPrefix}infrastructure/mappers/apis/${apiName}/business/${entityNameLower}`,
+      `${apiPrefix}infrastructure/repositories/apis/${apiName}/repositories/business/${entityNameLower}`,
+      `${apiPrefix}facade/apis/${apiName}/business/${entityNameKebab}-facade.ts`
+    ];
+
+    for (const searchPath of searchPaths) {
+      const fullPath = path.join(basePath, searchPath);
+      
+      if (await fs.pathExists(fullPath)) {
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+          // Si es directorio, verificar si tiene archivos
+          const files = await fs.readdir(fullPath);
+          if (files.length > 0) {
+            conflictingFiles.push(`📁 ${searchPath}/ (${files.length} archivos)`);
+          }
+        } else {
+          // Si es archivo
+          conflictingFiles.push(`📄 ${searchPath}`);
+        }
+      }
+    }
+
+    const exists = conflictingFiles.length > 0;
+
+    return {
+      exists,
+      conflictingFiles: conflictingFiles,
+      message: exists 
+        ? `⚠️  La entidad de negocio "${entityName}" ya existe parcial o completamente`
+        : `✅ La entidad de negocio "${entityName}" no existe, se puede generar`
+    };
+  }
+
+  /**
    * Valida la configuración completa antes de generar
    */
   static async validateBeforeGeneration(entityName: string, basePath: string, apiName: string = 'platform'): Promise<{
