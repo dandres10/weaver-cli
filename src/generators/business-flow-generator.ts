@@ -1222,8 +1222,8 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
         const dtoImports = hasRequest ? `${requestDTOName}, ${responseDTOName}` : responseDTOName;
         const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<void, ${responseDTOName} | null>`;
         
-        // Usar mapper unificado (como en entities)
-        const mapperImport = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`;
+        // Solo importar mapper si tiene request fields
+        const mapperImport = hasRequest ? `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";` : '';
         
         // Método execute siguiendo el patrón
         const executeParams = hasRequest ? `params: ${requestDTOName}, ` : '';
@@ -1241,8 +1241,8 @@ import { InjectionPlatformBusinessRepository } from "@${apiName}/infrastructure/
 
 export class ${useCaseClassName} implements ${useCaseInterface} {
   private static instance: ${useCaseClassName};
-  private repository = InjectionPlatformBusinessRepository.${toPascalCase(serviceName)}Repository();
-  private mapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}${hasRequest ? 'Request' : 'Response'}Mapper();
+  private repository = InjectionPlatformBusinessRepository.${toPascalCase(serviceName)}Repository();${hasRequest ? `
+  private mapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();` : ''}
 
   public static getInstance(): ${useCaseClassName} {
     if (!${useCaseClassName}.instance)
@@ -1252,7 +1252,6 @@ export class ${useCaseClassName} implements ${useCaseInterface} {
 
   public async execute(${executeParams}config?: IConfigDTO): Promise<${responseDTOName} | null> {
     ${mapperLogic}
-  }
 }`;
 
         await fs.writeFile(
