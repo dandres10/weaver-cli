@@ -6,10 +6,10 @@ import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infra
 export class AuthRefreshTokenPlatformVariationsResponseMapper extends Mapper<IAuthRefreshTokenPlatformVariationsResponseEntity, IAuthRefreshTokenPlatformVariationsResponseDTO> {
 
     private static instance: AuthRefreshTokenPlatformVariationsResponseMapper;
-    private currencyLoginresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CurrencyLoginResponseMapper()
-    private locationLoginresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LocationLoginResponseMapper()
-    private languageLoginresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LanguageLoginResponseMapper()
-    private companyLoginresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CompanyLoginResponseMapper()
+    private currencyresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CurrencyResponseMapper()
+    private locationresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LocationResponseMapper()
+    private languageresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LanguageResponseMapper()
+    private companyresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CompanyResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AuthRefreshTokenPlatformVariationsResponseMapper {
@@ -20,10 +20,10 @@ export class AuthRefreshTokenPlatformVariationsResponseMapper extends Mapper<IAu
 
     public mapFrom(param: IAuthRefreshTokenPlatformVariationsResponseEntity): IAuthRefreshTokenPlatformVariationsResponseDTO {
         return {
-            currencies: this.currencyLoginresponseMapper.mapFromList(param.currencies),
-            locations: this.locationLoginresponseMapper.mapFromList(param.locations),
-            languages: this.languageLoginresponseMapper.mapFromList(param.languages),
-            companies: this.companyLoginresponseMapper.mapFromList(param.companies)
+            currencies: this.currencyresponseMapper.mapFromList(param.currencies),
+            locations: this.locationresponseMapper.mapFromList(param.locations),
+            languages: this.languageresponseMapper.mapFromList(param.languages),
+            companies: this.companyresponseMapper.mapFromList(param.companies)
         }
     }
 
@@ -35,10 +35,10 @@ export class AuthRefreshTokenPlatformVariationsResponseMapper extends Mapper<IAu
 
     public mapTo(param: IAuthRefreshTokenPlatformVariationsResponseDTO): IAuthRefreshTokenPlatformVariationsResponseEntity {
         return {
-            currencies: this.currencyLoginresponseMapper.mapToList(param.currencies),
-            locations: this.locationLoginresponseMapper.mapToList(param.locations),
-            languages: this.languageLoginresponseMapper.mapToList(param.languages),
-            companies: this.companyLoginresponseMapper.mapToList(param.companies)
+            currencies: this.currencyresponseMapper.mapToList(param.currencies),
+            locations: this.locationresponseMapper.mapToList(param.locations),
+            languages: this.languageresponseMapper.mapToList(param.languages),
+            companies: this.companyresponseMapper.mapToList(param.companies)
         }
     }
 

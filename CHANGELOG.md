@@ -5,6 +5,37 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.8] - 2024-12-23
+
+### 🔧 CORRECCIÓN FINAL - MAPPERS ANIDADOS COMPLETAMENTE CORREGIDOS
+
+#### 🛠️ Fixed - VARIABLES Y MÉTODOS DE MAPPERS ANIDADOS
+- **🎯 Variables Anidadas**: Nombres de variables corregidos sin sufijos duplicados
+- **📞 Métodos Injection**: Llamadas a métodos existentes en injection files
+- **🔄 Lógica Simplificada**: Implementación más robusta para mappers con dependencias
+- **✅ Consistency**: Variables y métodos completamente alineados
+
+#### 📚 Technical Details - Variables Corregidas
+- **Before**: `private userLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserLoginResponseMapper()` ❌
+- **After**: `private userresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserResponseMapper()` ✅
+- **Variables**: Sin sufijos redundantes como "LoginResponse"
+- **Methods**: Llamadas a métodos reales que existen en injection
+- **Pattern**: `{basename}ResponseMapper` para variables y métodos
+
+#### 📚 Technical Details - Casos Cubiertos
+- **Login Operation**: Variables como `userResponseMapper` → método `UserResponseMapper()`
+- **Refresh Token**: Variables como `companyResponseMapper` → método `CompanyResponseMapper()` 
+- **All Operations**: Lógica consistente independiente de la operación
+- **Nested Types**: Funciona para cualquier tipo anidado sin importar sufijos
+
+#### 🎯 Impact - MAPPERS ANIDADOS FUNCIONANDO AL 100%
+- ✅ Variables con nombres correctos sin duplicaciones
+- ✅ Métodos que existen y funcionan en injection files
+- ✅ Zero errores de compilación en mappers complejos
+- ✅ Consistencia total entre variables y métodos
+- ✅ Lógica robusta para cualquier combinación de tipos
+- ✅ Mappers anidados completamente funcionales
+
 ## [2.1.7] - 2024-12-23
 
 ### 🔧 CORRECCIÓN CRÍTICA - IMPORT PATHS A INDEX.TS

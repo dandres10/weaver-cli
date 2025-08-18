@@ -6,10 +6,10 @@ import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructu
 export class AuthLoginPlatformVariationsResponseMapper extends Mapper<IAuthLoginPlatformVariationsResponseEntity, IAuthLoginPlatformVariationsResponseDTO> {
 
     private static instance: AuthLoginPlatformVariationsResponseMapper;
-    private currencyLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CurrencyLoginResponseMapper()
-    private locationLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LocationLoginResponseMapper()
-    private languageLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LanguageLoginResponseMapper()
-    private companyLoginresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CompanyLoginResponseMapper()
+    private currencyresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CurrencyResponseMapper()
+    private locationresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LocationResponseMapper()
+    private languageresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LanguageResponseMapper()
+    private companyresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CompanyResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AuthLoginPlatformVariationsResponseMapper {
@@ -20,10 +20,10 @@ export class AuthLoginPlatformVariationsResponseMapper extends Mapper<IAuthLogin
 
     public mapFrom(param: IAuthLoginPlatformVariationsResponseEntity): IAuthLoginPlatformVariationsResponseDTO {
         return {
-            currencies: this.currencyLoginresponseMapper.mapFromList(param.currencies),
-            locations: this.locationLoginresponseMapper.mapFromList(param.locations),
-            languages: this.languageLoginresponseMapper.mapFromList(param.languages),
-            companies: this.companyLoginresponseMapper.mapFromList(param.companies)
+            currencies: this.currencyresponseMapper.mapFromList(param.currencies),
+            locations: this.locationresponseMapper.mapFromList(param.locations),
+            languages: this.languageresponseMapper.mapFromList(param.languages),
+            companies: this.companyresponseMapper.mapFromList(param.companies)
         }
     }
 
@@ -35,10 +35,10 @@ export class AuthLoginPlatformVariationsResponseMapper extends Mapper<IAuthLogin
 
     public mapTo(param: IAuthLoginPlatformVariationsResponseDTO): IAuthLoginPlatformVariationsResponseEntity {
         return {
-            currencies: this.currencyLoginresponseMapper.mapToList(param.currencies),
-            locations: this.locationLoginresponseMapper.mapToList(param.locations),
-            languages: this.languageLoginresponseMapper.mapToList(param.languages),
-            companies: this.companyLoginresponseMapper.mapToList(param.companies)
+            currencies: this.currencyresponseMapper.mapToList(param.currencies),
+            locations: this.locationresponseMapper.mapToList(param.locations),
+            languages: this.languageresponseMapper.mapToList(param.languages),
+            companies: this.companyresponseMapper.mapToList(param.companies)
         }
     }
 

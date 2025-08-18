@@ -771,17 +771,23 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         const nestedFieldTypeName = toPascalCase(nestedField.type);
         const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request o Response
-        const nestedMapperClassName = nestedFieldTypeName.endsWith('Response') || nestedFieldTypeName.endsWith('Request') 
-          ? `${nestedFieldTypeName}Mapper` 
-          : `${nestedFieldTypeName}${nestedSuffix}Mapper`;
+        
+        // Para mappers anidados, usar lógica simplificada más coherente con los archivos generados
+        // Siempre remover sufijos duplicados y mantener solo el nombre base + sufijo correspondiente al tipo
+        let cleanNestedFieldType = nestedFieldTypeName;
+        
+        // Remover sufijos redundantes para obtener nombre base limpio
+        cleanNestedFieldType = cleanNestedFieldType.replace(/LoginResponse$|LoginRequest$|Response$|Request$/, '');
+        
+        // Generar nombre de clase de mapper basado en las clases reales que se generan
+        const nestedMapperClassName = `${toPascalCase(serviceName)}${cleanOperationName}${cleanNestedFieldType}${nestedSuffix}Mapper`;
         
         // Crear un nombre de variable único sin duplicaciones usando camelCase correcto
-        const formattedNestedFieldType = toPascalCase(nestedField.type);
-        const cleanNestedFieldType = formattedNestedFieldType.endsWith('Response') || formattedNestedFieldType.endsWith('Request') 
-          ? formattedNestedFieldType.replace(/Response$|Request$/, '') 
-          : formattedNestedFieldType;
-        const nestedMapperName = `${cleanNestedFieldType.charAt(0).toLowerCase() + cleanNestedFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
+        // Para la variable, extraer solo el nombre base sin sufijos y agregar ResponseMapper/RequestMapper
+        let variableBaseName = nestedFieldTypeName;
+        // Remover todos los sufijos para obtener el nombre base limpio
+        variableBaseName = variableBaseName.replace(/LoginResponse$|LoginRequest$|Login$|Response$|Request$/, '');
+        const nestedMapperName = `${variableBaseName.charAt(0).toLowerCase() + variableBaseName.slice(1)}${nestedSuffix.charAt(0).toLowerCase() + nestedSuffix.slice(1)}Mapper`;
         
         // Generar nombre de método abreviado (sin prefijo de servicio y operación)
         const formattedServiceName = toPascalCase(serviceName);
@@ -808,12 +814,21 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       const entityFieldName = nestedField.name;
       
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        // Usar el mismo nombre de variable que en mapFromMappings
-        const formattedNestedFieldType = toPascalCase(nestedField.type);
-        const cleanNestedFieldType = formattedNestedFieldType.endsWith('Response') || formattedNestedFieldType.endsWith('Request') 
-          ? formattedNestedFieldType.replace(/Response$|Request$/, '') 
-          : formattedNestedFieldType;
-        const nestedMapperName = `${cleanNestedFieldType.charAt(0).toLowerCase() + cleanNestedFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
+        // Usar el mismo nombre de variable que en mapFromMappings aplicando la misma lógica contextual
+        const nestedFieldTypeName = toPascalCase(nestedField.type);
+        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+        
+        // Para mappers anidados, usar la misma lógica simplificada
+        let cleanNestedFieldType = nestedFieldTypeName;
+        
+        // Remover sufijos redundantes para obtener nombre base limpio
+        cleanNestedFieldType = cleanNestedFieldType.replace(/LoginResponse$|LoginRequest$|Response$|Request$/, '');
+        
+        // Para la variable, extraer solo el nombre base sin sufijos y agregar ResponseMapper/RequestMapper
+        let variableBaseName = nestedFieldTypeName;
+        // Remover todos los sufijos para obtener el nombre base limpio
+        variableBaseName = variableBaseName.replace(/LoginResponse$|LoginRequest$|Login$|Response$|Request$/, '');
+        const nestedMapperName = `${variableBaseName.charAt(0).toLowerCase() + variableBaseName.slice(1)}${nestedSuffix.charAt(0).toLowerCase() + nestedSuffix.slice(1)}Mapper`;
         
         if (nestedField.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
