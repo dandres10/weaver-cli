@@ -16,10 +16,22 @@ export async function createBusinessFlow(serviceName: string, basePath: string =
   const paths = {
     // DTOs para business
     domainModels: path.join(basePath, `${apiPrefix}domain/models/apis/${targetApiName}/business/${serviceNameLower}`),
+    // Repositories para business
+    domainRepositories: path.join(basePath, `${apiPrefix}domain/services/repositories/apis/${targetApiName}/business`),
+    // Use Cases para business
+    domainUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${targetApiName}/business/${serviceNameLower}`),
     // Entities para business
     infraEntities: path.join(basePath, `${apiPrefix}infrastructure/entities/apis/${targetApiName}/business/${serviceNameLower}`),
     // Mappers para business
-    infraMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${targetApiName}/business/${serviceNameLower}`)
+    infraMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${targetApiName}/business/${serviceNameLower}`),
+    // Injection para mappers de business (ubicación correcta)
+    injectionMappers: path.join(basePath, `${apiPrefix}infrastructure/mappers/apis/${targetApiName}/injection/business/${serviceNameLower}`),
+    // Facades para business
+    facades: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/business`),
+    // Injection para business Use Cases
+    injectionUseCases: path.join(basePath, `${apiPrefix}domain/services/use_cases/apis/${targetApiName}/injection/business`),
+    // Injection para business Facades
+    injectionFacades: path.join(basePath, `${apiPrefix}facade/apis/${targetApiName}/injection/business`)
   };
 
   try {
@@ -27,10 +39,20 @@ export async function createBusinessFlow(serviceName: string, basePath: string =
     await createDirectoriesIfNotExists(paths);
     // Generar DTOs por operación
     await generateDomainDTOs(serviceName, paths, schema, targetApiName);
+    // Generar repository interfaces por servicio
+    await generateDomainRepositoryInterfaces(serviceName, paths, schema, targetApiName);
+    // Generar use cases por operación
+    await generateDomainUseCases(serviceName, paths, schema, targetApiName);
     // Generar entities por operación
     await generateInfrastructureEntities(serviceName, paths, schema, targetApiName);
     // Generar mappers por operación
     await generateInfrastructureMappers(serviceName, paths, schema, targetApiName);
+    // Generar injection files por operación (en lugar de por servicio)
+    await generateMapperInjectionPerOperation(serviceName, paths, schema, targetApiName);
+    // Generar facades por servicio
+    await generateBusinessFacades(serviceName, paths, schema, targetApiName);
+    // Generar archivos de inyección
+    await generateBusinessInjectionFiles(serviceName, paths, schema, targetApiName);
     console.log(chalk.green(`✨ Flujo de negocio ${serviceName} generado exitosamente!`));
   } catch (error) {
     console.error(chalk.red('❌ Error generando archivos:'), error);
@@ -244,7 +266,7 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
       
       // Generar mapper individual para cada interface anidada
       const nestedMapper = generateIndividualNestedMapper(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       // Si el tipo ya termina en request o response, no duplicar
       const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
       const nestedFileName = needsSuffix 
@@ -315,62 +337,46 @@ function generateBusinessEntityInterface(serviceName: string, operation: any, ty
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
   const interfaceName = `I${toPascalCase(serviceName)}${cleanOperationName}${type === 'request' ? 'Request' : 'Response'}Entity`;
-  let content = `export interface ${interfaceName} {\n`;
+  
   const fields = type === 'request' ? operation.fields : operation.responseFields;
+  let imports: string[] = [];
+  let content = '';
+  
   if (fields && fields.length > 0) {
     fields.forEach((field: any) => {
       const optionalMark = field.required ? '' : '?';
       const arrayMark = field.isArray ? '[]' : '';
-      // Mantener los nombres de campos tal como vienen del swagger (camelCase)
+      // Mantener los nombres de campos tal como vienen del swagger (snake_case)
       const fieldName = field.name;
       let fieldType = field.type;
+      
       if (fieldType && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(fieldType)) {
-        fieldType = 'I' + toPascalCase(fieldType) + 'Entity';
+        const typeName = toPascalCase(fieldType);
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        fieldType = typeName.endsWith('Response') || typeName.endsWith('Request') 
+          ? `I${typeName}Entity` 
+          : `I${typeName}${suffix}Entity`;
+        
+        // Agregar import para tipos complejos
+        const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
+        const importFileName = needsSuffix 
+          ? `i-${baseFileName}-${type}-entity`
+          : `i-${baseFileName}-entity`;
+        
+        imports.push(`import { ${fieldType} } from "./${importFileName}";`);
       }
+      
       content += `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};\n`;
     });
   } else {
     content += `  // Define los campos del ${type} aquí\n`;
   }
-  content += `}\n`;
-  // Recursividad para interfaces hijas (solo para response)
-  if (type === 'response' && fields && fields.length > 0) {
-    const generated = new Set<string>();
-    function generateNested(field: any) {
-      if (
-        field.type &&
-        !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) &&
-        !generated.has(field.type)
-      ) {
-        generated.add(field.type);
-        const nestedInterfaceName = toPascalCase(field.type) + 'Entity';
-        content += `\nexport interface ${nestedInterfaceName} {\n`;
-        if (field.nestedFields && field.nestedFields.length > 0) {
-          field.nestedFields.forEach((nested: any) => {
-            const optionalMark = nested.required ? '' : '?';
-            const arrayMark = nested.isArray ? '[]' : '';
-            // Mantener los nombres de campos tal como vienen del swagger (camelCase)
-            const nestedFieldName = nested.name;
-            let nestedType = nested.type;
-            if (nestedType && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedType)) {
-              nestedType = toPascalCase(nestedType) + 'Entity';
-            }
-            content += `  ${nestedFieldName}${optionalMark}: ${nestedType}${arrayMark};\n`;
-          });
-        } else {
-          content += `  // No hay propiedades definidas\n`;
-        }
-        content += `}\n`;
-        if (field.nestedFields && field.nestedFields.length > 0) {
-          field.nestedFields.forEach(generateNested);
-        }
-      } else if (field.nestedFields && field.nestedFields.length > 0) {
-        field.nestedFields.forEach(generateNested);
-      }
-    }
-    fields.forEach(generateNested);
-  }
-  return content;
+  
+  const importsSection = imports.length > 0 ? imports.join('\n') + '\n\n' : '';
+  
+  return `${importsSection}export interface ${interfaceName} {
+${content}}`;
 }
 
 function convertToCamelCase(str: string): string {
@@ -437,8 +443,13 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
       
       // Si es un tipo complejo, usar mapper específico
       if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
-        const nestedMapperName = `${field.type.toLowerCase()}ResponseMapper`;
-        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusinessAuthMapper.${toPascalCase(field.type)}ResponseMapper()`);
+        const formattedFieldType = toPascalCase(field.type);
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        const mapperClassName = formattedFieldType.endsWith('Response') || formattedFieldType.endsWith('Request') 
+          ? `${formattedFieldType}Mapper` 
+          : `${formattedFieldType}${suffix}Mapper`;
+        const nestedMapperName = `${field.type.toLowerCase()}${suffix.toLowerCase()}Mapper`;
+        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${mapperClassName}()`);
         
         if (field.isArray) {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
@@ -456,7 +467,9 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
       
       // Si es un tipo complejo, usar mapper específico
       if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type)) {
-        const nestedMapperName = `${field.type.toLowerCase()}ResponseMapper`;
+        const formattedFieldType = toPascalCase(field.type);
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        const nestedMapperName = `${field.type.toLowerCase()}${suffix.toLowerCase()}Mapper`;
         
         if (field.isArray) {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
@@ -470,7 +483,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
     
     // Agregar imports e instancias de mappers anidados si existen
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusinessAuthMapper } from "../../../injection/business/injection-platform-business-auth-mapper";\n`;
+      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     
@@ -525,6 +538,13 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
   const formattedTypeName = toPascalCase(typeName);
   const suffix = type === 'request' ? 'Request' : 'Response';
   
+  // Crear cleanOperationName aquí también
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
   // Evitar duplicación si el tipo ya termina en Request o Response
   const dtoInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
     ? `I${formattedTypeName}DTO` 
@@ -556,7 +576,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
           ? `${nestedFieldTypeName}Mapper` 
           : `${nestedFieldTypeName}${nestedSuffix}Mapper`;
         const nestedMapperName = `${nestedField.type.toLowerCase()}${nestedSuffix.toLowerCase()}Mapper`;
-        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusinessAuthMapper.${nestedMapperClassName}()`);
+        nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${nestedMapperClassName}()`);
         
         if (nestedField.isArray) {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
@@ -591,7 +611,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     });
     
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusinessAuthMapper } from "../../../injection/business/injection-platform-business-auth-mapper";\n`;
+      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     
@@ -650,7 +670,7 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
       
       // Generar DTO individual para cada interface anidada
       const nestedDTO = generateIndividualNestedDTO(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       // Si el tipo ya termina en request o response, no duplicar
       const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
       const nestedFileName = needsSuffix 
@@ -695,6 +715,7 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
   const fields = type === 'request' ? operation.fields : operation.responseFields;
   
   let dtoFields = '';
+  let imports: string[] = [];
   
   if (fields && fields.length > 0) {
     const fieldMappings = fields.map((field: any) => {
@@ -708,8 +729,18 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
         const suffix = type === 'request' ? 'Request' : 'Response';
         // Evitar duplicación si el tipo ya termina en Request o Response
         const fieldType = typeName.endsWith('Response') || typeName.endsWith('Request') 
-          ? `${typeName}DTO` 
-          : `${typeName}${suffix}DTO`;
+          ? `I${typeName}DTO` 
+          : `I${typeName}${suffix}DTO`;
+        
+        // Agregar import para tipos complejos
+        const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
+        const importFileName = needsSuffix 
+          ? `i-${baseFileName}-${type}-dto`
+          : `i-${baseFileName}-dto`;
+        
+        imports.push(`import { ${fieldType} } from "./${importFileName}";`);
+        
         return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
       } else {
         return `  ${fieldName}${optionalMark}: ${field.type}${arrayMark};`;
@@ -719,7 +750,9 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
     dtoFields = fieldMappings.join('\n');
   }
 
-  return `export interface ${dtoInterfaceName} {
+  const importsSection = imports.length > 0 ? imports.join('\n') + '\n\n' : '';
+
+  return `${importsSection}export interface ${dtoInterfaceName} {
 ${dtoFields}
 }`;
 }
@@ -733,6 +766,7 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
     : `I${formattedTypeName}${suffix}DTO`;
   
   let dtoFields = '';
+  let imports: string[] = [];
   
   if (field.nestedFields && field.nestedFields.length > 0) {
     const fieldMappings = field.nestedFields.map((nestedField: any) => {
@@ -743,11 +777,21 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
       // Si es un tipo complejo, usar el tipo con el sufijo DTO
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         const nestedTypeName = toPascalCase(nestedField.type);
-        const suffix = type === 'request' ? 'Request' : 'Response';
+        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
         // Evitar duplicación si el tipo ya termina en Request o Response
         const fieldType = nestedTypeName.endsWith('Response') || nestedTypeName.endsWith('Request') 
-          ? `${nestedTypeName}DTO` 
-          : `${nestedTypeName}${suffix}DTO`;
+          ? `I${nestedTypeName}DTO` 
+          : `I${nestedTypeName}${nestedSuffix}DTO`;
+        
+        // Agregar import para tipos complejos
+        const baseFileName = nestedField.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const needsSuffix = !nestedField.type.toLowerCase().endsWith('response') && !nestedField.type.toLowerCase().endsWith('request');
+        const importFileName = needsSuffix 
+          ? `i-${baseFileName}-${type}-dto`
+          : `i-${baseFileName}-dto`;
+        
+        imports.push(`import { ${fieldType} } from "./${importFileName}";`);
+        
         return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
       } else {
         return `  ${fieldName}${optionalMark}: ${nestedField.type}${arrayMark};`;
@@ -757,7 +801,9 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
     dtoFields = fieldMappings.join('\n');
   }
 
-  return `export interface ${dtoInterfaceName} {
+  const importsSection = imports.length > 0 ? imports.join('\n') + '\n\n' : '';
+
+  return `${importsSection}export interface ${dtoInterfaceName} {
 ${dtoFields}
 }`;
 }
@@ -772,7 +818,7 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
       
       // Generar Entity individual para cada interface anidada
       const nestedEntity = generateIndividualNestedEntity(field.type, field, apiName, serviceName, operationName, type);
-      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       // Si el tipo ya termina en request o response, no duplicar
       const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
       const nestedFileName = needsSuffix 
@@ -807,12 +853,13 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
 function generateIndividualNestedEntity(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
   const formattedTypeName = toPascalCase(typeName);
   const suffix = type === 'request' ? 'Request' : 'Response';
-  // Evitar duplicación si el tipo ya termina en Request o Response
+  // Evitar duplicación si el tipo ya termina en Request or Response
   const entityInterfaceName = formattedTypeName.endsWith('Response') || formattedTypeName.endsWith('Request') 
     ? `I${formattedTypeName}Entity` 
     : `I${formattedTypeName}${suffix}Entity`;
   
   let entityFields = '';
+  let imports: string[] = [];
   
   if (field.nestedFields && field.nestedFields.length > 0) {
     const fieldMappings = field.nestedFields.map((nestedField: any) => {
@@ -823,11 +870,21 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
       // Si es un tipo complejo, usar el tipo con el sufijo Entity
       if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         const nestedTypeName = toPascalCase(nestedField.type);
-        const suffix = type === 'request' ? 'Request' : 'Response';
-        // Evitar duplicación si el tipo ya termina en Request o Response
+        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+        // Evitar duplicación si el tipo ya termina en Request or Response
         const fieldType = nestedTypeName.endsWith('Response') || nestedTypeName.endsWith('Request') 
           ? `I${nestedTypeName}Entity` 
-          : `I${nestedTypeName}${suffix}Entity`;
+          : `I${nestedTypeName}${nestedSuffix}Entity`;
+        
+        // Agregar import para tipos complejos
+        const baseFileName = nestedField.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+        const needsSuffix = !nestedField.type.toLowerCase().endsWith('response') && !nestedField.type.toLowerCase().endsWith('request');
+        const importFileName = needsSuffix 
+          ? `i-${baseFileName}-${type}-entity`
+          : `i-${baseFileName}-entity`;
+        
+        imports.push(`import { ${fieldType} } from "./${importFileName}";`);
+        
         return `  ${fieldName}${optionalMark}: ${fieldType}${arrayMark};`;
       } else {
         return `  ${fieldName}${optionalMark}: ${nestedField.type}${arrayMark};`;
@@ -837,7 +894,392 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
     entityFields = fieldMappings.join('\n');
   }
 
-  return `export interface ${entityInterfaceName} {
+  const importsSection = imports.length > 0 ? imports.join('\n') + '\n\n' : '';
+
+  return `${importsSection}export interface ${entityInterfaceName} {
 ${entityFields}
 }`;
+}
+
+// ======================================================================
+// NUEVAS FUNCIONES PARA COMPLETAR EL FLUJO DE NEGOCIO
+// ======================================================================
+
+async function generateDomainRepositoryInterfaces(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameLower = serviceName.toLowerCase();
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+    
+    // Generar interface del repositorio para el servicio
+    const repositoryInterface = `import { IConfigDTO } from "@bus/core/interfaces";
+import { 
+${schema.businessOperations.map(operation => {
+  const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  const lines = [];
+  if (operation.fields && operation.fields.length > 0) {
+    lines.push(`  I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`);
+  }
+  if (operation.responseFields && operation.responseFields.length > 0) {
+    lines.push(`  I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`);
+  }
+  return lines.join(',\n');
+}).filter(line => line).join(',\n')}
+} from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+
+export interface I${toPascalCase(serviceName)}Repository {
+${schema.businessOperations.map(operation => {
+  const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  const requestType = operation.fields && operation.fields.length > 0 
+    ? `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO` 
+    : 'any';
+  const responseType = operation.responseFields && operation.responseFields.length > 0 
+    ? `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO | null` 
+    : 'any';
+  
+  return `  ${operationName}(params: ${requestType}, config?: IConfigDTO): Promise<${responseType}>;`;
+}).join('\n')}
+}`;
+
+    await fs.writeFile(
+      path.join(paths.domainRepositories, `i-${serviceNameKebab}-repository.ts`),
+      repositoryInterface
+    );
+    console.log(chalk.green(`✅ Repository Interface: i-${serviceNameKebab}-repository.ts`));
+  } else {
+    console.log(chalk.yellow('⚠️  No se generó repository interface porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
+async function generateDomainUseCases(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameLower = serviceName.toLowerCase();
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+
+    for (const operation of schema.businessOperations) {
+      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const operationKebab = operationName.replace(/_/g, '-');
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      const operationFolder = path.join(paths.domainUseCases, operationName);
+      await fs.ensureDir(operationFolder);
+
+      // Solo generar Use Case si tiene tanto request como response
+      if (operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0) {
+        const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
+        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const useCaseClassName = `${toPascalCase(serviceName)}${cleanOperationName}UseCase`;
+
+        const useCase = `import { IConfigDTO } from "@bus/core/interfaces";
+import { UseCase } from "@bus/core/interfaces/use-case";
+import { ${requestDTOName}, ${responseDTOName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+import { InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/injection-${apiName}-business-${serviceNameKebab}-mapper";
+import { InjectionPlatformBusinessRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/business/injection-${apiName}-business-repository";
+
+export class ${useCaseClassName} implements UseCase<${requestDTOName}, ${responseDTOName} | null> {
+  private static instance: ${useCaseClassName};
+  private repository = InjectionPlatformBusinessRepository.${toPascalCase(serviceName)}Repository();
+  private requestMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();
+  private responseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();
+
+  public static getInstance(): ${useCaseClassName} {
+    if (!${useCaseClassName}.instance)
+      ${useCaseClassName}.instance = new ${useCaseClassName}();
+    return ${useCaseClassName}.instance;
+  }
+
+  public async execute(params: ${requestDTOName}, config?: IConfigDTO): Promise<${responseDTOName} | null> {
+    const paramsEntity = this.requestMapper.mapTo(params);
+    const response = await this.repository.${operationName}(paramsEntity, config);
+    return response ? this.responseMapper.mapFrom(response) : null;
+  }
+}`;
+
+        await fs.writeFile(
+          path.join(operationFolder, `${serviceNameKebab}-${operationKebab}-use-case.ts`),
+          useCase
+        );
+        console.log(chalk.green(`✅ Use Case: ${serviceNameKebab}-${operationKebab}-use-case.ts`));
+      }
+    }
+  } else {
+    console.log(chalk.yellow('⚠️  No se generaron use cases porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
+async function generateBusinessFacades(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameLower = serviceName.toLowerCase();
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+
+    // Generar facade para el servicio completo
+    const facadeClassName = `${toPascalCase(serviceName)}Facade`;
+    
+    const imports = schema.businessOperations
+      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .map(operation => {
+        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const cleanOperationName = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        return `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO, I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+      }).join(', ');
+
+    const useCaseImports = schema.businessOperations
+      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .map(operation => {
+        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const operationKebab = operationName.replace(/_/g, '-');
+        const cleanOperationName = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        return `import { ${toPascalCase(serviceName)}${cleanOperationName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-use-case";`;
+      }).join('\n');
+
+    const methods = schema.businessOperations
+      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .map(operation => {
+        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const cleanOperationName = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
+        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const useCaseClassName = `${toPascalCase(serviceName)}${cleanOperationName}UseCase`;
+
+        return `  public async ${operationName}(params: ${requestDTOName}, config?: IConfigDTO): Promise<${responseDTOName} | null> {
+    return await this.${operationName}UseCase.execute(params, config);
+  }
+
+  private ${operationName}UseCase = ${useCaseClassName}.getInstance();`;
+      }).join('\n\n');
+
+    const facade = `import { IConfigDTO } from "@bus/core/interfaces";
+import { ${imports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
+${useCaseImports}
+
+export class ${facadeClassName} {
+  private static instance: ${facadeClassName};
+
+  public static getInstance(): ${facadeClassName} {
+    if (!${facadeClassName}.instance)
+      ${facadeClassName}.instance = new ${facadeClassName}();
+    return ${facadeClassName}.instance;
+  }
+
+${methods}
+}`;
+
+    await fs.writeFile(
+      path.join(paths.facades, `${serviceNameKebab}-facade.ts`),
+      facade
+    );
+    console.log(chalk.green(`✅ Facade: ${serviceNameKebab}-facade.ts`));
+  } else {
+    console.log(chalk.yellow('⚠️  No se generó facade porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
+async function generateMapperInjectionPerOperation(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameLower = serviceName.toLowerCase();
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+
+    // Crear directorio injection en la ubicación correcta
+    await fs.ensureDir(paths.injectionMappers);
+
+    for (const operation of schema.businessOperations) {
+      const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+      const operationKebab = operationName.replace(/_/g, '-');
+      const cleanOperationName = operationName
+        .replace(/_/g, '-')
+        .split('-')
+        .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+
+      // Recopilar todos los mappers de esta operación
+      const mapperImports: string[] = [];
+      const mapperMethods: string[] = [];
+
+      // Request mapper (si existe)
+      if (operation.fields && operation.fields.length > 0) {
+        const requestMapperName = `${toPascalCase(serviceName)}${cleanOperationName}RequestMapper`;
+        mapperImports.push(`import { ${requestMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-request-mapper";`);
+        mapperMethods.push(`  public static ${requestMapperName}(): ${requestMapperName} {
+    return ${requestMapperName}.getInstance();
+  }`);
+      }
+
+      // Response mapper (si existe)
+      if (operation.responseFields && operation.responseFields.length > 0) {
+        const responseMapperName = `${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper`;
+        mapperImports.push(`import { ${responseMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${serviceNameKebab}-${operationKebab}-response-mapper";`);
+        mapperMethods.push(`  public static ${responseMapperName}(): ${responseMapperName} {
+    return ${responseMapperName}.getInstance();
+  }`);
+
+        // Mappers anidados (si existen)
+        const nestedMappers = await collectNestedMappersForOperation(operation, 'response');
+        for (const nestedMapper of nestedMappers) {
+          const nestedMapperName = nestedMapper.className;
+          const nestedMapperFile = nestedMapper.fileName;
+          mapperImports.push(`import { ${nestedMapperName} } from "@${apiName}/infrastructure/mappers/apis/${apiName}/business/${serviceNameLower}/${operationName}/${nestedMapperFile}";`);
+          mapperMethods.push(`  public static ${nestedMapperName}(): ${nestedMapperName} {
+    return ${nestedMapperName}.getInstance();
+  }`);
+        }
+      }
+
+      // Solo crear injection si hay mappers
+      if (mapperImports.length > 0) {
+        const injectionClassName = `InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper`;
+        
+        const injectionContent = `${mapperImports.join('\n')}
+
+export class ${injectionClassName} {
+${mapperMethods.join('\n\n')}
+}`;
+
+        // Generar archivo en la ubicación correcta: /infrastructure/mappers/apis/platform/injection/business/auth/
+        await fs.writeFile(
+          path.join(paths.injectionMappers, `injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper.ts`),
+          injectionContent
+        );
+        console.log(chalk.green(`✅ Injection Mapper (${operationName}): injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper.ts`));
+      }
+    }
+  } else {
+    console.log(chalk.yellow('⚠️  No se generaron injection files porque no hay operaciones de negocio detectadas.'));
+  }
+}
+
+async function collectNestedMappersForOperation(operation: any, type: 'request' | 'response'): Promise<Array<{className: string, fileName: string}>> {
+  const fields = type === 'request' ? operation.fields : operation.responseFields;
+  const nestedMappers: Array<{className: string, fileName: string}> = [];
+  const generated = new Set<string>();
+
+  function processNestedFields(field: any) {
+    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
+      generated.add(field.type);
+      
+      const baseFileName = field.type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
+      const needsSuffix = !field.type.toLowerCase().endsWith('response') && !field.type.toLowerCase().endsWith('request');
+      const fileName = needsSuffix 
+        ? `${baseFileName}-${type}-mapper`
+        : `${baseFileName}-mapper`;
+      
+      const formattedFieldType = toPascalCase(field.type);
+      const suffix = type === 'request' ? 'Request' : 'Response';
+      // Limpiar caracteres especiales para nombres de clase válidos
+      const cleanFormattedType = formattedFieldType.replace(/[\[\]]/g, 'Array');
+      const className = cleanFormattedType.endsWith('Response') || cleanFormattedType.endsWith('Request') 
+        ? `${cleanFormattedType}Mapper` 
+        : `${cleanFormattedType}${suffix}Mapper`;
+
+      nestedMappers.push({
+        className,
+        fileName
+      });
+
+      // Procesar campos anidados recursivamente
+      if (field.nestedFields && field.nestedFields.length > 0) {
+        field.nestedFields.forEach(processNestedFields);
+      }
+    }
+  }
+
+  if (fields && fields.length > 0) {
+    fields.forEach(processNestedFields);
+  }
+
+  return nestedMappers;
+}
+
+async function generateBusinessInjectionFiles(serviceName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
+  if (schema?.businessOperations && schema.businessOperations.length > 0) {
+    const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+
+    // 1. Use Case Injection
+    const useCaseImports = schema.businessOperations
+      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .map(operation => {
+        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const operationKebab = operationName.replace(/_/g, '-');
+        const cleanOperationName = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        return `import { ${toPascalCase(serviceName)}${cleanOperationName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/business/${serviceName.toLowerCase()}/${operationName}/${serviceNameKebab}-${operationKebab}-use-case";`;
+      }).join('\n');
+
+    const useCaseMethods = schema.businessOperations
+      .filter(operation => operation.fields && operation.fields.length > 0 && operation.responseFields && operation.responseFields.length > 0)
+      .map(operation => {
+        const operationName = operation.path.split('/').pop() || operation.operationId.toLowerCase().replace(/_/g, '-');
+        const cleanOperationName = operationName
+          .replace(/_/g, '-')
+          .split('-')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join('');
+        
+        return `  public static ${toPascalCase(serviceName)}${cleanOperationName}UseCase(): ${toPascalCase(serviceName)}${cleanOperationName}UseCase {
+    return ${toPascalCase(serviceName)}${cleanOperationName}UseCase.getInstance();
+  }`;
+      }).join('\n\n');
+
+    const useCaseInjection = `${useCaseImports}
+
+export class InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase {
+${useCaseMethods}
+}`;
+
+    await fs.writeFile(
+      path.join(paths.injectionUseCases, `injection-${apiName}-business-${serviceNameKebab}-use-case.ts`),
+      useCaseInjection
+    );
+    console.log(chalk.green(`✅ Use Case Injection: injection-${apiName}-business-${serviceNameKebab}-use-case.ts`));
+
+    // 2. Facade Injection
+    const facadeInjection = `import { ${toPascalCase(serviceName)}Facade } from "@${apiName}/facade/apis/${apiName}/business/${serviceNameKebab}-facade";
+
+export class InjectionPlatformBusiness${toPascalCase(serviceName)}Facade {
+  public static ${toPascalCase(serviceName)}Facade(): ${toPascalCase(serviceName)}Facade {
+    return ${toPascalCase(serviceName)}Facade.getInstance();
+  }
+}`;
+
+    await fs.writeFile(
+      path.join(paths.injectionFacades, `injection-${apiName}-business-${serviceNameKebab}-facade.ts`),
+      facadeInjection
+    );
+    console.log(chalk.green(`✅ Facade Injection: injection-${apiName}-business-${serviceNameKebab}-facade.ts`));
+  } else {
+    console.log(chalk.yellow('⚠️  No se generaron archivos de inyección porque no hay operaciones de negocio detectadas.'));
+  }
 }

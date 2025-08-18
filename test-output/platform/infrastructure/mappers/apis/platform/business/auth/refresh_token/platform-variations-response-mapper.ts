@@ -1,15 +1,15 @@
 import { Mapper } from "@bus/core/classes";
 import { IPlatformVariationsResponseDTO } from "@platform/domain/models/apis/platform/business/auth/refresh_token";
 import { IPlatformVariationsResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/refresh_token";
-import { InjectionPlatformBusinessAuthMapper } from "../../../injection/business/injection-platform-business-auth-mapper";
+import { InjectionPlatformBusinessAuthRefreshTokenMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-refresh_token-mapper";
 
 export class PlatformVariationsResponseMapper extends Mapper<IPlatformVariationsResponseEntity, IPlatformVariationsResponseDTO> {
 
     private static instance: PlatformVariationsResponseMapper;
-    private currencyloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.CurrencyLoginResponseMapper()
-    private locationloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.LocationLoginResponseMapper()
-    private languageloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.LanguageLoginResponseMapper()
-    private companyloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.CompanyLoginResponseMapper()
+    private currencyloginresponseresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CurrencyLoginResponseMapper()
+    private locationloginresponseresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LocationLoginResponseMapper()
+    private languageloginresponseresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.LanguageLoginResponseMapper()
+    private companyloginresponseresponseMapper = InjectionPlatformBusinessAuthRefreshTokenMapper.CompanyLoginResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): PlatformVariationsResponseMapper {

@@ -1,21 +1,21 @@
 import { Mapper } from "@bus/core/classes";
 import { IPlatformConfigurationResponseDTO } from "@platform/domain/models/apis/platform/business/auth/login";
 import { IPlatformConfigurationResponseEntity } from "@platform/infrastructure/entities/apis/platform/business/auth/login";
-import { InjectionPlatformBusinessAuthMapper } from "../../../injection/business/injection-platform-business-auth-mapper";
+import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-login-mapper";
 
 export class PlatformConfigurationResponseMapper extends Mapper<IPlatformConfigurationResponseEntity, IPlatformConfigurationResponseDTO> {
 
     private static instance: PlatformConfigurationResponseMapper;
-    private userloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.UserLoginResponseMapper()
-    private currencyloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.CurrencyLoginResponseMapper()
-    private locationloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.LocationLoginResponseMapper()
-    private languageloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.LanguageLoginResponseMapper()
-    private platformloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.PlatformLoginResponseMapper()
-    private countryloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.CountryLoginResponseMapper()
-    private companyloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.CompanyLoginResponseMapper()
-    private rolloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.RolLoginResponseMapper()
-    private permissionloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.PermissionLoginResponseMapper()
-    private menuloginresponseresponseMapper = InjectionPlatformBusinessAuthMapper.MenuLoginResponseMapper()
+    private userloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.UserLoginResponseMapper()
+    private currencyloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CurrencyLoginResponseMapper()
+    private locationloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LocationLoginResponseMapper()
+    private languageloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.LanguageLoginResponseMapper()
+    private platformloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PlatformLoginResponseMapper()
+    private countryloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CountryLoginResponseMapper()
+    private companyloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.CompanyLoginResponseMapper()
+    private rolloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.RolLoginResponseMapper()
+    private permissionloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.PermissionLoginResponseMapper()
+    private menuloginresponseresponseMapper = InjectionPlatformBusinessAuthLoginMapper.MenuLoginResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): PlatformConfigurationResponseMapper {
