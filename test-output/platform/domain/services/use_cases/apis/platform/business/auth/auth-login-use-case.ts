@@ -1,14 +1,13 @@
 import { IConfigDTO } from "@bus/core/interfaces";
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IAuthLoginRequestDTO, IAuthLoginResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
-import { InjectionPlatformBusinessAuthMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/injection-platform-business-auth-mapper";
+import { InjectionPlatformBusinessAuthLoginMapper } from "@platform/infrastructure/mappers/apis/platform/injection/business/auth/injection-platform-business-auth-login-mapper";
 import { InjectionPlatformBusinessRepository } from "@platform/infrastructure/repositories/apis/platform/repositories/injection/business/injection-platform-business-repository";
 
 export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLoginResponseDTO | null> {
   private static instance: AuthLoginUseCase;
   private repository = InjectionPlatformBusinessRepository.AuthRepository();
-  private requestMapper = InjectionPlatformBusinessAuthMapper.AuthLoginRequestMapper();
-  private responseMapper = InjectionPlatformBusinessAuthMapper.AuthLoginResponseMapper();
+  private mapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper();
 
   public static getInstance(): AuthLoginUseCase {
     if (!AuthLoginUseCase.instance)
@@ -17,8 +16,7 @@ export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLogi
   }
 
   public async execute(params: IAuthLoginRequestDTO, config?: IConfigDTO): Promise<IAuthLoginResponseDTO | null> {
-    const paramsEntity = this.requestMapper.mapTo(params);
-    const response = await this.repository.login(paramsEntity, config);
-    return response ? this.responseMapper.mapFrom(response) : null;
+    const paramsEntity = this.mapper.mapTo(params);
+    return await this.repository.login(paramsEntity, config).then((data) => data ?? null);
   }
 }

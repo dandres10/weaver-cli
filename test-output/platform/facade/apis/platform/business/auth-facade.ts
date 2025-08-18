@@ -1,10 +1,21 @@
 import { IConfigDTO } from "@bus/core/interfaces";
-import { IAuthLoginRequestDTO, IAuthLoginResponseDTO, IAuthCreateApiTokenRequestDTO, IAuthCreateApiTokenResponseDTO } from "@platform/domain/models/apis/platform/business/auth";
-import { AuthLoginUseCase } from "@platform/domain/services/use_cases/apis/platform/business/auth/login/auth-login-use-case";
-import { AuthCreateApiTokenUseCase } from "@platform/domain/services/use_cases/apis/platform/business/auth/create-api-token/auth-create-api-token-use-case";
+import {
+  IAuthLoginRequestDTO,
+  IAuthLoginResponseDTO,
+  IAuthRefreshTokenResponseDTO,
+  IAuthLogoutResponseDTO,
+  IAuthCreateApiTokenRequestDTO,
+  IAuthCreateApiTokenResponseDTO,
+} from "@platform/domain/models/apis/platform/business/auth";
+import { InjectionPlatformBusinessAuthUseCase } from "@platform/domain/services/use_cases/apis/platform/injection/business/injection-platform-business-auth-use-case";
 
 export class AuthFacade {
   private static instance: AuthFacade;
+
+  private readonly loginUseCase = InjectionPlatformBusinessAuthUseCase.AuthLoginUseCase();
+  private readonly refreshTokenUseCase = InjectionPlatformBusinessAuthUseCase.AuthRefreshTokenUseCase();
+  private readonly logoutUseCase = InjectionPlatformBusinessAuthUseCase.AuthLogoutUseCase();
+  private readonly createApiTokenUseCase = InjectionPlatformBusinessAuthUseCase.AuthCreateApiTokenUseCase();
 
   public static getInstance(): AuthFacade {
     if (!AuthFacade.instance)
@@ -16,11 +27,15 @@ export class AuthFacade {
     return await this.loginUseCase.execute(params, config);
   }
 
-  private loginUseCase = AuthLoginUseCase.getInstance();
-
-  public async create-api-token(params: IAuthCreateApiTokenRequestDTO, config?: IConfigDTO): Promise<IAuthCreateApiTokenResponseDTO | null> {
-    return await this.create-api-tokenUseCase.execute(params, config);
+  public async refreshToken(config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null> {
+    return await this.refreshTokenUseCase.execute(config);
   }
 
-  private create-api-tokenUseCase = AuthCreateApiTokenUseCase.getInstance();
+  public async logout(config?: IConfigDTO): Promise<IAuthLogoutResponseDTO | null> {
+    return await this.logoutUseCase.execute(config);
+  }
+
+  public async createApiToken(params: IAuthCreateApiTokenRequestDTO, config?: IConfigDTO): Promise<IAuthCreateApiTokenResponseDTO | null> {
+    return await this.createApiTokenUseCase.execute(params, config);
+  }
 }
