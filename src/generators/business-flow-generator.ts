@@ -1904,7 +1904,8 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         if (hasRequest) {
           allImports.entities.add(requestEntityName);
         }
-        allImports.dtos.add(responseDTOName);
+        // Para imports, siempre usar el nombre base sin [], los [] van solo en el tipo de retorno
+        allImports.dtos.add(baseResponseDTOName);
         allImports.entities.add(responseEntityName);
         allImports.mapperImports.add(`import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`);
 
