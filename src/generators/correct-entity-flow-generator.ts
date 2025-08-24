@@ -428,8 +428,8 @@ async function generateInfrastructureRepository(entityName: string, paths: any, 
   const entityNameUpper = entityName.toUpperCase();
 
   const repositoryContent = `import { IConfigDTO } from "@bus/core/interfaces";
-import platformAxios from "@bus/core/axios/platform-axios";
-import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
+import ${apiName}Axios from "@bus/core/axios/${apiName}-axios";
+import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@bus/core/const";
 import { CONST_CORE_DTO } from "@bus/core/const/const-core";
 import { InjectionCore } from "@bus/core/injection/injection-core";
 import { I${entityName}Repository } from "@${apiName}/domain/services/repositories/apis/${apiName}/entities/i-${entityNameKebab}-repository";
@@ -459,8 +459,8 @@ export class ${entityName}Repository extends I${entityName}Repository {
         config: IConfigDTO = CONST_CORE_DTO.CONFIG
     ): Promise<I${entityName}DTO | null> {
         if (config.loadService)
-            return platformAxios
-                .get(\`\${CONST_PLATFORM_API_ROUTES.${entityNameUpper}}/\${params.id}\`)
+            return ${apiName}Axios
+                .get(\`\${CONST_${apiName.toUpperCase()}_API_ROUTES.${entityNameUpper}}/\${params.id}\`)
                 .then(({ data }) => {
                     const entity = this.resolve.ResolveRequest<I${entityName}Entity>(data);
                     if (entity)
@@ -475,8 +475,8 @@ export class ${entityName}Repository extends I${entityName}Repository {
         config: IConfigDTO = CONST_CORE_DTO.CONFIG
     ): Promise<I${entityName}DTO | null> {
         if (config.loadService)
-            return platformAxios
-                .post(CONST_PLATFORM_API_ROUTES.${entityNameUpper}, params)
+            return ${apiName}Axios
+                .post(CONST_${apiName.toUpperCase()}_API_ROUTES.${entityNameUpper}, params)
                 .then(({ data }) => {
                     const entity = this.resolve.ResolveRequest<I${entityName}Entity>(data);
                     if (entity)
@@ -491,8 +491,8 @@ export class ${entityName}Repository extends I${entityName}Repository {
         config: IConfigDTO = CONST_CORE_DTO.CONFIG
     ): Promise<I${entityName}DTO | null> {
         if (config.loadService)
-            return platformAxios
-                .put(CONST_PLATFORM_API_ROUTES.${entityNameUpper}, params)
+            return ${apiName}Axios
+                .put(CONST_${apiName.toUpperCase()}_API_ROUTES.${entityNameUpper}, params)
                 .then(({ data }) => {
                     const entity = this.resolve.ResolveRequest<I${entityName}Entity>(data);
                     if (entity)
@@ -507,8 +507,8 @@ export class ${entityName}Repository extends I${entityName}Repository {
         config: IConfigDTO = CONST_CORE_DTO.CONFIG
     ): Promise<I${entityName}DTO | null> {
         if (config.loadService)
-            return platformAxios
-                .delete(\`\${CONST_PLATFORM_API_ROUTES.${entityNameUpper}}/\${params.id}\`)
+            return ${apiName}Axios
+                .delete(\`\${CONST_${apiName.toUpperCase()}_API_ROUTES.${entityNameUpper}}/\${params.id}\`)
                 .then(({ data }) => {
                     const entity = this.resolve.ResolveRequest<I${entityName}Entity>(data);
                     if (entity)
@@ -523,8 +523,8 @@ export class ${entityName}Repository extends I${entityName}Repository {
         config: IConfigDTO = CONST_CORE_DTO.CONFIG
     ): Promise<I${entityName}DTO[] | null> {
         if (config.loadService)
-            return platformAxios
-                .post(CONST_PLATFORM_API_ROUTES.${entityNameUpper}_LIST, params)
+            return ${apiName}Axios
+                .post(CONST_${apiName.toUpperCase()}_API_ROUTES.${entityNameUpper}_LIST, params)
                 .then(({ data }) => {
                     const entities = this.resolve.ResolveRequest<I${entityName}Entity[]>(data);
                     if (entities)
