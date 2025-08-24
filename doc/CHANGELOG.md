@@ -5,6 +5,56 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.6] - 2024-12-27
+
+### 🔧 ULTIMATE INJECTION PERFECTION - TODAS LAS CLASES 100% DINÁMICAS
+
+#### 🛠️ Fixed - INJECTION CLASSES COMPLETAMENTE DINÁMICAS
+- **🔧 Business Facade Injection**: `InjectionPlatformBusinessFacade` → `Injection<API>BusinessFacade`
+- **🔧 Business Repository Injection**: `InjectionPlatformBusinessRepository` → `Injection<API>BusinessRepository`  
+- **🔧 Use Case Injection**: `InjectionPlatformBusinessAvailabilityUseCase` → `Injection<API>BusinessAvailabilityUseCase`
+- **🔧 Mapper Injection**: `InjectionPlatformBusinessAvailabilityMapper` → `Injection<API>BusinessAvailabilityMapper`
+- **🔧 Import Statements**: Todos los imports actualizados para usar nombres dinámicos según API
+- **✅ Consistency Total**: TODAS las injection classes ahora siguen el patrón dinámico
+
+#### 📚 Technical Details - Ultimate Injection Fix
+
+**🔧 Business Facade Injection:**
+- **Before**: `export class InjectionPlatformBusinessFacade`
+- **After**: `export class InjectionAppointmentBusinessFacade`
+
+**🔧 Business Repository Injection:**
+- **Before**: `export class InjectionPlatformBusinessRepository`
+- **After**: `export class InjectionAppointmentBusinessRepository`
+
+**🔧 Use Case Injection:**
+- **Before**: `export class InjectionPlatformBusinessAvailabilityUseCase`
+- **After**: `export class InjectionAppointmentBusinessAvailabilityUseCase`
+
+**🔧 Mapper Injection:**
+- **Before**: `export class InjectionPlatformBusinessAvailabilityAppointmentTableMapper`
+- **After**: `export class InjectionAppointmentBusinessAvailabilityAppointmentTableMapper`
+
+**🔧 Import Statements en Use Cases:**
+- **Before**: `import { InjectionPlatformBusinessRepository }`
+- **After**: `import { InjectionAppointmentBusinessRepository }`
+
+**🔧 Import Statements en Mappers:**
+- **Before**: `import { InjectionPlatformBusinessAvailabilityMapper }`
+- **After**: `import { InjectionAppointmentBusinessAvailabilityMapper }`
+
+#### 🏆 Achievement - INJECTION PERFECTION TOTAL
+- ✅ **Facade Injection**: `Injection<API>BusinessFacade` dinámico
+- ✅ **Repository Injection**: `Injection<API>BusinessRepository` dinámico
+- ✅ **Use Case Injection**: `Injection<API>Business<Service>UseCase` dinámico
+- ✅ **Mapper Injection**: `Injection<API>Business<Service><Operation>Mapper` dinámico
+- ✅ **Import Consistency**: Todos los imports usan nombres dinámicos
+- ✅ **API Support**: Compatible con appointment, platform, payment, core, etc.
+
+**🎯 Resultado Final**: 100% de las injection classes son dinámicas según la API seleccionada
+
+---
+
 ## [2.2.5] - 2024-12-27
 
 ### 🔧 COMPLETE REPOSITORY ALIGNMENT - ENTITY CRUD + BUSINESS FLOWS
