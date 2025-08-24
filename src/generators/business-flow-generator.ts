@@ -276,8 +276,9 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
           .split('-')
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
-        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
-        exportStatements.push(`export { ${responseDTOName} } from './${operationName}/${responseFileName.replace('.ts', '')}';`);
+        const baseResponseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const responseDTOName = operation.isResponseArray ? `${baseResponseDTOName}[]` : baseResponseDTOName;
+        exportStatements.push(`export { ${baseResponseDTOName} } from './${operationName}/${responseFileName.replace('.ts', '')}';`);
       }
     }
     
@@ -1166,7 +1167,7 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
       const arrayMark = nestedField.isArray ? '[]' : '';
       
       // Si es un tipo complejo, usar el tipo con el sufijo DTO o Enum
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>DTO o <Flujo><Proceso><Tipo>Enum
         let cleanNestedType = nestedField.type;
         cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
@@ -1343,7 +1344,7 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
       const arrayMark = nestedField.isArray ? '[]' : '';
       
       // Si es un tipo complejo, usar el tipo con el sufijo Entity o Enum
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
         // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>Entity o <Flujo><Proceso><Tipo>Enum
         let cleanNestedType = nestedField.type;
         cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
@@ -1462,9 +1463,12 @@ ${schema.businessOperations.map(operation => {
     .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
   
-  const responseType = operation.responseFields && operation.responseFields.length > 0 
-    ? `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO | null` 
+  const baseResponseType = operation.responseFields && operation.responseFields.length > 0 
+    ? `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO` 
     : 'any';
+  const responseType = operation.isResponseArray 
+    ? `${baseResponseType}[] | null`
+    : `${baseResponseType} | null`;
   
   // Si tiene campos de request, incluir params, sino solo config
   const hasRequestFields = operation.fields && operation.fields.length > 0;
@@ -1507,7 +1511,8 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
       if (operation.responseFields && operation.responseFields.length > 0) {
         const hasRequest = operation.fields && operation.fields.length > 0;
         const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
-        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const baseResponseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const responseDTOName = operation.isResponseArray ? `${baseResponseDTOName}[]` : baseResponseDTOName;
         const useCaseClassName = `${toPascalCase(serviceName)}${cleanOperationName}UseCase`;
         
         // Convertir operationName a camelCase para el método del repository
@@ -1518,7 +1523,7 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
           .join('');
 
         // Seguir el patrón de entities: usar un solo mapper y estructura simple
-        const dtoImports = hasRequest ? `${requestDTOName}, ${responseDTOName}` : responseDTOName;
+        const dtoImports = hasRequest ? `${requestDTOName}, ${baseResponseDTOName}` : baseResponseDTOName;
         const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<any, ${responseDTOName} | null>`;
         
         // Solo importar mapper si tiene request fields
@@ -1641,7 +1646,9 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
         const params = hasRequest ? `params: I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO, ` : '';
         const args = hasRequest ? 'params, config' : 'config';
         
-        return `  public async ${operationCamelCase}(${params}config?: IConfigDTO): Promise<I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO | null> {
+        const baseResponseType = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const responseType = operation.isResponseArray ? `${baseResponseType}[]` : baseResponseType;
+        return `  public async ${operationCamelCase}(${params}config?: IConfigDTO): Promise<${responseType} | null> {
     return await this.${operationCamelCase}UseCase.execute(${args});
   }`;
       }).join('\n\n');
@@ -1859,7 +1866,8 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
       // Generar método si tiene responseFields (puede o no tener request)
       if (operation.responseFields && operation.responseFields.length > 0) {
         const requestDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestDTO`;
-        const responseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const baseResponseDTOName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseDTO`;
+        const responseDTOName = operation.isResponseArray ? `${baseResponseDTOName}[]` : baseResponseDTOName;
         const requestEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}RequestEntity`;
         const responseEntityName = `I${toPascalCase(serviceName)}${cleanOperationName}ResponseEntity`;
 
@@ -1900,7 +1908,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<${responseEntityName}>(data);
           if (entity)
-            return this.${operationCamelCaseVar}ResponseMapper.mapFrom(entity);
+            return this.${operationCamelCaseVar}ResponseMapper.${operation.isResponseArray ? 'mapFromList' : 'mapFrom'}(entity);
           return null;
         });
     return null;

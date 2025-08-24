@@ -35,6 +35,7 @@ export interface EntitySchema {
     responseSchema?: string;
     fields: EntityField[];
     responseFields?: EntityField[];
+    isResponseArray?: boolean;
   }[];
 }
 
@@ -414,6 +415,8 @@ export class SwaggerAnalyzer {
                             }
                           }
                           foundSpecificSchema = true;
+                          // Marcar que la respuesta es un array
+                          businessOp.isResponseArray = true;
                           console.log(`    ✅ Extracted ${businessOp.responseFields.length} fields from array items`);
                           break;
                         }
@@ -578,16 +581,16 @@ export class SwaggerAnalyzer {
           const refSchema = this.openApiDoc.components.schemas[refName] as any;
           if (refSchema && refSchema.type === 'object' && refSchema.properties) {
             nestedFields = [];
-            for (const [propName, propSchema] of Object.entries(refSchema.properties)) {
-              if (typeof propSchema === 'object' && propSchema !== null) {
-                const nestedField = this.parseFieldSchemaWithRefs(
-                  propName,
-                  propSchema,
-                  refSchema.required || []
-                );
-                nestedFields.push(nestedField);
-              }
-            }
+                  for (const [propName, propSchema] of Object.entries(refSchema.properties)) {
+        if (typeof propSchema === 'object' && propSchema !== null) {
+          const nestedField = this.parseFieldSchemaWithRefs(
+            propName,
+            propSchema,
+            refSchema.required || []
+          );
+          nestedFields.push(nestedField);
+        }
+      }
           }
         }
       } else if (itemSchema.title && itemSchema.properties) {
@@ -1047,6 +1050,8 @@ export class SwaggerAnalyzer {
         nestedFields: itemField.nestedFields
       };
     }
+
+    
     // Si no es una referencia, usar el parser normal
     return this.parseFieldSchema(name, schema, required);
   }

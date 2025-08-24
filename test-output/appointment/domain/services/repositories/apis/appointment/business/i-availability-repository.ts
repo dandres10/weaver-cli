@@ -17,10 +17,10 @@ import {
 } from "@appointment/infrastructure/entities/apis/appointment/business/availability";
 
 export abstract class IAvailabilityRepository {
-  abstract servicesByLocation(params: IAvailabilityServicesByLocationRequestEntity, config: IConfigDTO): Promise<IAvailabilityServicesByLocationResponseDTO | null>;
+  abstract servicesByLocation(params: IAvailabilityServicesByLocationRequestEntity, config: IConfigDTO): Promise<IAvailabilityServicesByLocationResponseDTO[] | null>;
   abstract collaboratorsAvailability(params: IAvailabilityCollaboratorsAvailabilityRequestEntity, config: IConfigDTO): Promise<IAvailabilityCollaboratorsAvailabilityResponseDTO | null>;
   abstract scheduleAppointment(params: IAvailabilityScheduleAppointmentRequestEntity, config: IConfigDTO): Promise<IAvailabilityScheduleAppointmentResponseDTO | null>;
   abstract cancelAppointment(params: IAvailabilityCancelAppointmentRequestEntity, config: IConfigDTO): Promise<IAvailabilityCancelAppointmentResponseDTO | null>;
   abstract rescheduleAppointment(params: IAvailabilityRescheduleAppointmentRequestEntity, config: IConfigDTO): Promise<IAvailabilityRescheduleAppointmentResponseDTO | null>;
-  abstract appointmentTable(params: IAvailabilityAppointmentTableRequestEntity, config: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO | null>;
+  abstract appointmentTable(params: IAvailabilityAppointmentTableRequestEntity, config: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO[] | null>;
 }

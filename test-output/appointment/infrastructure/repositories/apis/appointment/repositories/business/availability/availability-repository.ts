@@ -4,7 +4,7 @@ import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
 import { CONST_CORE_DTO } from "@bus/core/const/const-core";
 import { InjectionCore } from "@bus/core/injection/injection-core";
 import { IAvailabilityRepository } from "@appointment/domain/services/repositories/apis/appointment/business/i-availability-repository";
-import { IAvailabilityServicesByLocationResponseDTO, IAvailabilityCollaboratorsAvailabilityResponseDTO, IAvailabilityScheduleAppointmentResponseDTO, IAvailabilityCancelAppointmentResponseDTO, IAvailabilityRescheduleAppointmentResponseDTO, IAvailabilityAppointmentTableResponseDTO } from "@appointment/domain/models/apis/appointment/business/availability";
+import { IAvailabilityServicesByLocationResponseDTO[], IAvailabilityCollaboratorsAvailabilityResponseDTO, IAvailabilityScheduleAppointmentResponseDTO, IAvailabilityCancelAppointmentResponseDTO, IAvailabilityRescheduleAppointmentResponseDTO, IAvailabilityAppointmentTableResponseDTO[] } from "@appointment/domain/models/apis/appointment/business/availability";
 import { IAvailabilityServicesByLocationRequestEntity, IAvailabilityServicesByLocationResponseEntity, IAvailabilityCollaboratorsAvailabilityRequestEntity, IAvailabilityCollaboratorsAvailabilityResponseEntity, IAvailabilityScheduleAppointmentRequestEntity, IAvailabilityScheduleAppointmentResponseEntity, IAvailabilityCancelAppointmentRequestEntity, IAvailabilityCancelAppointmentResponseEntity, IAvailabilityRescheduleAppointmentRequestEntity, IAvailabilityRescheduleAppointmentResponseEntity, IAvailabilityAppointmentTableRequestEntity, IAvailabilityAppointmentTableResponseEntity } from "@appointment/infrastructure/entities/apis/appointment/business/availability";
 import { InjectionPlatformBusinessAvailabilityServicesByLocationMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-services-by-location-mapper";
 import { InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-collaborators-availability-mapper";
@@ -36,14 +36,14 @@ export class AvailabilityRepository extends IAvailabilityRepository {
 
   public async servicesByLocation(
     params: IAvailabilityServicesByLocationRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
-  ): Promise<IAvailabilityServicesByLocationResponseDTO | null> {
+  ): Promise<IAvailabilityServicesByLocationResponseDTO[] | null> {
     if (config.loadService)
       return platformAxios
         .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_SERVICES_BY_LOCATION, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityServicesByLocationResponseEntity>(data);
           if (entity)
-            return this.servicesByLocationResponseMapper.mapFrom(entity);
+            return this.servicesByLocationResponseMapper.mapFromList(entity);
           return null;
         });
     return null;
@@ -111,14 +111,14 @@ export class AvailabilityRepository extends IAvailabilityRepository {
 
   public async appointmentTable(
     params: IAvailabilityAppointmentTableRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
-  ): Promise<IAvailabilityAppointmentTableResponseDTO | null> {
+  ): Promise<IAvailabilityAppointmentTableResponseDTO[] | null> {
     if (config.loadService)
       return platformAxios
         .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_APPOINTMENT_TABLE, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityAppointmentTableResponseEntity>(data);
           if (entity)
-            return this.appointmentTableResponseMapper.mapFrom(entity);
+            return this.appointmentTableResponseMapper.mapFromList(entity);
           return null;
         });
     return null;

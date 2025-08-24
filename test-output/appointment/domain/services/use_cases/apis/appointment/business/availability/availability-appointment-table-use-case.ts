@@ -4,7 +4,7 @@ import { IAvailabilityAppointmentTableRequestDTO, IAvailabilityAppointmentTableR
 import { InjectionPlatformBusinessAvailabilityAppointmentTableMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-appointment-table-mapper";
 import { InjectionPlatformBusinessRepository } from "@appointment/infrastructure/repositories/apis/appointment/repositories/injection/business/injection-appointment-business-repository";
 
-export class AvailabilityAppointmentTableUseCase implements UseCase<IAvailabilityAppointmentTableRequestDTO, IAvailabilityAppointmentTableResponseDTO | null> {
+export class AvailabilityAppointmentTableUseCase implements UseCase<IAvailabilityAppointmentTableRequestDTO, IAvailabilityAppointmentTableResponseDTO[] | null> {
   private static instance: AvailabilityAppointmentTableUseCase;
   private repository = InjectionPlatformBusinessRepository.AvailabilityRepository();
   private mapper = InjectionPlatformBusinessAvailabilityAppointmentTableMapper.AvailabilityAppointmentTableRequestMapper();
@@ -15,7 +15,7 @@ export class AvailabilityAppointmentTableUseCase implements UseCase<IAvailabilit
     return AvailabilityAppointmentTableUseCase.instance;
   }
 
-  public async execute(params: IAvailabilityAppointmentTableRequestDTO, config?: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO | null> {
+  public async execute(params: IAvailabilityAppointmentTableRequestDTO, config?: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO[] | null> {
     const paramsEntity = this.mapper.mapTo(params);
     return await this.repository.appointmentTable(paramsEntity, config).then((data) => data ?? null);
   }

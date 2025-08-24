@@ -31,7 +31,7 @@ export class AvailabilityFacade {
     return AvailabilityFacade.instance;
   }
 
-  public async servicesByLocation(params: IAvailabilityServicesByLocationRequestDTO, config?: IConfigDTO): Promise<IAvailabilityServicesByLocationResponseDTO | null> {
+  public async servicesByLocation(params: IAvailabilityServicesByLocationRequestDTO, config?: IConfigDTO): Promise<IAvailabilityServicesByLocationResponseDTO[] | null> {
     return await this.servicesByLocationUseCase.execute(params, config);
   }
 
@@ -51,7 +51,7 @@ export class AvailabilityFacade {
     return await this.rescheduleAppointmentUseCase.execute(params, config);
   }
 
-  public async appointmentTable(params: IAvailabilityAppointmentTableRequestDTO, config?: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO | null> {
+  public async appointmentTable(params: IAvailabilityAppointmentTableRequestDTO, config?: IConfigDTO): Promise<IAvailabilityAppointmentTableResponseDTO[] | null> {
     return await this.appointmentTableUseCase.execute(params, config);
   }
 }
