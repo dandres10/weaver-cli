@@ -13,17 +13,17 @@ import {
   IAvailabilityAppointmentTableRequestDTO,
   IAvailabilityAppointmentTableResponseDTO,
 } from "@appointment/domain/models/apis/appointment/business/availability";
-import { InjectionPlatformBusinessAvailabilityUseCase } from "@appointment/domain/services/use_cases/apis/appointment/injection/business/injection-appointment-business-availability-use-case";
+import { InjectionAppointmentBusinessAvailabilityUseCase } from "@appointment/domain/services/use_cases/apis/appointment/injection/business/injection-appointment-business-availability-use-case";
 
 export class AvailabilityFacade {
   private static instance: AvailabilityFacade;
 
-  private readonly servicesByLocationUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityServicesByLocationUseCase();
-  private readonly collaboratorsAvailabilityUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityCollaboratorsAvailabilityUseCase();
-  private readonly scheduleAppointmentUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityScheduleAppointmentUseCase();
-  private readonly cancelAppointmentUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityCancelAppointmentUseCase();
-  private readonly rescheduleAppointmentUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityRescheduleAppointmentUseCase();
-  private readonly appointmentTableUseCase = InjectionPlatformBusinessAvailabilityUseCase.AvailabilityAppointmentTableUseCase();
+  private readonly servicesByLocationUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityServicesByLocationUseCase();
+  private readonly collaboratorsAvailabilityUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityCollaboratorsAvailabilityUseCase();
+  private readonly scheduleAppointmentUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityScheduleAppointmentUseCase();
+  private readonly cancelAppointmentUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityCancelAppointmentUseCase();
+  private readonly rescheduleAppointmentUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityRescheduleAppointmentUseCase();
+  private readonly appointmentTableUseCase = InjectionAppointmentBusinessAvailabilityUseCase.AvailabilityAppointmentTableUseCase();
 
   public static getInstance(): AvailabilityFacade {
     if (!AvailabilityFacade.instance)

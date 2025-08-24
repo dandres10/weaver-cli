@@ -1609,7 +1609,7 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
       }).join(',\n  ');
 
     // Import del injection de use cases (como en entities)
-    const useCaseInjectionImport = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/injection/business/injection-${apiName}-business-${serviceNameKebab}-use-case";`;
+    const useCaseInjectionImport = `import { Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/injection/business/injection-${apiName}-business-${serviceNameKebab}-use-case";`;
 
     // Use case instances (como en entities)
     const useCaseInstances = schema.businessOperations
@@ -1630,7 +1630,7 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
           .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         
-        return `  private readonly ${operationCamelCase}UseCase = InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase.${toPascalCase(serviceName)}${cleanOperationName}UseCase();`;
+        return `  private readonly ${operationCamelCase}UseCase = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}UseCase.${toPascalCase(serviceName)}${cleanOperationName}UseCase();`;
       }).join('\n');
 
     // Métodos del facade (como en entities)
