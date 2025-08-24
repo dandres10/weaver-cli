@@ -180,6 +180,10 @@ async function generateInfrastructureMappers(serviceName: string, paths: any, sc
           path.join(operationFolder, requestFileName),
           requestMapper
         );
+        
+        // Generar mappers para interfaces anidadas del request
+        await generateNestedMappersForOperation(serviceName, operation, 'request', operationFolder, apiName, exportStatements, operationName);
+        
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
@@ -242,6 +246,10 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
           path.join(operationFolder, requestFileName),
           requestDTO
         );
+        
+        // Generar DTOs para interfaces anidadas de request
+        await generateNestedDTOsForOperation(serviceName, operation, 'request', operationFolder, apiName, exportStatements, operationName);
+        
         const cleanOperationName = operationName
           .replace(/_/g, '-')
           .split('-')
@@ -308,7 +316,8 @@ async function generateNestedMappersForOperation(serviceName: string, operation:
   const generated = new Set<string>();
 
   function processNestedFields(field: any) {
-    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
+    // Solo generar mappers para interfaces, NO para enums (los enums se mapean directamente)
+    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !field.isEnum && !generated.has(field.type)) {
       generated.add(field.type);
       
       // Generar mapper individual para cada interface anidada
@@ -442,6 +451,7 @@ function getDefaultFields(): any[] {
 
 function toPascalCase(str: string): string {
   return str
+    .replace(/[\[\]]/g, 'Array')  // ← Fix: Convert brackets to 'Array' before PascalCase conversion
     .replace(/(^|_|-)(\w)/g, (_: string, __: string, c: string) => c ? c.toUpperCase() : '')
     .replace(/Dto$/i, 'Entity')
     .replace(/EntityEntity$/, 'Entity');
@@ -486,6 +496,9 @@ function generateBusinessEntityInterface(serviceName: string, operation: any, ty
         cleanTypeName = cleanTypeName.replace(/Login$/, '');
         cleanTypeName = cleanTypeName.replace(/Response$/, '');
         cleanTypeName = cleanTypeName.replace(/Request$/, '');
+        
+        // Limpiar corchetes para nombres de interfaces
+        cleanTypeName = cleanTypeName.replace(/[\[\]]/g, 'Array');
         
         fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${cleanTypeName}${suffix}Entity`;
         
@@ -731,6 +744,9 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     cleanTypeName = cleanTypeName.replace(/Request$/, '');        
   }
   
+  // Limpiar corchetes para nombres de interfaces
+  cleanTypeName = cleanTypeName.replace(/[\[\]]/g, 'Array');
+  
   // Detectar y evitar duplicación de operaciones en el nombre del tipo
   // Ejemplo: UserRefreshToken -> User (cuando operationName es "refresh-token")
   const operationInTypeName = cleanOperationName.toLowerCase();
@@ -768,7 +784,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       const dtoFieldName = convertToCamelCase(nestedField.name);
       const entityFieldName = nestedField.name;
       
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
         const nestedFieldTypeName = toPascalCase(nestedField.type);
         const nestedSuffix = type === 'request' ? 'Request' : 'Response';
         
@@ -813,7 +829,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
       const dtoFieldName = convertToCamelCase(nestedField.name);
       const entityFieldName = nestedField.name;
       
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
         // Usar el mismo nombre de variable que en mapFromMappings aplicando la misma lógica contextual
         const nestedFieldTypeName = toPascalCase(nestedField.type);
         const nestedSuffix = type === 'request' ? 'Request' : 'Response';
@@ -898,8 +914,15 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
     if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
       generated.add(field.type);
       
-      // Generar DTO individual para cada interface anidada con patrón correcto
-      const nestedDTO = generateIndividualNestedDTO(field.type, field, apiName, serviceName, operationName, type);
+      let nestedDTO;
+      
+      // Si es un enum, generar archivo de enum en lugar de interfaz
+      if (field.isEnum && field.enumValues) {
+        nestedDTO = generateIndividualEnum(field.type, field, apiName, serviceName, operationName, type);
+      } else {
+        // Generar DTO individual para cada interface anidada con patrón correcto
+        nestedDTO = generateIndividualNestedDTO(field.type, field, apiName, serviceName, operationName, type);
+      }
       
       // Patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts
       // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
@@ -914,7 +937,15 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
       const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
       const operationKebab = operationName.replace(/_/g, '-');
-      const nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-dto.ts`;
+      
+      let nestedFileName;
+      if (field.isEnum && field.enumValues) {
+        // Para enums, usar el patrón: <flujo>-<proceso>-<tipo>-<request/response>-dto.ts
+        nestedFileName = `${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-dto.ts`;
+      } else {
+        // Para interfaces, usar el patrón normal
+        nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-dto.ts`;
+      }
       
       fs.writeFileSync(
         path.join(operationFolder, nestedFileName),
@@ -937,12 +968,21 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
       cleanFieldType = cleanFieldType.replace(/Request$/, '');
       
       const formattedFieldType = toPascalCase(cleanFieldType);
-      const suffix = type === 'request' ? 'Request' : 'Response';
-      const dtoClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}DTO`;
+      
+      let exportClassName;
+      if (field.isEnum && field.enumValues) {
+        // Para enums, usar el nombre del enum (evitar duplicar "Enum")
+        const enumSuffix = formattedFieldType.endsWith('Enum') ? '' : 'Enum';
+        exportClassName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+      } else {
+        // Para interfaces, usar el patrón normal
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        exportClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}DTO`;
+      }
       
       // Export statement con el nombre correcto del archivo
       const fileNameForExport = nestedFileName.replace('.ts', '');
-      exportStatements.push(`export { ${dtoClassName} } from './${operationName}/${fileNameForExport}';`);
+      exportStatements.push(`export { ${exportClassName} } from './${operationName}/${fileNameForExport}';`);
 
       // Procesar campos anidados recursivamente
       if (field.nestedFields && field.nestedFields.length > 0) {
@@ -990,6 +1030,9 @@ function generateBusinessDTO(serviceName: string, operation: any, type: 'request
         cleanTypeName = cleanTypeName.replace(/Response$/, '');
         cleanTypeName = cleanTypeName.replace(/Request$/, '');
         
+        // Limpiar corchetes para nombres de interfaces
+        cleanTypeName = cleanTypeName.replace(/[\[\]]/g, 'Array');
+        
         const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${cleanTypeName}${suffix}DTO`;
         
         // Generar nombre de archivo con patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-dto
@@ -1025,6 +1068,73 @@ ${dtoFields}
 }`;
 }
 
+function generateIndividualEnum(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
+  let cleanType = typeName;
+  
+  // Limpiar el tipo para obtener el nombre base
+  cleanType = cleanType.replace(/LoginResponse$/, '');
+  cleanType = cleanType.replace(/LoginRequest$/, '');
+  cleanType = cleanType.replace(/Login$/, '');
+  cleanType = cleanType.replace(/Response$/, '');
+  cleanType = cleanType.replace(/Request$/, '');
+  
+  const formattedTypeName = toPascalCase(cleanType);
+  const cleanOperationName = operationName
+    .replace(/_/g, '-')
+    .split('-')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+  
+  // Si el formattedTypeName ya contiene "Enum", no agregarlo de nuevo
+  const enumSuffix = formattedTypeName.endsWith('Enum') ? '' : 'Enum';
+  const enumName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedTypeName}${enumSuffix}`;
+  
+  // Generar valores del enum
+  const enumValues = field.enumValues.map((value: string) => {
+    // Convertir valores a nombres válidos de enum
+    let enumKey = value
+      .replace(/[^a-zA-Z0-9]/g, '_') // Reemplazar caracteres especiales con _
+      .replace(/^_+|_+$/g, '') // Quitar _ al inicio y final
+      .replace(/_+/g, '_'); // Consolidar múltiples _
+    
+    // Si está vacío después de limpiar, usar el valor original como clave
+    if (!enumKey) {
+      enumKey = `VALUE_${Math.abs(value.split('').reduce((a, b) => a + b.charCodeAt(0), 0))}`;
+    }
+    
+    // Si empieza con número, agregar prefijo
+    if (/^\d/.test(enumKey)) {
+      enumKey = `VALUE_${enumKey}`;
+    }
+    
+    // Casos especiales para operadores (nombres del backend)
+    const operatorMappings: { [key: string]: string } = {
+      '==': 'EQUALS',
+      '>': 'GREATER_THAN',
+      '<': 'LESS_THAN',
+      '>=': 'GREATER_THAN_OR_EQUAL_TO',
+      '<=': 'LESS_THAN_OR_EQUAL_TO',
+      '!=': 'DIFFERENT_THAN',
+      'like': 'LIKE',
+      'in': 'IN',
+      'between': 'BETWEEN'
+    };
+    
+    if (operatorMappings[value]) {
+      enumKey = operatorMappings[value];
+    } else {
+      // Convertir a UPPER_CASE si no es un operador especial
+      enumKey = enumKey.toUpperCase();
+    }
+    
+    return `  ${enumKey} = "${value}"`;
+  }).join(',\n');
+  
+  return `export enum ${enumName} {
+${enumValues}
+}`;
+}
+
 function generateIndividualNestedDTO(typeName: string, field: any, apiName: string, serviceName: string, operationName: string, type: 'request' | 'response' = 'response'): string {
   // Generar nombre de interface que coincida con el patrón del archivo
   // i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts → I<Flujo><Proceso><Tipo><Request/Response>DTO
@@ -1055,9 +1165,9 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
       const optionalMark = nestedField.required ? '' : '?';
       const arrayMark = nestedField.isArray ? '[]' : '';
       
-      // Si es un tipo complejo, usar el tipo con el sufijo DTO
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>DTO
+      // Si es un tipo complejo, usar el tipo con el sufijo DTO o Enum
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
+        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>DTO o <Flujo><Proceso><Tipo>Enum
         let cleanNestedType = nestedField.type;
         cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
         cleanNestedType = cleanNestedType.replace(/LoginRequest$/, '');
@@ -1066,17 +1176,33 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
         cleanNestedType = cleanNestedType.replace(/Request$/, '');
         
         const formattedNestedTypeName = toPascalCase(cleanNestedType);
-        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}DTO`;
+        
+        let fieldType;
+        if (nestedField.isEnum && nestedField.enumValues) {
+          // Para enums, usar el nombre del enum (evitar duplicar "Enum")
+          const enumSuffix = formattedNestedTypeName.endsWith('Enum') ? '' : 'Enum';
+          fieldType = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+        } else {
+          // Para interfaces, usar el patrón normal
+          const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+          fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}DTO`;
+        }
         
         // Agregar import para tipos complejos con patrón completo
-        // Patron: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts        
         const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
         const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
         const operationNameKebab = operationName.replace(/_/g, '-');
-        const typeKebab = type === 'request' ? 'request' : 'response';
         
-        const importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-dto`;
+        let importFileName;
+        if (nestedField.isEnum && nestedField.enumValues) {
+          // Para enums, usar el patrón: <flujo>-<proceso>-<tipo>-<request/response>-dto
+          const typeKebab = type === 'request' ? 'request' : 'response';
+          importFileName = `${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-dto`;
+        } else {
+          // Para interfaces, usar el patrón: i-<flujo>-<proceso>-<tipo>-<request/response>-dto
+          const typeKebab = type === 'request' ? 'request' : 'response';
+          importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-dto`;
+        }
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
         
@@ -1104,8 +1230,15 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
     if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
       generated.add(field.type);
       
-      // Generar Entity individual para cada interface anidada con patrón correcto
-      const nestedEntity = generateIndividualNestedEntity(field.type, field, apiName, serviceName, operationName, type);
+      let nestedEntity;
+      
+      // Si es un enum, generar archivo de enum en lugar de interfaz
+      if (field.isEnum && field.enumValues) {
+        nestedEntity = generateIndividualEnum(field.type, field, apiName, serviceName, operationName, type);
+      } else {
+        // Generar Entity individual para cada interface anidada con patrón correcto
+        nestedEntity = generateIndividualNestedEntity(field.type, field, apiName, serviceName, operationName, type);
+      }
       
       // Patrón correcto: i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts
       // Limpiar el tipo para obtener solo el nombre base sin sufijos Login/Response
@@ -1120,7 +1253,15 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
       const baseFileName = cleanType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '').replace(/[\[\]]/g, 'array');
       const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
       const operationKebab = operationName.replace(/_/g, '-');
-      const nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-entity.ts`;
+      
+      let nestedFileName;
+      if (field.isEnum && field.enumValues) {
+        // Para enums, usar el patrón: <flujo>-<proceso>-<tipo>-<request/response>-entity.ts
+        nestedFileName = `${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-entity.ts`;
+      } else {
+        // Para interfaces, usar el patrón normal
+        nestedFileName = `i-${serviceNameKebab}-${operationKebab}-${baseFileName}-${type}-entity.ts`;
+      }
       
       fs.writeFileSync(
         path.join(operationFolder, nestedFileName),
@@ -1143,12 +1284,21 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
       cleanFieldType = cleanFieldType.replace(/Request$/, '');
       
       const formattedFieldType = toPascalCase(cleanFieldType);
-      const suffix = type === 'request' ? 'Request' : 'Response';
-      const entityClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}Entity`;
+      
+      let exportClassName;
+      if (field.isEnum && field.enumValues) {
+        // Para enums, usar el nombre del enum
+        const enumSuffix = formattedFieldType.endsWith('Enum') ? '' : 'Enum';
+        exportClassName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+      } else {
+        // Para interfaces, usar el patrón normal
+        const suffix = type === 'request' ? 'Request' : 'Response';
+        exportClassName = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${suffix}Entity`;
+      }
       
       // Export statement con el nombre correcto del archivo
       const fileNameForExport = nestedFileName.replace('.ts', '');
-      exportStatements.push(`export { ${entityClassName} } from './${operationName}/${fileNameForExport}';`);
+      exportStatements.push(`export { ${exportClassName} } from './${operationName}/${fileNameForExport}';`);
 
       // Procesar campos anidados recursivamente
       if (field.nestedFields && field.nestedFields.length > 0) {
@@ -1192,9 +1342,9 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
       const optionalMark = nestedField.required ? '' : '?';
       const arrayMark = nestedField.isArray ? '[]' : '';
       
-      // Si es un tipo complejo, usar el tipo con el sufijo Entity
-      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type)) {
-        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>Entity
+      // Si es un tipo complejo, usar el tipo con el sufijo Entity o Enum
+      if (nestedField.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(nestedField.type) && !nestedField.isEnum) {
+        // Usar el patrón completo: I<Flujo><Proceso><Tipo><Request/Response>Entity o <Flujo><Proceso><Tipo>Enum
         let cleanNestedType = nestedField.type;
         cleanNestedType = cleanNestedType.replace(/LoginResponse$/, '');
         cleanNestedType = cleanNestedType.replace(/LoginRequest$/, '');
@@ -1203,17 +1353,31 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
         cleanNestedType = cleanNestedType.replace(/Request$/, '');
         
         const formattedNestedTypeName = toPascalCase(cleanNestedType);
-        const nestedSuffix = type === 'request' ? 'Request' : 'Response';
-        const fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}Entity`;
         
-        // Agregar import para tipos complejos con patrón completo
-        // Patron: i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts        
-        const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
-        const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
-        const operationNameKebab = operationName.replace(/_/g, '-');
-        const typeKebab = type === 'request' ? 'request' : 'response';
-        
-        const importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-entity`;
+        let fieldType, importFileName;
+        if (nestedField.isEnum && nestedField.enumValues) {
+          // Para enums, usar el nombre del enum
+          const enumSuffix = formattedNestedTypeName.endsWith('Enum') ? '' : 'Enum';
+          fieldType = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+          
+          // Para enums, usar el patrón: <flujo>-<proceso>-<tipo>-<request/response>-entity
+          const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+          const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+          const operationNameKebab = operationName.replace(/_/g, '-');
+          const typeKebab = type === 'request' ? 'request' : 'response';
+          importFileName = `${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-entity`;
+        } else {
+          // Para interfaces, usar el patrón normal
+          const nestedSuffix = type === 'request' ? 'Request' : 'Response';
+          fieldType = `I${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${nestedSuffix}Entity`;
+          
+          // Patron: i-<flujo>-<proceso>-<tipo>-<request/response>-entity.ts        
+          const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+          const serviceNameKebab = serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
+          const operationNameKebab = operationName.replace(/_/g, '-');
+          const typeKebab = type === 'request' ? 'request' : 'response';
+          importFileName = `i-${serviceNameKebab}-${operationNameKebab}-${formattedNestedType}-${typeKebab}-entity`;
+        }
         
         imports.push(`import { ${fieldType} } from "./${importFileName}";`);
         
@@ -1602,7 +1766,8 @@ async function collectNestedMappersForOperation(operation: any, type: 'request' 
   const generated = new Set<string>();
 
   function processNestedFields(field: any, serviceName: string, operationName: string) {
-    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !generated.has(field.type)) {
+    // Solo generar mappers para interfaces, NO para enums (los enums se mapean directamente)
+    if (field.type && !['string', 'number', 'boolean', 'any', 'object', 'array'].includes(field.type) && !field.isEnum && !generated.has(field.type)) {
       generated.add(field.type);
       
       // Aplicar el patrón correcto: <flujo>-<proceso>-<tipo>-<request/response>-mapper

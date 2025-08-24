@@ -291,6 +291,26 @@ export class SwaggerAnalyzer {
                 if (this.openApiDoc?.components?.schemas && responseSchemaName) {
                   responseSchemaObj = this.openApiDoc.components.schemas[responseSchemaName] as any;
                 }
+              } else if (schema.anyOf) {
+                // Manejar anyOf directamente en el schema principal
+                console.log('  Found anyOf in main schema');
+                for (const subSchema of schema.anyOf) {
+                  if (subSchema.$ref) {
+                    responseSchemaName = subSchema.$ref.split('/').pop();
+                    if (this.openApiDoc?.components?.schemas && responseSchemaName) {
+                      responseSchemaObj = this.openApiDoc.components.schemas[responseSchemaName] as any;
+                      console.log('  Using first $ref from anyOf:', responseSchemaName);
+                      break;
+                    }
+                  } else if (subSchema.properties && Object.keys(subSchema.properties).length > 0) {
+                    // Usar el primer schema con propiedades válidas
+                    responseSchemaObj = subSchema;
+                    responseSchemaName = subSchema.title || 'InlineResponse';
+                    console.log('  Using first properties schema from anyOf:', responseSchemaName);
+                    break;
+                  }
+                }
+                businessOp.responseSchema = responseSchemaName || 'InlineResponse';
               } else if (schema.properties) {
                 // Schema expandido directamente
                 responseSchemaObj = schema;
@@ -301,8 +321,12 @@ export class SwaggerAnalyzer {
                 businessOp.responseFields = [];
                 
                 // Buscar específicamente el campo "response" y extraer su contenido
+                console.log('  Response schema properties:', Object.keys(responseSchemaObj.properties));
                 if (responseSchemaObj.properties.response) {
                   const responseField = responseSchemaObj.properties.response as any;
+                  console.log('  Found response field, analyzing structure...');
+                  console.log('  Response field type:', responseField.type);
+                  console.log('  Response field has anyOf:', !!responseField.anyOf);
 
                   
                   // Si el campo response tiene propiedades (es un objeto)
@@ -320,10 +344,19 @@ export class SwaggerAnalyzer {
                   } else if (responseField.anyOf || responseField.oneOf) {
                     // Manejar casos donde response tiene anyOf/oneOf
                     const schemas = responseField.anyOf || responseField.oneOf;
+                    console.log(`  Processing ${schemas.length} schemas in anyOf...`);
                     let foundSpecificSchema = false;
                     
                     // Buscar el primer schema útil en anyOf (que no sea null)
-                    for (const subSchema of schemas) {
+                    for (const [index, subSchema] of schemas.entries()) {
+                      console.log(`  Schema ${index + 1}:`, {
+                        type: subSchema.type,
+                        hasRef: !!subSchema.$ref,
+                        hasProperties: !!subSchema.properties,
+                        hasItems: !!subSchema.items,
+                        title: subSchema.title
+                      });
+                      
                       if (subSchema.$ref) {
                         // Si es una referencia directa, resolver y usar sus propiedades
                         const refName = subSchema.$ref.split('/').pop();
@@ -363,6 +396,27 @@ export class SwaggerAnalyzer {
                         }
                         foundSpecificSchema = true;
                         break;
+                      } else if (subSchema.type === 'array' && subSchema.items) {
+                        // ✅ MANEJAR ARRAY CON ITEMS.PROPERTIES (como AppointmentTableResponse[])
+                        const arrayItemSchema = subSchema.items;
+                        console.log('    🎯 Processing array with items.properties...');
+                        
+                        if (arrayItemSchema.properties) {
+                          // Extraer todos los campos del items.properties
+                          for (const [fieldName, fieldSchema] of Object.entries(arrayItemSchema.properties)) {
+                            if (typeof fieldSchema === 'object' && fieldSchema !== null) {
+                              const field = this.parseFieldSchemaWithRefs(
+                                fieldName,
+                                fieldSchema as any,
+                                arrayItemSchema.required || []
+                              );
+                              businessOp.responseFields.push(field);
+                            }
+                          }
+                          foundSpecificSchema = true;
+                          console.log(`    ✅ Extracted ${businessOp.responseFields.length} fields from array items`);
+                          break;
+                        }
                       }
                     }
                     
@@ -536,6 +590,22 @@ export class SwaggerAnalyzer {
             }
           }
         }
+      } else if (itemSchema.title && itemSchema.properties) {
+        // Si el item tiene title y properties (como FilterManager), usar el title como tipo
+        type = itemSchema.title;
+        
+        // Extraer los campos anidados del inline schema
+        nestedFields = [];
+        for (const [propName, propSchema] of Object.entries(itemSchema.properties)) {
+          if (typeof propSchema === 'object' && propSchema !== null) {
+            const nestedField = this.parseFieldSchemaWithRefs(
+              propName,
+              propSchema,
+              itemSchema.required || []
+            );
+            nestedFields.push(nestedField);
+          }
+        }
       } else {
         type = this.getTypeFromSchema(itemSchema);
       }
@@ -552,12 +622,43 @@ export class SwaggerAnalyzer {
 
     // Manejar anyOf (generalmente para campos opcionales)
     if (schema.anyOf) {
-      const nonNullSchema = schema.anyOf.find(s =>
-        typeof s === 'object' && !('$ref' in s) && (s as any).type !== 'null'
-      ) as OpenAPIV3.SchemaObject;
-
-      if (nonNullSchema) {
-        type = this.getTypeFromSchema(nonNullSchema);
+      // Buscar el primer schema útil (que no sea null)
+      for (const subSchema of schema.anyOf) {
+        if (typeof subSchema === 'object' && (subSchema as any).type !== 'null') {
+          if ((subSchema as any).type === 'array' && (subSchema as any).items) {
+            // Array en anyOf - procesar como array
+            isArray = true;
+            const itemSchema = (subSchema as any).items;
+            
+            if (itemSchema.$ref) {
+              const refName = itemSchema.$ref.split('/').pop();
+              type = refName || 'any';
+            } else if (itemSchema.title && itemSchema.properties) {
+              // Inline schema con title (como FilterManager)
+              type = itemSchema.title;
+              
+              // Extraer campos anidados
+              nestedFields = [];
+              for (const [propName, propSchema] of Object.entries(itemSchema.properties)) {
+                if (typeof propSchema === 'object' && propSchema !== null) {
+                  const nestedField = this.parseFieldSchemaWithRefs(
+                    propName,
+                    propSchema,
+                    itemSchema.required || []
+                  );
+                  nestedFields.push(nestedField);
+                }
+              }
+            } else {
+              type = this.getTypeFromSchema(itemSchema);
+            }
+            break;
+          } else {
+            // No es array, usar lógica normal
+            type = this.getTypeFromSchema(subSchema as OpenAPIV3.SchemaObject);
+            break;
+          }
+        }
       }
     }
 
@@ -577,8 +678,8 @@ export class SwaggerAnalyzer {
 
   private getTypeFromSchema(schema: OpenAPIV3.SchemaObject): string {
     if (schema.format === 'uuid4') return 'string';
-    if (schema.format === 'date-time') return 'Date';
-    if (schema.format === 'date') return 'Date';
+    if (schema.format === 'date-time') return 'string';
+    if (schema.format === 'date') return 'string';
 
     switch (schema.type) {
       case 'string': return 'string';
