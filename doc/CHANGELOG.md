@@ -5,6 +5,41 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.4] - 2024-12-27
+
+### 🔧 REPOSITORY PERFECTION - GENERACIÓN IDÉNTICA AL PROYECTO REAL
+
+#### 🛠️ Fixed - REPOSITORIES COMPLETAMENTE ALINEADOS
+- **🌐 API Dinámico**: Axios generado según API seleccionada (`appointmentAxios`, `platformAxios`, etc.)
+- **🔗 Constantes Dinámicas**: `CONST_<API>_API_ROUTES` en lugar de hardcoded `CONST_PLATFORM_API_ROUTES`
+- **🎯 Tipado Correcto**: `ResolveRequest<Entity[]>` para arrays vs `ResolveRequest<Entity>` para objetos
+- **✅ Alineación Total**: Repositories generados idénticos al proyecto real `goluti-frontend`
+
+#### 📚 Technical Details - Correcciones de Repository
+
+**🌐 API Dinámico:**
+- **Before**: `import platformAxios from "@bus/core/axios/platform-axios"`
+- **After**: `import appointmentAxios from "@bus/core/axios/appointment-axios"`
+- **Dynamic**: Se usa la API seleccionada por el usuario (appointment, platform, payment, etc.)
+
+**🔗 Constantes Dinámicas:**
+- **Before**: `CONST_PLATFORM_API_ROUTES.AVAILABILITY_SERVICES_BY_LOCATION`
+- **After**: `CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_SERVICES_BY_LOCATION`
+- **Pattern**: `CONST_<API_UPPERCASE>_API_ROUTES` dinámico
+
+**🎯 Tipado Correcto ResolveRequest:**
+- **Arrays**: `ResolveRequest<IAvailabilityServicesByLocationResponseEntity[]>` (con `[]`)
+- **Objects**: `ResolveRequest<IAvailabilityCollaboratorsAvailabilityResponseEntity>` (sin `[]`)
+- **Logic**: Se aplica `[]` automáticamente según `operation.isResponseArray`
+
+#### 🎯 Impact - REPOSITORIES PRODUCTION-READY
+- ✅ Generación dinámica según API seleccionada por usuario
+- ✅ Tipado TypeScript correcto para arrays vs objetos
+- ✅ Constantes API específicas por proyecto
+- ✅ Axios específico por API (appointment, platform, core, etc.)
+- ✅ Compatibilidad 100% con proyecto real goluti-frontend
+- ✅ Zero configuración manual requerida
+
 ## [2.2.3] - 2024-12-27
 
 ### 🔧 COMPREHENSIVE FIXES - MÚLTIPLES CORRECCIONES CRÍTICAS
