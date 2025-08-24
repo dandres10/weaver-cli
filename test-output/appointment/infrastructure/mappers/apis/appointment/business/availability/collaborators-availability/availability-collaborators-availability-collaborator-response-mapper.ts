@@ -25,9 +25,9 @@ export class AvailabilityCollaboratorsAvailabilityCollaboratorResponseMapper ext
             name: param.name,
             takeAllServices: param.take_all_services,
             appointmentDuration: param.appointment_duration,
-            services: this.availabilityServiceresponseMapper.mapFromList(param.services),
-            scheduleAvailability: this.rangesresponseMapper.mapFromList(param.schedule_availability),
-            assignmentHours: this.calculatePossibleAssignmentHoursresponseMapper.mapFromList(param.assignment_hours)
+            services: this.availabilityServiceresponseMapper.mapFromList(param.services ?? []),
+            scheduleAvailability: this.rangesresponseMapper.mapFromList(param.schedule_availability ?? []),
+            assignmentHours: this.calculatePossibleAssignmentHoursresponseMapper.mapFromList(param.assignment_hours ?? [])
         }
     }
 
@@ -45,9 +45,9 @@ export class AvailabilityCollaboratorsAvailabilityCollaboratorResponseMapper ext
             name: param.name,
             take_all_services: param.takeAllServices,
             appointment_duration: param.appointmentDuration,
-            services: this.availabilityServiceresponseMapper.mapToList(param.services),
-            schedule_availability: this.rangesresponseMapper.mapToList(param.scheduleAvailability),
-            assignment_hours: this.calculatePossibleAssignmentHoursresponseMapper.mapToList(param.assignmentHours)
+            services: this.availabilityServiceresponseMapper.mapToList(param.services ?? []),
+            schedule_availability: this.rangesresponseMapper.mapToList(param.scheduleAvailability ?? []),
+            assignment_hours: this.calculatePossibleAssignmentHoursresponseMapper.mapToList(param.assignmentHours ?? [])
         }
     }
 

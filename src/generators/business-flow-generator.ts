@@ -625,7 +625,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
         }
         
         if (field.isArray) {
-          return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
+          return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName} ?? [])`;
         } else {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFrom(param.${entityFieldName})`;
         }
@@ -648,7 +648,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
         const nestedMapperName = `${cleanFieldType.charAt(0).toLowerCase() + cleanFieldType.slice(1)}${suffix.charAt(0).toLowerCase() + suffix.slice(1)}Mapper`;
         
         if (field.isArray) {
-          return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
+          return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName} ?? [])`;
         } else {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapTo(param.${dtoFieldName})`;
         }
@@ -821,7 +821,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
         }
         
         if (nestedField.isArray) {
-          return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName})`;
+          return `            ${dtoFieldName}: this.${nestedMapperName}.mapFromList(param.${entityFieldName} ?? [])`;
         } else {
           return `            ${dtoFieldName}: this.${nestedMapperName}.mapFrom(param.${entityFieldName})`;
         }
@@ -852,7 +852,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
         const nestedMapperName = `${variableBaseName.charAt(0).toLowerCase() + variableBaseName.slice(1)}${nestedSuffix.charAt(0).toLowerCase() + nestedSuffix.slice(1)}Mapper`;
         
         if (nestedField.isArray) {
-          return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName})`;
+          return `            ${entityFieldName}: this.${nestedMapperName}.mapToList(param.${dtoFieldName} ?? [])`;
         } else {
           return `            ${entityFieldName}: this.${nestedMapperName}.mapTo(param.${dtoFieldName})`;
         }

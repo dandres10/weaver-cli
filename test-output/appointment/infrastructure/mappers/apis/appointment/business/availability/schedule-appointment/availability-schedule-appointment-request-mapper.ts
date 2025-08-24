@@ -21,7 +21,7 @@ export class AvailabilityScheduleAppointmentRequestMapper extends Mapper<IAvaila
             locationId: param.location_id,
             currencyId: param.currency_id,
             today: param.today,
-            appointments: this.appointmentrequestMapper.mapFromList(param.appointments)
+            appointments: this.appointmentrequestMapper.mapFromList(param.appointments ?? [])
         }
     }
 
@@ -37,7 +37,7 @@ export class AvailabilityScheduleAppointmentRequestMapper extends Mapper<IAvaila
             location_id: param.locationId,
             currency_id: param.currencyId,
             today: param.today,
-            appointments: this.appointmentrequestMapper.mapToList(param.appointments)
+            appointments: this.appointmentrequestMapper.mapToList(param.appointments ?? [])
         }
     }
 

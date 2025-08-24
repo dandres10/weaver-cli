@@ -17,7 +17,7 @@ export class AvailabilityCollaboratorsAvailabilityResponseMapper extends Mapper<
 
     public mapFrom(param: IAvailabilityCollaboratorsAvailabilityResponseEntity): IAvailabilityCollaboratorsAvailabilityResponseDTO {
         return {
-            collaborators: this.collaboratorresponseMapper.mapFromList(param.collaborators)
+            collaborators: this.collaboratorresponseMapper.mapFromList(param.collaborators ?? [])
         }
     }
 
@@ -29,7 +29,7 @@ export class AvailabilityCollaboratorsAvailabilityResponseMapper extends Mapper<
 
     public mapTo(param: IAvailabilityCollaboratorsAvailabilityResponseDTO): IAvailabilityCollaboratorsAvailabilityResponseEntity {
         return {
-            collaborators: this.collaboratorresponseMapper.mapToList(param.collaborators)
+            collaborators: this.collaboratorresponseMapper.mapToList(param.collaborators ?? [])
         }
     }
 

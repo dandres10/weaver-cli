@@ -20,7 +20,7 @@ export class AvailabilityAppointmentTableRequestMapper extends Mapper<IAvailabil
             skip: param.skip,
             limit: param.limit,
             allData: param.all_data,
-            filters: this.filterManagerrequestMapper.mapFromList(param.filters)
+            filters: this.filterManagerrequestMapper.mapFromList(param.filters ?? [])
         }
     }
 
@@ -35,7 +35,7 @@ export class AvailabilityAppointmentTableRequestMapper extends Mapper<IAvailabil
             skip: param.skip,
             limit: param.limit,
             all_data: param.allData,
-            filters: this.filterManagerrequestMapper.mapToList(param.filters)
+            filters: this.filterManagerrequestMapper.mapToList(param.filters ?? [])
         }
     }
 
