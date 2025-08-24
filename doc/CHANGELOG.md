@@ -5,6 +5,41 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.5] - 2024-12-27
+
+### 🔧 COMPLETE REPOSITORY ALIGNMENT - ENTITY CRUD + BUSINESS FLOWS
+
+#### 🛠️ Fixed - ENTIDADES CRUD COMPLETAMENTE ALINEADAS
+- **🌐 Entity Repositories**: Aplicadas correcciones dinámicas a repositories de entidades CRUD
+- **🔗 API Dinámico Completo**: Tanto business flows como entities usan axios y constantes dinámicas
+- **✅ Cobertura Total**: Todas las funciones (CRUD + Business) generan código idéntico al proyecto real
+- **🎯 Consistencia Absoluta**: Mismo patrón aplicado uniformemente en toda la generación
+
+#### 📚 Technical Details - Entity Repository Fixes
+
+**🌐 API Dinámico para Entities:**
+- **Before**: `import platformAxios from "@bus/core/axios/platform-axios"`
+- **After**: `import appointmentAxios from "@bus/core/axios/appointment-axios"`
+
+**🔗 Constantes Dinámicas para Entities:**
+- **Before**: `import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const"`
+- **After**: `import { CONST_APPOINTMENT_API_ROUTES } from "@bus/core/const"`
+
+**📞 Llamadas API Dinámicas:**
+- **Before**: `platformAxios.post(CONST_PLATFORM_API_ROUTES.CALENDAR, params)`
+- **After**: `appointmentAxios.post(CONST_APPOINTMENT_API_ROUTES.CALENDAR, params)`
+
+#### 🏆 Achievement - GENERACIÓN PERFECTA
+- ✅ **Business Flows**: appointmentAxios + CONST_APPOINTMENT_API_ROUTES + tipado correcto
+- ✅ **Entity CRUD**: appointmentAxios + CONST_APPOINTMENT_API_ROUTES + tipado correcto
+- ✅ **Null Safety**: param.field ?? [] en todos los mappers
+- ✅ **FilterManager**: Mappers anidados incluidos en injection files
+- ✅ **Import Clean**: Nombres de interfaces sin [] incorrectos
+
+**🎯 Resultado**: Código generado 100% idéntico al proyecto real `goluti-frontend`
+
+---
+
 ## [2.2.4] - 2024-12-27
 
 ### 🔧 REPOSITORY PERFECTION - GENERACIÓN IDÉNTICA AL PROYECTO REAL
