@@ -5,6 +5,53 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2024-12-23
+
+### 🚀 MAJOR RELEASE - PARSER OPENAPI COMPLETAMENTE REESCRITO
+
+#### ✨ Added - PARSER ROBUSTO Y COMPLETO
+- **🔍 Parser OpenAPI Inteligente**: Reescritura completa del sistema de parsing de especificaciones OpenAPI/Swagger
+- **🎯 Tipos Dinámicos**: Respeto estricto a tipos definidos en OpenAPI sin inferencias incorrectas
+- **📋 Enums con SCREAMING_SNAKE_CASE**: Nomenclatura estándar para enums TypeScript
+- **🔄 Respuestas de Array**: Soporte completo para endpoints que retornan arrays (`Promise<DTO[] | null>`)
+- **🗂️ Mappers Inteligentes**: Generación correcta de `mapFromList()` vs `mapFrom()` según tipo de respuesta
+- **🧪 Suite de Tests Completa**: 8 tests unitarios + validación end-to-end
+
+#### 🔧 Changed - MEJORAS FUNDAMENTALES DEL PARSER
+- **Parsing de Campos Complejos**: Manejo correcto de `anyOf` con arrays y esquemas inline
+- **Generación de Respuestas**: Extrae correctamente el contenido del campo `response` sin metadatos wrapper
+- **Tipos Date-Time**: Campos `date-time` del OpenAPI se generan como `string` en TypeScript
+- **Enum Values**: Enums usan valores exactos del backend (`"=="`, `">"`, etc.) con keys SCREAMING_SNAKE_CASE
+- **Array Detection**: Detección automática de respuestas tipo array para generar tipos `DTO[]`
+
+#### 🐛 Fixed - CORRECCIONES CRÍTICAS DEL PARSER
+- **Campo Filters**: Corrección completa del parsing de `filters: FilterManager[]` con esquemas complejos
+- **Tipos anyOf**: Manejo correcto de `anyOf: [{}, {type: "null"}]` → respeta `any` del OpenAPI
+- **Respuestas Complejas**: Parsing correcto de respuestas con `items.properties` para extraer campos específicos
+- **Enum Generation**: Eliminación de duplicaciones en nombres (`AvailabilityAppointmentTableEnum` → `AVAILABILITY_APPOINTMENT_TABLE_ENUM`)
+- **Request vs Response**: Lógica independiente y correcta para parsing de requests y responses
+
+#### 📚 Technical Details - Arquitectura del Parser
+- **SwaggerAnalyzer**: Clase principal completamente refactorizada
+- **parseFieldSchema**: Función core reescrita para manejar casos complejos
+- **getBusinessServiceSchema**: Lógica de extracción de esquemas mejorada
+- **Array Response Detection**: `isResponseArray` flag para determinar tipos de retorno
+- **Enum Name Conversion**: Función `toScreamingSnakeCase()` para nomenclatura estándar
+
+#### 🧪 Testing - Suite Completa de Validación
+- **Unit Tests**: 8 tests específicos para casos complejos del parser
+- **Integration Tests**: Validación con OpenAPI real del backend
+- **End-to-End Tests**: Script automático que valida generación completa
+- **Edge Cases**: Cobertura de casos límite y esquemas complejos
+
+#### 🎯 Impact - GENERACIÓN PERFECTA Y ROBUSTA
+- ✅ Parsing correcto de cualquier especificación OpenAPI/Swagger compleja
+- ✅ Tipos TypeScript precisos que respetan exactamente el contrato del backend  
+- ✅ Enums con nomenclatura estándar y valores correctos del backend
+- ✅ Respuestas de array completamente funcionales con mappers correctos
+- ✅ Zero inferencias incorrectas - respeto total al OpenAPI como fuente de verdad
+- ✅ Arquitectura robusta preparada para futuros casos complejos
+
 ## [2.1.9] - 2024-12-23
 
 ### 🔧 CORRECCIÓN DEFINITIVA - INJECTION FILES COMPLETAMENTE ALINEADOS

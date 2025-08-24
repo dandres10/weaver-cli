@@ -458,6 +458,10 @@ function toPascalCase(str: string): string {
     .replace(/EntityEntity$/, 'Entity');
 }
 
+function toScreamingSnakeCase(str: string): string {
+  return str.replace(/([A-Z])/g, '_$1').toUpperCase().replace(/^_/, '');
+}
+
 function toSnakeCase(str: string): string {
   return str
     .replace(/([A-Z])/g, '_$1')
@@ -972,9 +976,10 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
       
       let exportClassName;
       if (field.isEnum && field.enumValues) {
-        // Para enums, usar el nombre del enum (evitar duplicar "Enum")
+        // Para enums, usar el nombre del enum en SCREAMING_SNAKE_CASE (evitar duplicar "Enum")
         const enumSuffix = formattedFieldType.endsWith('Enum') ? '' : 'Enum';
-        exportClassName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+        const pascalCaseName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+        exportClassName = toScreamingSnakeCase(pascalCaseName);
       } else {
         // Para interfaces, usar el patrón normal
         const suffix = type === 'request' ? 'Request' : 'Response';
@@ -1088,7 +1093,9 @@ function generateIndividualEnum(typeName: string, field: any, apiName: string, s
   
   // Si el formattedTypeName ya contiene "Enum", no agregarlo de nuevo
   const enumSuffix = formattedTypeName.endsWith('Enum') ? '' : 'Enum';
-  const enumName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedTypeName}${enumSuffix}`;
+  const pascalCaseName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedTypeName}${enumSuffix}`;
+  // Convertir a SCREAMING_SNAKE_CASE para el nombre del enum
+  const enumName = toScreamingSnakeCase(pascalCaseName);
   
   // Generar valores del enum
   const enumValues = field.enumValues.map((value: string) => {
@@ -1180,9 +1187,10 @@ function generateIndividualNestedDTO(typeName: string, field: any, apiName: stri
         
         let fieldType;
         if (nestedField.isEnum && nestedField.enumValues) {
-          // Para enums, usar el nombre del enum (evitar duplicar "Enum")
+          // Para enums, usar el nombre del enum en SCREAMING_SNAKE_CASE (evitar duplicar "Enum")
           const enumSuffix = formattedNestedTypeName.endsWith('Enum') ? '' : 'Enum';
-          fieldType = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+          const pascalCaseName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+          fieldType = toScreamingSnakeCase(pascalCaseName);
         } else {
           // Para interfaces, usar el patrón normal
           const nestedSuffix = type === 'request' ? 'Request' : 'Response';
@@ -1288,9 +1296,10 @@ async function generateNestedEntitiesForOperation(serviceName: string, operation
       
       let exportClassName;
       if (field.isEnum && field.enumValues) {
-        // Para enums, usar el nombre del enum
+        // Para enums, usar el nombre del enum en SCREAMING_SNAKE_CASE
         const enumSuffix = formattedFieldType.endsWith('Enum') ? '' : 'Enum';
-        exportClassName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+        const pascalCaseName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedFieldType}${enumSuffix}`;
+        exportClassName = toScreamingSnakeCase(pascalCaseName);
       } else {
         // Para interfaces, usar el patrón normal
         const suffix = type === 'request' ? 'Request' : 'Response';
@@ -1357,9 +1366,10 @@ function generateIndividualNestedEntity(typeName: string, field: any, apiName: s
         
         let fieldType, importFileName;
         if (nestedField.isEnum && nestedField.enumValues) {
-          // Para enums, usar el nombre del enum
+          // Para enums, usar el nombre del enum en SCREAMING_SNAKE_CASE
           const enumSuffix = formattedNestedTypeName.endsWith('Enum') ? '' : 'Enum';
-          fieldType = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+          const pascalCaseName = `${toPascalCase(serviceName)}${cleanOperationName}${formattedNestedTypeName}${enumSuffix}`;
+          fieldType = toScreamingSnakeCase(pascalCaseName);
           
           // Para enums, usar el patrón: <flujo>-<proceso>-<tipo>-<request/response>-entity
           const formattedNestedType = cleanNestedType.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');

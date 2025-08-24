@@ -16,5 +16,5 @@ export type { IAvailabilityRescheduleAppointmentAppointmentCreatedRequestEntity 
 export type { IAvailabilityRescheduleAppointmentResponseEntity } from './reschedule-appointment/i-availability-reschedule-appointment-response-entity';
 export type { IAvailabilityAppointmentTableRequestEntity } from './appointment-table/i-availability-appointment-table-request-entity';
 export type { IAvailabilityAppointmentTableFilterManagerRequestEntity } from './appointment-table/i-availability-appointment-table-filter-manager-request-entity';
-export type { AvailabilityAppointmentTableEnum } from './appointment-table/availability-appointment-table-enum-request-entity';
+export type { AVAILABILITY_APPOINTMENT_TABLE_ENUM } from './appointment-table/availability-appointment-table-enum-request-entity';
 export type { IAvailabilityAppointmentTableResponseEntity } from './appointment-table/i-availability-appointment-table-response-entity';

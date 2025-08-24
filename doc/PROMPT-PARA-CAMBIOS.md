@@ -15,17 +15,21 @@ weaver-cli/
 │   │   └── auth-manager.ts                 # Sistema de autenticación (clave: "soyia")
 │   ├── generators/
 │   │   ├── correct-entity-flow-generator.ts # Generador CRUD (42 archivos por entidad)
-│   │   ├── business-flow-generator.ts       # Generador flujos de negocio (DTOs + Entities + Mappers)
+│   │   ├── business-flow-generator.ts       # Generador flujos de negocio (DTOs + Entities + Mappers + SCREAMING_SNAKE_CASE enums)
 │   │   └── cleanup-generator.ts             # Generador de limpieza
 │   ├── parsers/
-│   │   └── swagger-parser.ts               # Parser OpenAPI/Swagger con detección de API
+│   │   └── swagger-parser.ts               # Parser OpenAPI/Swagger REESCRITO - maneja esquemas complejos
 │   ├── validators/
 │   │   └── project-validator.ts            # Validaciones pre-generación
 │   └── utils/
 │       └── directory-detector.ts           # Detección inteligente de APIs y directorios
-├── package.json                            # Configuración NPM (comando: "weaver")
+├── tests/                                  # ✅ NUEVO: Suite de tests completa
+│   ├── business-flow-parser.test.ts        # 8 tests unitarios para casos complejos del parser
+│   └── setup.ts                           # Configuración de Jest
+├── validate-complete-generation.js         # ✅ NUEVO: Script de validación end-to-end automática
+├── package.json                            # Configuración NPM (comando: "weaver") - v2.2.0
 ├── tsconfig.json                           # Configuración TypeScript
-└── README.md                               # Documentación completa
+└── README.md                               # Documentación completa actualizada
 ```
 
 ### 🎯 FUNCIONALIDADES IMPLEMENTADAS
@@ -221,92 +225,12 @@ El generador evita duplicaciones automáticamente y mantiene consistencia:
 - **Consistencia archivo-interface**: Nombres coinciden perfectamente entre archivo e interface ✅
 - Una interfaz por archivo + imports automáticos de dependencias
 
-#### 🚀 **Optimizaciones Avanzadas (Diciembre 2024)**
+#### 🎯 **Patrones de Código (Resumido)**
 
-**✅ Repository Pattern Optimizado:**
-```typescript
-// Interface (abstract class pattern)
-export abstract class IAuthRepository {
-  abstract login(params: IAuthLoginRequestEntity, config: IConfigDTO): Promise<IAuthLoginResponseDTO | null>;
-  abstract refreshToken(config: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null>; // Sin params innecesarios
-}
-
-// Implementation (config con defaults, imports optimizados)
-export class AuthRepository extends IAuthRepository {
-  private loginResponseMapper = Injection...ResponseMapper(); // Solo response mappers
-  
-  public async login(params: IAuthLoginRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG) {
-    // Config con valor por defecto
-  }
-}
-```
-
-**✅ Use Cases Optimizados:**
-```typescript
-// Solo mappers cuando hay request fields
-export class AuthLoginUseCase implements UseCase<IAuthLoginRequestDTO, IAuthLoginResponseDTO | null> {
-  private mapper = InjectionPlatformBusinessAuthLoginMapper.AuthLoginRequestMapper(); // ✅ Presente
-}
-
-export class AuthRefreshTokenUseCase implements UseCase<any, IAuthRefreshTokenResponseDTO | null> {
-  // ✅ Sin mapper innecesario (no hay request fields)
-  // ✅ UseCase<any, ...> para operaciones sin parámetros (más flexible que void)
-  
-  public async execute(config?: IConfigDTO): Promise<IAuthRefreshTokenResponseDTO | null> {
-    return await this.repository.refreshToken(config); // ✅ Config directo
-  }
-}
-```
-
-**✅ Mappers con Naming Corregido:**
-```typescript
-// Variables en camelCase
-private loginResponseMapper = // ✅ loginResponseMapper (no loginresponseMapper)
-private refreshTokenResponseMapper = // ✅ refreshTokenResponseMapper (no refreshtokenResponseMapper)
-
-// Injection methods abreviados
-public static PlatformConfigurationResponseMapper(): AuthLoginPlatformConfigurationResponseMapper {
-  // ✅ Método abreviado (no AuthLoginPlatformConfigurationResponseMapper())
-}
-```
-
-**✅ Mappers y Injection Optimizados:**
-- Variables sin sufijos duplicados (ej: `userResponseMapper`)
-- Métodos que coinciden con clases reales exportadas
-- Imports centralizados desde index.ts  
-- Lógica contextual para eliminación automática de redundancias
-
-**✅ Sintaxis y Validación:**
-- Llaves de cierre en todas las clases ✅
-- Imports consolidados via index.ts ✅
-- Zero código innecesario ✅
-- Variables camelCase consistentes ✅
-- UseCase types optimizados: `UseCase<any, ...>` para operaciones sin parámetros ✅
-
-#### 🎯 **Patrones de Consistencia (Última Actualización)**
-
-**✅ Validación Archivo-Interface Perfecta:**
-```typescript
-// Archivo: i-auth-login-user-response-dto.ts
-export interface IAuthLoginUserResponseDTO {
-  // Patrón: i-<flujo>-<proceso>-<tipo>-<request/response>-dto.ts 
-  //    ↓     ↓      ↓        ↓      ↓           ↓         ↓
-  // IAuth Login    User   Response  DTO
-}
-
-// Archivo: i-auth-refresh-token-company-response-dto.ts  
-export interface IAuthRefreshTokenCompanyResponseDTO {
-  // Consistencia 100% garantizada entre nombre de archivo e interface
-}
-```
-
-**✅ Index.ts con Export Type:**
-```typescript
-// Todas las exportaciones utilizan 'export type' para mejores prácticas
-export type { IAuthLoginUserResponseDTO } from './login/i-auth-login-user-response-dto';
-export type { IAuthRefreshTokenUserResponseDTO } from './refresh-token/i-auth-refresh-token-user-response-dto';
-// Sin duplicaciones automáticamente detectadas y eliminadas
-```
+- **Naming**: `i-<service>-<operation>-<type>-<request/response>-<dto/entity>.ts`
+- **Interfaces**: `I<Service><Operation><Type><Request/Response><DTO/Entity>`
+- **Exports**: `export type { ... }` en `index.ts`
+- **Consistencia**: Nombres de archivo e interface perfectamente alineados
 
 ### 🔧 TECNOLOGÍAS Y DEPENDENCIAS
 
@@ -329,8 +253,19 @@ weaver --logout       # Cerrar sesión
 npm run build         # Compilar
 npm run dev           # Watch mode
 npm start             # Ejecutar CLI
+npm test              # ✅ NUEVO: Ejecutar suite de tests (8 tests unitarios)
 npm run test:local    # Build + local
 npm run logout        # Build + logout
+
+# ✅ NUEVOS: Scripts de validación
+node validate-complete-generation.js  # Validación end-to-end completa
+```
+
+### 🧪 **Testing y Validación**
+
+```bash
+npm test                              # 8 tests unitarios del parser
+node validate-complete-generation.js  # Validación end-to-end completa
 ```
 
 ### 🔄 FLUJO DE TRABAJO
@@ -378,62 +313,25 @@ npm run logout        # Build + logout
 
 ### 🎯 **ESTADO ACTUAL DEL PROYECTO**
 
-✅ **Funcionalidades Completadas:**
-- 🏗️ **Generación CRUD**: 42+ archivos por entidad con Clean Architecture completa
-- 💼 **Generación Business COMPLETA**: Arquitectura Clean Architecture completa para flujos de negocio
-  - 📋 **DTOs + Entities + Mappers** dinámicos con interfaces anidadas
-  - 🔗 **Repository Interfaces** unificados por servicio (abstract class pattern)
-  - 📊 **Use Cases** en estructura plana con inyección de dependencias optimizada
-  - 🗄️ **Infrastructure Repositories** unificados con métodos camelCase y config defaults
-  - 🎭 **Facades** unificados con instancias readonly y singleton pattern
-  - 🔌 **Sistema de Inyección Completo** acumulativo para todos los componentes
-- 🎯 **Filtrado Inteligente**: Detecta automáticamente CRUD vs Business
-- 🔗 **Interfaces Anidadas**: Archivos individuales con imports automáticos
-- ⚙️ **Mapeo Automático**: CamelCase ↔ snake_case con inyección de dependencias
-- 🔄 **Sin Duplicaciones**: Evita automáticamente nombres duplicados, caracteres especiales y consistencia archivo-interface
-- ✅ **Nombres Consistentes**: Patrón perfectamente alineado entre archivos e interfaces con validación automática
-- 🎯 **Kebab-case Uniforme**: Directorios y archivos siguen convención kebab-case (`refresh-token/` no `refresh_token/`)
-- 🛣️ **Integración Constantes**: Uso automático de CONST_PLATFORM_API_ROUTES
-- 🧩 **Operaciones Flexibles**: Soporte completo para operaciones con/sin request body
-- 🔌 **Actualización Acumulativa**: Los archivos de injection se actualizan automáticamente
-- 🚀 **Optimización Completa**: Repository pattern, use cases optimizados, mappers corregidos, sintaxis validada
+**Weaver CLI v2.2.0** - Generador completo de código TypeScript con Clean Architecture:
 
-🎉 **¡SISTEMA COMPLETO Y ROBUSTO!** 
-Weaver CLI ahora genera **arquitectura Clean Architecture completa** tanto para **entidades CRUD** como para **flujos de negocio**, con sistema de inyección de dependencias unificado y acumulativo **completamente funcional**.
+✅ **Funcionalidades principales:**
+- 🏗️ **Entidades CRUD**: 42+ archivos por entidad
+- 💼 **Flujos de Negocio**: DTOs, Entities, Mappers, Use Cases, Repositories, Facades
+- 🔍 **Parser OpenAPI Avanzado**: Esquemas complejos, enums, arrays de respuesta
+- 🎯 **Detección Inteligente**: CRUD vs Business automático
+- 🔌 **Inyección de Dependencias**: Sistema completo y acumulativo
 
-**🆕 Última Actualización v2.1.9 (Diciembre 2024):**
-- ✅ **Consistencia Archivo-Interface 100%**: Nombres perfectamente alineados entre archivos e interfaces
-- ✅ **Export Type Únicos**: Solo `export type` en index.ts sin duplicaciones
-- ✅ **Kebab-case Uniforme**: Directorios consistentes (`refresh-token/` no `refresh_token/`)
-- ✅ **Validación Automática**: Detección y corrección de duplicaciones de sufijos
-- ✅ **Patrones Completos**: `i-<flujo>-<proceso>-<tipo>-<request/response>-<dto/entity>.ts` → `I<Flujo><Proceso><Tipo><Request/Response><DTO/Entity>`
-- ✅ **Mappers Anidados Robustos**: Variables camelCase correctas, métodos injection alineados
-- ✅ **Injection Files Funcionales**: Imports hacia clases reales, zero errores de compilación
-- ✅ **Import Paths Optimizados**: Todos los imports van hacia index.ts centralizados
-- ✅ **Lógica Contextual Avanzada**: Eliminación inteligente de sufijos redundantes
+### 🎯 **VERSIÓN ACTUAL: v2.2.0 - Parser OpenAPI Avanzado**
 
-**🔥 Última Optimización Completa (Diciembre 2024):**
-- ✅ **DTOs y Entities Optimizados**: Imports via index.ts, naming consistente, interfaces anidadas perfectas
-- ✅ **Mappers Completamente Corregidos**: Eliminación de duplicaciones, nombres camelCase, imports optimizados
-- ✅ **Repository Pattern Perfecto**: Abstract class, métodos camelCase, parámetros optimizados, config con defaults
-- ✅ **Use Cases Optimizados**: Solo mappers necesarios, config directo, sintaxis válida, tipos correctos
-- ✅ **Facades Perfectos**: Singleton pattern, delegación correcta, tipos explícitos, Clean Architecture
-- ✅ **Sistema de Injection Completo**: Factory pattern, métodos abreviados, imports consolidados
-- ✅ **Validación Sintáctica**: Llaves de cierre, imports limpios, zero código innecesario
-- ✅ **UseCase Types**: `UseCase<any, ResponseDTO | null>` para operaciones sin parámetros (optimización TypeScript)
+> **Parser OpenAPI completamente reescrito** - Manejo robusto de esquemas complejos, enums SCREAMING_SNAKE_CASE, arrays de respuesta automáticos, y respeto estricto al contrato OpenAPI.
 
-#### 🆕 **Mejoras Recientes v2.1.2 - v2.1.9 (Diciembre 2024)**
-
-**✅ v2.1.2 - UseCase Generic Types Optimizados:**
-- **Optimización de tipos**: `UseCase<void, ...>` → `UseCase<any, ...>` para mejor compatibilidad TypeScript
-- **Zero breaking changes**: Mejora transparente para operaciones sin parámetros
-
-**✅ v2.1.3 - v2.1.9 - Sistema Completamente Estable:**
-
-- **🔧 Mappers corregidos**: Variables camelCase, métodos injection alineados
-- **📥 Imports optimizados**: Centralizados hacia index.ts  
-- **✅ Zero errores**: Compilación sin problemas en arquitectura completa
-- **🎯 Producción ready**: Sistema robusto para proyectos reales
+**🔥 Características principales v2.2.0:**
+- ✅ **Parser OpenAPI Avanzado**: Manejo de esquemas complejos (`anyOf`, `$ref`, inline schemas)
+- ✅ **Enums SCREAMING_SNAKE_CASE**: Nomenclatura estándar TypeScript
+- ✅ **Arrays de Respuesta**: Detección automática con `mapFromList()` vs `mapFrom()`  
+- ✅ **Tipos Precisos**: Respeto estricto al OpenAPI (`date-time` → `string`, `anyOf: [{}]` → `any`)
+- ✅ **Suite de Tests**: 8 tests unitarios + validación end-to-end automática
 
 ---
 

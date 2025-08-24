@@ -1,4 +1,4 @@
-export enum AvailabilityAppointmentTableEnum {
+export enum AVAILABILITY_APPOINTMENT_TABLE_ENUM {
   EQUALS = "==",
   GREATER_THAN = ">",
   LESS_THAN = "<",

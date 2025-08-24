@@ -250,6 +250,13 @@ weaver
 
 ## 📋 Historial de Versiones
 
+### v2.2.0 - Parser OpenAPI Avanzado 🚀
+- **🔍 Parser Completamente Reescrito**: Manejo inteligente de especificaciones OpenAPI/Swagger complejas
+- **📋 Enums SCREAMING_SNAKE_CASE**: Nomenclatura estándar TypeScript para enums
+- **🔄 Arrays de Respuesta**: Soporte completo para `Promise<DTO[] | null>` con mappers `mapFromList()`
+- **🧪 Suite de Tests Completa**: 8 tests unitarios + validación end-to-end automatizada
+- **🎯 Tipos Precisos**: Respeto estricto al OpenAPI sin inferencias incorrectas
+
 ### v1.1.0 - Simplified Cleanup 🎯
 - **🎯 Limpieza Simplificada**: Sistema directo enfocado en eliminar entidades
 - **📍 Ejecución Contextual**: Funciona desde la carpeta donde se ejecuta

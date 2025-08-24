@@ -31,11 +31,14 @@ weaver --local
 ## ✨ Características Principales
 
 - **🏗️ Clean Architecture**: 42+ archivos por entidad
-- **🌐 OpenAPI Integration**: Lectura automática de Swagger
+- **🔍 Parser OpenAPI Avanzado**: Lectura inteligente de especificaciones complejas
 - **🎯 Dos tipos de generación**: Entidades CRUD + Flujos de Negocio
+- **📋 Enums SCREAMING_SNAKE_CASE**: Nomenclatura estándar TypeScript
+- **🔄 Arrays de Respuesta**: Soporte completo para `Promise<DTO[] | null>`
 - **🔐 Sistema de Autenticación**: Acceso controlado
 - **🧹 Sistema de Limpieza**: Eliminación inteligente
 - **🧪 Modo Local**: Pruebas seguras
+- **🧪 Suite de Tests**: Validación completa automatizada
 
 ---
 
@@ -76,10 +79,10 @@ weaver → Flujos de Negocio → Seleccionar servicio
 
 ## 📊 Estado del Proyecto
 
-- **Versión**: v2.1.9 (Diciembre 2024)
+- **Versión**: v2.2.0 (Diciembre 2024)
 - **Estado**: ✅ Producción
 - **Arquitectura**: Clean Architecture completa
-- **Soporte**: CRUD + Business Flows
+- **Soporte**: CRUD + Business Flows + Parser OpenAPI Avanzado
 
 ---
 

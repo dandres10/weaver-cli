@@ -11,6 +11,7 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 ### 📖 Documentación Principal
 - **[README](./README.md)** - Documentación principal del proyecto con instalación y uso
 - **[Estructura Generada Correcta](./estructura-generada-correcta.md)** - Documentación detallada de la arquitectura y patrones generados
+- **[Parser OpenAPI Avanzado](./parser-openapi.md)** - Documentación técnica del sistema de parsing OpenAPI/Swagger
 
 ### 🚀 Guías de Uso
 - **[Comandos de Weaver](./COMANDOS-WEAVER.md)** - Lista completa de comandos disponibles y su uso
@@ -32,8 +33,9 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 
 ### 🏗️ ¿Quieres entender la arquitectura?
 1. **Estructura Completa**: [Estructura Generada Correcta](./estructura-generada-correcta.md)
-2. **Patrones Implementados**: Ver secciones de Clean Architecture
-3. **Ejemplos de Código**: Revisar templates y casos de uso
+2. **Parser OpenAPI**: [Parser OpenAPI Avanzado](./parser-openapi.md) - Cómo funciona el parsing de especificaciones
+3. **Patrones Implementados**: Ver secciones de Clean Architecture
+4. **Ejemplos de Código**: Revisar templates y casos de uso
 
 ### 🔧 ¿Vas a desarrollar o modificar Weaver CLI?
 1. **Contexto del Proyecto**: [Prompt para Cambios](./PROMPT-PARA-CAMBIOS.md)
@@ -46,12 +48,14 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 
 ### ✨ Lo que hace Weaver CLI
 - **🏗️ Clean Architecture**: 42+ archivos por entidad siguiendo principios SOLID
-- **🌐 Integración OpenAPI**: Lectura automática de especificaciones Swagger
+- **🔍 Parser OpenAPI Avanzado**: Manejo robusto de esquemas complejos (`anyOf`, `$ref`, inline schemas)
+- **📋 Enums SCREAMING_SNAKE_CASE**: Nomenclatura estándar TypeScript con valores exactos del backend
+- **🔄 Arrays de Respuesta**: Detección automática con `mapFromList()` vs `mapFrom()`
 - **🎯 Dos tipos de generación**:
   - **Entidades CRUD**: DTOs, Use Cases, Repositories, Facades completos
   - **Flujos de Negocio**: Servicios complejos con mappers anidados
+- **🧪 Testing Robusto**: 8 tests unitarios + validación end-to-end automática
 - **🔐 Sistema de Autenticación**: Acceso controlado con clave de sesión
-- **🧪 Modo Local**: Pruebas seguras sin afectar el proyecto principal
 - **🧹 Sistema de Limpieza**: Eliminación inteligente de código generado
 
 ### 🎯 Casos de Uso Principales
@@ -93,9 +97,9 @@ weaver --local
 ```
 
 ### 📊 Estado del Proyecto
-- **Versión Actual**: v2.1.9 (Diciembre 2024)
+- **Versión Actual**: v2.2.0 (Diciembre 2024)
 - **Estado**: ✅ Producción - Sistema completo y robusto
-- **Características**: Clean Architecture completa para CRUD y Business Flows
+- **Características**: Clean Architecture + Parser OpenAPI Avanzado + Enums SCREAMING_SNAKE_CASE
 
 ### 🆘 Soporte
 - **Autenticación**: Clave `soyia` (válida 30 días)

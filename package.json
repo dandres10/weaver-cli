@@ -1,7 +1,7 @@
 {
   "name": "weaver-frontend-cli",
-  "version": "2.1.9",
-  "description": "🕷️ Weaver CLI - Generador completo de arquitectura Clean Architecture para entidades CRUD y flujos de negocio desde OpenAPI/Swagger",
+  "version": "2.2.0",
+  "description": "🕷️ Weaver CLI - Generador completo de arquitectura Clean Architecture con parser OpenAPI avanzado para entidades CRUD y flujos de negocio complejos",
   "main": "dist/index.js",
   "bin": {
     "weaver": "dist/cli.js"

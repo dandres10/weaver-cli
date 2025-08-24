@@ -15,6 +15,6 @@ export type { IAvailabilityRescheduleAppointmentAppointmentCreatedRequestDTO } f
 export type { IAvailabilityRescheduleAppointmentRequestDTO } from './reschedule-appointment/i-availability-reschedule-appointment-request-dto';
 export type { IAvailabilityRescheduleAppointmentResponseDTO } from './reschedule-appointment/i-availability-reschedule-appointment-response-dto';
 export type { IAvailabilityAppointmentTableFilterManagerRequestDTO } from './appointment-table/i-availability-appointment-table-filter-manager-request-dto';
-export type { AvailabilityAppointmentTableEnum } from './appointment-table/availability-appointment-table-enum-request-dto';
+export type { AVAILABILITY_APPOINTMENT_TABLE_ENUM } from './appointment-table/availability-appointment-table-enum-request-dto';
 export type { IAvailabilityAppointmentTableRequestDTO } from './appointment-table/i-availability-appointment-table-request-dto';
 export type { IAvailabilityAppointmentTableResponseDTO } from './appointment-table/i-availability-appointment-table-response-dto';
