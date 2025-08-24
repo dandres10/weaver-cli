@@ -5,6 +5,43 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.8] - 2024-12-27
+
+### 🔧 ULTIMATE MAPPER FIX - MAPPERS ANIDADOS 100% DINÁMICOS
+
+#### 🛠️ Fixed - MAPPERS ANIDADOS COMPLETAMENTE CORREGIDOS
+- **🔧 Mapper Individual Imports**: `InjectionPlatformBusiness` → `InjectionAppointmentBusiness` en imports
+- **🔧 Mapper Individual Instances**: `InjectionPlatformBusiness` → `InjectionAppointmentBusiness` en instancias privadas
+- **🔧 Nested Mapper Imports**: Imports dinámicos en mappers con campos complejos
+- **🔧 Nested Mapper Instances**: Instancias dinámicas en mappers con campos complejos
+- **✅ Zero Hardcoded**: CERO referencias hardcodeadas a `InjectionPlatformBusiness` en mappers
+
+#### 📚 Technical Details - Ultimate Mapper Fix
+
+**🔧 Individual Mapper Imports:**
+- **Before**: `import { InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper }`
+- **After**: `import { InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper }`
+
+**🔧 Individual Mapper Instances:**
+- **Before**: `private appointmentrequestMapper = InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper.AppointmentRequestMapper()`
+- **After**: `private appointmentrequestMapper = InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper.AppointmentRequestMapper()`
+
+**🔧 Nested Mapper Construction:**
+- **Before**: `nestedMappers.push(\`private \${nestedMapperName} = InjectionPlatformBusiness\${serviceName}\${operation}Mapper.\${methodName}()\`)`
+- **After**: `nestedMappers.push(\`private \${nestedMapperName} = Injection\${apiName}Business\${serviceName}\${operation}Mapper.\${methodName}()\`)`
+
+#### 🏆 Achievement - MAPPERS PERFECTOS
+- ✅ **Injection Files**: `InjectionAppointmentBusinessAvailabilityAppointmentTableMapper` dinámico
+- ✅ **Individual Imports**: `InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper` dinámico  
+- ✅ **Individual Instances**: `InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper.AppointmentRequestMapper()` dinámico
+- ✅ **Nested Mapper Imports**: Imports completamente dinámicos según API
+- ✅ **Nested Mapper Instances**: Instancias completamente dinámicas según API
+- ✅ **FilterManager**: `InjectionAppointmentBusinessAvailabilityAppointmentTableMapper.FilterManagerRequestMapper()` dinámico
+
+**🎯 Estado Final**: CERO referencias hardcodeadas a `InjectionPlatformBusiness` en TODO el sistema
+
+---
+
 ## [2.2.7] - 2024-12-27
 
 ### 🔧 FINAL INJECTION FIX - BUSINESS FACADE USE CASE IMPORTS
