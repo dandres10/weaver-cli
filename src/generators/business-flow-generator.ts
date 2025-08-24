@@ -1732,13 +1732,31 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
     return ${responseMapperName}.getInstance();
   }`);
 
-        // Mappers anidados (si existen)
-        const nestedMappers = await collectNestedMappersForOperation(operation, 'response', serviceName, operationName);
-        for (const nestedMapper of nestedMappers) {
+        // Mappers anidados de response (si existen)
+        const responseNestedMappers = await collectNestedMappersForOperation(operation, 'response', serviceName, operationName);
+        for (const nestedMapper of responseNestedMappers) {
           const nestedMapperName = nestedMapper.className;
           
           // Generar nombre de método abreviado removiendo el prefijo del servicio y operación
           // Ejemplo: AuthLoginPlatformConfigurationResponseMapper -> PlatformConfigurationResponseMapper
+          const formattedServiceName = toPascalCase(serviceName);
+          const methodName = nestedMapperName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
+          
+          mapperNames.push(nestedMapperName);
+          mapperMethods.push(`  public static ${methodName}(): ${nestedMapperName} {
+    return ${nestedMapperName}.getInstance();
+  }`);
+        }
+      }
+
+      // Mappers anidados de request (si existen)
+      if (operation.fields && operation.fields.length > 0) {
+        const requestNestedMappers = await collectNestedMappersForOperation(operation, 'request', serviceName, operationName);
+        for (const nestedMapper of requestNestedMappers) {
+          const nestedMapperName = nestedMapper.className;
+          
+          // Generar nombre de método abreviado removiendo el prefijo del servicio y operación
+          // Ejemplo: AvailabilityAppointmentTableFilterManagerRequestMapper -> FilterManagerRequestMapper
           const formattedServiceName = toPascalCase(serviceName);
           const methodName = nestedMapperName.replace(new RegExp(`^${formattedServiceName}${cleanOperationName}`, ''), '');
           
