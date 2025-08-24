@@ -5,6 +5,31 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2024-12-27
+
+### 🐛 HOTFIX CRÍTICO - MAPPERS ANIDADOS EN INJECTION FILES
+
+#### 🔧 Fixed - CORRECCIÓN CRÍTICA DE MAPPERS ANIDADOS
+- **📁 Injection Files**: Corregida generación de mappers anidados en injection files para business flows
+- **🔧 FilterManager Support**: Mappers como `FilterManagerRequestMapper` ahora se incluyen correctamente en injection files
+- **🔄 Request Nested Mappers**: Agregado soporte completo para mappers anidados de request además de response
+- **✅ Complete Injection**: Todos los mappers anidados (request y response) se agregan automáticamente a injection files
+
+#### 📚 Technical Details - Corrección de Generación
+- **Before**: Solo se incluían mappers anidados de response en injection files
+- **After**: Se incluyen mappers anidados tanto de request como response
+- **Impact**: `FilterManagerRequestMapper()` ahora disponible en `InjectionPlatformBusinessAvailabilityAppointmentTableMapper`
+- **Logic**: Función `collectNestedMappersForOperation` ahora procesa ambos tipos (request/response)
+- **Method Generation**: Métodos abreviados correctos (ej: `FilterManagerRequestMapper()`)
+
+#### 🎯 Solución - ARQUITECTURA COMPLETA FUNCIONAL
+- ✅ Mappers anidados de request incluidos en injection files
+- ✅ Variables como `filterManagerrequestMapper` resuelven correctamente
+- ✅ Métodos `FilterManagerRequestMapper()` disponibles en injection
+- ✅ Zero errores de compilación en mappers complejos
+- ✅ Soporte completo para tipos anidados en requests
+- ✅ Consistencia total entre generación y uso de mappers
+
 ## [2.2.1] - 2024-12-27
 
 ### 🧹 MAINTENANCE RELEASE - LIMPIEZA DE ARCHIVOS DEBUG
