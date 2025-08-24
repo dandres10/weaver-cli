@@ -4,7 +4,7 @@ import {
   AvailabilityScheduleAppointmentAppointmentRequestMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
-export class InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper {
+export class InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper {
   public static AvailabilityScheduleAppointmentRequestMapper(): AvailabilityScheduleAppointmentRequestMapper {
     return AvailabilityScheduleAppointmentRequestMapper.getInstance();
   }

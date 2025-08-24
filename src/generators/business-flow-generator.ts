@@ -1537,7 +1537,7 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
         const useCaseInterface = hasRequest ? `UseCase<${requestDTOName}, ${responseDTOName} | null>` : `UseCase<any, ${responseDTOName} | null>`;
         
         // Solo importar mapper si tiene request fields
-        const mapperImport = hasRequest ? `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";` : '';
+        const mapperImport = hasRequest ? `import { Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";` : '';
         
         // Método execute siguiendo el patrón
         const executeParams = hasRequest ? `params: ${requestDTOName}, ` : '';
@@ -1551,12 +1551,12 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { ${dtoImports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
 ${mapperImport}
-import { InjectionPlatformBusinessRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/business/injection-${apiName}-business-repository";
+import { Injection${toPascalCase(apiName)}BusinessRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/business/injection-${apiName}-business-repository";
 
 export class ${useCaseClassName} implements ${useCaseInterface} {
   private static instance: ${useCaseClassName};
-  private repository = InjectionPlatformBusinessRepository.${toPascalCase(serviceName)}Repository();${hasRequest ? `
-  private mapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();` : ''}
+  private repository = Injection${toPascalCase(apiName)}BusinessRepository.${toPascalCase(serviceName)}Repository();${hasRequest ? `
+  private mapper = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}RequestMapper();` : ''}
 
   public static getInstance(): ${useCaseClassName} {
     if (!${useCaseClassName}.instance)
@@ -1769,7 +1769,7 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
 
       // Solo crear injection si hay mappers
       if (mapperNames.length > 0) {
-        const injectionClassName = `InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper`;
+        const injectionClassName = `Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper`;
         
         // Generar import unificado usando el index.ts
         const importStatement = `import { 
@@ -1907,7 +1907,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         // Para imports, siempre usar el nombre base sin [], los [] van solo en el tipo de retorno
         allImports.dtos.add(baseResponseDTOName);
         allImports.entities.add(responseEntityName);
-        allImports.mapperImports.add(`import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`);
+        allImports.mapperImports.add(`import { Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameKebab}-${operationKebab}-mapper";`);
 
         // Agregar instancias de mappers (solo Response mappers)
         const operationCamelCaseVar = operationName
@@ -1916,7 +1916,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
           .map((word: string, index: number) => index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1))
           .join('');
         // Solo agregar Response mapper (los Request mappers no se usan en el repository)
-        allImports.mapperInstances.push(`  private ${operationCamelCaseVar}ResponseMapper = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();`);
+        allImports.mapperInstances.push(`  private ${operationCamelCaseVar}ResponseMapper = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper.${toPascalCase(serviceName)}${cleanOperationName}ResponseMapper();`);
 
         // Convertir operationName a camelCase para el nombre del método
         const operationCamelCase = operationName
@@ -2040,7 +2040,7 @@ async function generateRepositoryInjectionFiles(serviceName: string, paths: any,
     // Generar archivo completo
     const injectionFile = `${allImports}
 
-export class InjectionPlatformBusinessRepository {
+export class Injection${toPascalCase(apiName)}BusinessRepository {
 ${allMethods}
 }`;
 
@@ -2089,7 +2089,7 @@ async function generateBusinessInjectionFiles(serviceName: string, paths: any, s
 
     const useCaseInjection = `${useCaseImports}
 
-export class InjectionPlatformBusiness${toPascalCase(serviceName)}UseCase {
+export class Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}UseCase {
 ${useCaseMethods}
 }`;
 
@@ -2152,7 +2152,7 @@ async function generateFacadeInjectionFiles(serviceName: string, paths: any, api
   // Generar archivo completo
   const injectionFile = `${allImports}
 
-export class InjectionPlatformBusinessFacade {
+export class Injection${toPascalCase(apiName)}BusinessFacade {
 ${allMethods}
 }`;
 

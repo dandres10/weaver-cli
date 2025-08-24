@@ -7,7 +7,7 @@ import {
   AvailabilityCollaboratorsAvailabilityCalculatePossibleAssignmentHoursResponseMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
-export class InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper {
+export class InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper {
   public static AvailabilityCollaboratorsAvailabilityRequestMapper(): AvailabilityCollaboratorsAvailabilityRequestMapper {
     return AvailabilityCollaboratorsAvailabilityRequestMapper.getInstance();
   }

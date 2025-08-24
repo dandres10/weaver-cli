@@ -5,7 +5,7 @@ import { AvailabilityCancelAppointmentUseCase } from "@appointment/domain/servic
 import { AvailabilityRescheduleAppointmentUseCase } from "@appointment/domain/services/use_cases/apis/appointment/business/availability/availability-reschedule-appointment-use-case";
 import { AvailabilityAppointmentTableUseCase } from "@appointment/domain/services/use_cases/apis/appointment/business/availability/availability-appointment-table-use-case";
 
-export class InjectionPlatformBusinessAvailabilityUseCase {
+export class InjectionAppointmentBusinessAvailabilityUseCase {
   public static AvailabilityServicesByLocationUseCase(): AvailabilityServicesByLocationUseCase {
     return AvailabilityServicesByLocationUseCase.getInstance();
   }

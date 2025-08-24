@@ -3,7 +3,7 @@ import {
   AvailabilityServicesByLocationResponseMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
-export class InjectionPlatformBusinessAvailabilityServicesByLocationMapper {
+export class InjectionAppointmentBusinessAvailabilityServicesByLocationMapper {
   public static AvailabilityServicesByLocationRequestMapper(): AvailabilityServicesByLocationRequestMapper {
     return AvailabilityServicesByLocationRequestMapper.getInstance();
   }

@@ -4,7 +4,7 @@ import {
   AvailabilityAppointmentTableFilterManagerRequestMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
-export class InjectionPlatformBusinessAvailabilityAppointmentTableMapper {
+export class InjectionAppointmentBusinessAvailabilityAppointmentTableMapper {
   public static AvailabilityAppointmentTableRequestMapper(): AvailabilityAppointmentTableRequestMapper {
     return AvailabilityAppointmentTableRequestMapper.getInstance();
   }

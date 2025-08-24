@@ -6,23 +6,23 @@ import { InjectionCore } from "@bus/core/injection/injection-core";
 import { IAvailabilityRepository } from "@appointment/domain/services/repositories/apis/appointment/business/i-availability-repository";
 import { IAvailabilityServicesByLocationResponseDTO, IAvailabilityCollaboratorsAvailabilityResponseDTO, IAvailabilityScheduleAppointmentResponseDTO, IAvailabilityCancelAppointmentResponseDTO, IAvailabilityRescheduleAppointmentResponseDTO, IAvailabilityAppointmentTableResponseDTO } from "@appointment/domain/models/apis/appointment/business/availability";
 import { IAvailabilityServicesByLocationRequestEntity, IAvailabilityServicesByLocationResponseEntity, IAvailabilityCollaboratorsAvailabilityRequestEntity, IAvailabilityCollaboratorsAvailabilityResponseEntity, IAvailabilityScheduleAppointmentRequestEntity, IAvailabilityScheduleAppointmentResponseEntity, IAvailabilityCancelAppointmentRequestEntity, IAvailabilityCancelAppointmentResponseEntity, IAvailabilityRescheduleAppointmentRequestEntity, IAvailabilityRescheduleAppointmentResponseEntity, IAvailabilityAppointmentTableRequestEntity, IAvailabilityAppointmentTableResponseEntity } from "@appointment/infrastructure/entities/apis/appointment/business/availability";
-import { InjectionPlatformBusinessAvailabilityServicesByLocationMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-services-by-location-mapper";
-import { InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-collaborators-availability-mapper";
-import { InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-schedule-appointment-mapper";
-import { InjectionPlatformBusinessAvailabilityCancelAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-cancel-appointment-mapper";
-import { InjectionPlatformBusinessAvailabilityRescheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-reschedule-appointment-mapper";
-import { InjectionPlatformBusinessAvailabilityAppointmentTableMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-appointment-table-mapper";
+import { InjectionAppointmentBusinessAvailabilityServicesByLocationMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-services-by-location-mapper";
+import { InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-collaborators-availability-mapper";
+import { InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-schedule-appointment-mapper";
+import { InjectionAppointmentBusinessAvailabilityCancelAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-cancel-appointment-mapper";
+import { InjectionAppointmentBusinessAvailabilityRescheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-reschedule-appointment-mapper";
+import { InjectionAppointmentBusinessAvailabilityAppointmentTableMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-appointment-table-mapper";
 
 export class AvailabilityRepository extends IAvailabilityRepository {
 
   private static instance: AvailabilityRepository;
   private readonly resolve = InjectionCore.Resolve();
-  private servicesByLocationResponseMapper = InjectionPlatformBusinessAvailabilityServicesByLocationMapper.AvailabilityServicesByLocationResponseMapper();
-  private collaboratorsAvailabilityResponseMapper = InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper.AvailabilityCollaboratorsAvailabilityResponseMapper();
-  private scheduleAppointmentResponseMapper = InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper.AvailabilityScheduleAppointmentResponseMapper();
-  private cancelAppointmentResponseMapper = InjectionPlatformBusinessAvailabilityCancelAppointmentMapper.AvailabilityCancelAppointmentResponseMapper();
-  private rescheduleAppointmentResponseMapper = InjectionPlatformBusinessAvailabilityRescheduleAppointmentMapper.AvailabilityRescheduleAppointmentResponseMapper();
-  private appointmentTableResponseMapper = InjectionPlatformBusinessAvailabilityAppointmentTableMapper.AvailabilityAppointmentTableResponseMapper();
+  private servicesByLocationResponseMapper = InjectionAppointmentBusinessAvailabilityServicesByLocationMapper.AvailabilityServicesByLocationResponseMapper();
+  private collaboratorsAvailabilityResponseMapper = InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper.AvailabilityCollaboratorsAvailabilityResponseMapper();
+  private scheduleAppointmentResponseMapper = InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper.AvailabilityScheduleAppointmentResponseMapper();
+  private cancelAppointmentResponseMapper = InjectionAppointmentBusinessAvailabilityCancelAppointmentMapper.AvailabilityCancelAppointmentResponseMapper();
+  private rescheduleAppointmentResponseMapper = InjectionAppointmentBusinessAvailabilityRescheduleAppointmentMapper.AvailabilityRescheduleAppointmentResponseMapper();
+  private appointmentTableResponseMapper = InjectionAppointmentBusinessAvailabilityAppointmentTableMapper.AvailabilityAppointmentTableResponseMapper();
 
   private constructor() {
     super();

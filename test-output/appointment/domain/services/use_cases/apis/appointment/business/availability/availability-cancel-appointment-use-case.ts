@@ -1,13 +1,13 @@
 import { IConfigDTO } from "@bus/core/interfaces";
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IAvailabilityCancelAppointmentRequestDTO, IAvailabilityCancelAppointmentResponseDTO } from "@appointment/domain/models/apis/appointment/business/availability";
-import { InjectionPlatformBusinessAvailabilityCancelAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-cancel-appointment-mapper";
-import { InjectionPlatformBusinessRepository } from "@appointment/infrastructure/repositories/apis/appointment/repositories/injection/business/injection-appointment-business-repository";
+import { InjectionAppointmentBusinessAvailabilityCancelAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-cancel-appointment-mapper";
+import { InjectionAppointmentBusinessRepository } from "@appointment/infrastructure/repositories/apis/appointment/repositories/injection/business/injection-appointment-business-repository";
 
 export class AvailabilityCancelAppointmentUseCase implements UseCase<IAvailabilityCancelAppointmentRequestDTO, IAvailabilityCancelAppointmentResponseDTO | null> {
   private static instance: AvailabilityCancelAppointmentUseCase;
-  private repository = InjectionPlatformBusinessRepository.AvailabilityRepository();
-  private mapper = InjectionPlatformBusinessAvailabilityCancelAppointmentMapper.AvailabilityCancelAppointmentRequestMapper();
+  private repository = InjectionAppointmentBusinessRepository.AvailabilityRepository();
+  private mapper = InjectionAppointmentBusinessAvailabilityCancelAppointmentMapper.AvailabilityCancelAppointmentRequestMapper();
 
   public static getInstance(): AvailabilityCancelAppointmentUseCase {
     if (!AvailabilityCancelAppointmentUseCase.instance)
