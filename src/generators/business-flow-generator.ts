@@ -1928,14 +1928,16 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
         // Generar método
         const methodParams = hasRequest ? `params: ${requestEntityName}, ` : '';
         const methodCall = hasRequest ? 'params' : '{}';
+        // Para ResolveRequest, usar [] solo si es un array
+        const resolveEntityType = operation.isResponseArray ? `${responseEntityName}[]` : responseEntityName;
         const method = `  public async ${operationCamelCase}(
     ${methodParams}config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<${responseDTOName} | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}, ${methodCall})
+      return ${apiName}Axios
+        .post(CONST_${apiName.toUpperCase()}_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}, ${methodCall})
         .then(({ data }) => {
-          const entity = this.resolve.ResolveRequest<${responseEntityName}>(data);
+          const entity = this.resolve.ResolveRequest<${resolveEntityType}>(data);
           if (entity)
             return this.${operationCamelCaseVar}ResponseMapper.${operation.isResponseArray ? 'mapFromList' : 'mapFrom'}(entity);
           return null;
@@ -1953,8 +1955,8 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
     const mapperImports = Array.from(allImports.mapperImports).join('\n');
 
     const repository = `import { IConfigDTO } from "@bus/core/interfaces";
-import platformAxios from "@bus/core/axios/platform-axios";
-import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
+import ${apiName}Axios from "@bus/core/axios/${apiName}-axios";
+import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@bus/core/const";
 import { CONST_CORE_DTO } from "@bus/core/const/const-core";
 import { InjectionCore } from "@bus/core/injection/injection-core";
 import { I${toPascalCase(serviceName)}Repository } from "@${apiName}/domain/services/repositories/apis/${apiName}/business/i-${serviceNameKebab}-repository";

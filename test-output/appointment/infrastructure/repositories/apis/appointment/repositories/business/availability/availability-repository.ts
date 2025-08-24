@@ -1,6 +1,6 @@
 import { IConfigDTO } from "@bus/core/interfaces";
-import platformAxios from "@bus/core/axios/platform-axios";
-import { CONST_PLATFORM_API_ROUTES } from "@bus/core/const";
+import appointmentAxios from "@bus/core/axios/appointment-axios";
+import { CONST_APPOINTMENT_API_ROUTES } from "@bus/core/const";
 import { CONST_CORE_DTO } from "@bus/core/const/const-core";
 import { InjectionCore } from "@bus/core/injection/injection-core";
 import { IAvailabilityRepository } from "@appointment/domain/services/repositories/apis/appointment/business/i-availability-repository";
@@ -38,10 +38,10 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityServicesByLocationRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityServicesByLocationResponseDTO[] | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_SERVICES_BY_LOCATION, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_SERVICES_BY_LOCATION, params)
         .then(({ data }) => {
-          const entity = this.resolve.ResolveRequest<IAvailabilityServicesByLocationResponseEntity>(data);
+          const entity = this.resolve.ResolveRequest<IAvailabilityServicesByLocationResponseEntity[]>(data);
           if (entity)
             return this.servicesByLocationResponseMapper.mapFromList(entity);
           return null;
@@ -53,8 +53,8 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityCollaboratorsAvailabilityRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityCollaboratorsAvailabilityResponseDTO | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_COLLABORATORS_AVAILABILITY, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_COLLABORATORS_AVAILABILITY, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityCollaboratorsAvailabilityResponseEntity>(data);
           if (entity)
@@ -68,8 +68,8 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityScheduleAppointmentRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityScheduleAppointmentResponseDTO | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_SCHEDULE_APPOINTMENT, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_SCHEDULE_APPOINTMENT, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityScheduleAppointmentResponseEntity>(data);
           if (entity)
@@ -83,8 +83,8 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityCancelAppointmentRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityCancelAppointmentResponseDTO | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_CANCEL_APPOINTMENT, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_CANCEL_APPOINTMENT, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityCancelAppointmentResponseEntity>(data);
           if (entity)
@@ -98,8 +98,8 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityRescheduleAppointmentRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityRescheduleAppointmentResponseDTO | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_RESCHEDULE_APPOINTMENT, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_RESCHEDULE_APPOINTMENT, params)
         .then(({ data }) => {
           const entity = this.resolve.ResolveRequest<IAvailabilityRescheduleAppointmentResponseEntity>(data);
           if (entity)
@@ -113,10 +113,10 @@ export class AvailabilityRepository extends IAvailabilityRepository {
     params: IAvailabilityAppointmentTableRequestEntity, config: IConfigDTO = CONST_CORE_DTO.CONFIG
   ): Promise<IAvailabilityAppointmentTableResponseDTO[] | null> {
     if (config.loadService)
-      return platformAxios
-        .post(CONST_PLATFORM_API_ROUTES.AVAILABILITY_APPOINTMENT_TABLE, params)
+      return appointmentAxios
+        .post(CONST_APPOINTMENT_API_ROUTES.AVAILABILITY_APPOINTMENT_TABLE, params)
         .then(({ data }) => {
-          const entity = this.resolve.ResolveRequest<IAvailabilityAppointmentTableResponseEntity>(data);
+          const entity = this.resolve.ResolveRequest<IAvailabilityAppointmentTableResponseEntity[]>(data);
           if (entity)
             return this.appointmentTableResponseMapper.mapFromList(entity);
           return null;
