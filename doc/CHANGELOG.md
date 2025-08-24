@@ -5,6 +5,39 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2024-12-27
+
+### 🧹 MAINTENANCE RELEASE - LIMPIEZA DE ARCHIVOS DEBUG
+
+#### 🐛 Fixed - LIMPIEZA Y MANTENIMIENTO
+- **📁 Debug Files Cleanup**: Eliminados archivos debug temporales del repositorio
+- **🧹 Repository Cleanup**: Limpieza de archivos de desarrollo no necesarios en producción
+- **📦 Clean State**: Repositorio limpio sin archivos de testing temporal
+- **✅ Build Verification**: Verificación completa de compilación antes de release
+
+#### 📚 Archivos Eliminados
+- `debug-appointment-table.js` - Debug para tabla de citas
+- `debug-field-type.js` - Debug para tipos de campos
+- `debug-responses.js` - Debug para respuestas de API
+- `debug-swagger-parsing.js` - Debug para parsing de Swagger
+- `generate-test.js` - Script de generación de pruebas
+- `simple-test-parser.js` - Parser simple de pruebas
+- `temp-dto-functions.txt` - Funciones temporales de DTOs
+- `temp-entity-functions.txt` - Funciones temporales de entidades
+- `test-anyarray-fix.js` - Prueba para corrección de arrays
+- `test-appointment-table-array.js` - Prueba para arrays de tabla de citas
+- `test-parser-debug.js` - Debug del parser principal
+- `test-topascalcase.js` - Prueba para conversión de casos
+- `validate-complete-generation.js` - Validación de generación completa
+
+#### 🎯 Impact - REPOSITORY LIMPIO Y MANTENIDO
+- ✅ Eliminación de archivos temporales de desarrollo
+- ✅ Repositorio más limpio y profesional
+- ✅ Reducción del tamaño del package NPM
+- ✅ Mejor experiencia para desarrolladores que clonen el repo
+- ✅ Preparación para futuras mejoras sin archivos legacy
+- ✅ Build verification completa antes de release
+
 ## [2.2.0] - 2024-12-23
 
 ### 🚀 MAJOR RELEASE - PARSER OPENAPI COMPLETAMENTE REESCRITO
