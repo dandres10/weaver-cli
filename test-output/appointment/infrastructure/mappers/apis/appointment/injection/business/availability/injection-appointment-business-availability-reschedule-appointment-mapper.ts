@@ -1,6 +1,7 @@
 import { 
   AvailabilityRescheduleAppointmentRequestMapper,
-  AvailabilityRescheduleAppointmentResponseMapper
+  AvailabilityRescheduleAppointmentResponseMapper,
+  AvailabilityRescheduleAppointmentAppointmentCreatedRequestMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
 export class InjectionPlatformBusinessAvailabilityRescheduleAppointmentMapper {
@@ -10,5 +11,9 @@ export class InjectionPlatformBusinessAvailabilityRescheduleAppointmentMapper {
 
   public static AvailabilityRescheduleAppointmentResponseMapper(): AvailabilityRescheduleAppointmentResponseMapper {
     return AvailabilityRescheduleAppointmentResponseMapper.getInstance();
+  }
+
+  public static AppointmentCreatedRequestMapper(): AvailabilityRescheduleAppointmentAppointmentCreatedRequestMapper {
+    return AvailabilityRescheduleAppointmentAppointmentCreatedRequestMapper.getInstance();
   }
 }

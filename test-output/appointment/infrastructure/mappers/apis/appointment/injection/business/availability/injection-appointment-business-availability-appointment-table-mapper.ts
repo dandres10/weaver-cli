@@ -1,6 +1,7 @@
 import { 
   AvailabilityAppointmentTableRequestMapper,
-  AvailabilityAppointmentTableResponseMapper
+  AvailabilityAppointmentTableResponseMapper,
+  AvailabilityAppointmentTableFilterManagerRequestMapper
 } from "@appointment/infrastructure/mappers/apis/appointment/business/availability";
 
 export class InjectionPlatformBusinessAvailabilityAppointmentTableMapper {
@@ -10,5 +11,9 @@ export class InjectionPlatformBusinessAvailabilityAppointmentTableMapper {
 
   public static AvailabilityAppointmentTableResponseMapper(): AvailabilityAppointmentTableResponseMapper {
     return AvailabilityAppointmentTableResponseMapper.getInstance();
+  }
+
+  public static FilterManagerRequestMapper(): AvailabilityAppointmentTableFilterManagerRequestMapper {
+    return AvailabilityAppointmentTableFilterManagerRequestMapper.getInstance();
   }
 }
