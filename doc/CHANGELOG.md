@@ -5,6 +5,44 @@ Todas las mejoras importantes de Weaver CLI están documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.3] - 2024-12-27
+
+### 🔧 COMPREHENSIVE FIXES - MÚLTIPLES CORRECCIONES CRÍTICAS
+
+#### 🛠️ Fixed - CORRECCIONES FUNDAMENTALES DE GENERACIÓN
+- **🛡️ Null Safety en Arrays**: Agregado `?? []` en todos los `mapFromList` y `mapToList` para prevenir errores
+- **📁 Imports de Repositories**: Corregidos imports incorrectos que incluían `[]` en nombres de interfaces
+- **🔧 FilterManagerRequestMapper**: Mappers anidados de request incluidos en injection files
+- **✅ Sintaxis TypeScript**: Imports limpios con `[]` solo en tipos de retorno, no en nombres de interfaces
+
+#### 📚 Technical Details - Correcciones Específicas
+
+**🛡️ Null Safety en Arrays:**
+- **Before**: `filters: this.filterManagerrequestMapper.mapFromList(param.filters)`
+- **After**: `filters: this.filterManagerrequestMapper.mapFromList(param.filters ?? [])`
+- **Impact**: Previene errores cuando campos de array son `null` o `undefined`
+- **Scope**: 14+ ubicaciones en mappers de business flows
+
+**📁 Imports de Repositories:**
+- **Before**: `import { IAvailabilityServicesByLocationResponseDTO[] } from "..."`
+- **After**: `import { IAvailabilityServicesByLocationResponseDTO } from "..."`
+- **Correct Usage**: `Promise<IAvailabilityServicesByLocationResponseDTO[] | null>`
+- **Impact**: Eliminados errores de sintaxis TypeScript en imports
+
+**🔧 FilterManager Support:**
+- **Before**: Solo mappers anidados de response en injection files
+- **After**: Mappers anidados de request y response incluidos
+- **Result**: `FilterManagerRequestMapper()` disponible en injection files
+- **Scope**: Todos los tipos complejos en requests (FilterManager, AppointmentRequest, etc.)
+
+#### 🎯 Impact - GENERACIÓN ROBUSTA Y COMPLETA
+- ✅ Zero errores de TypeScript en código generado
+- ✅ Null safety completo en todos los mappers de arrays
+- ✅ Imports sintácticamente correctos en repositories
+- ✅ Mappers anidados completamente funcionales
+- ✅ FilterManager y tipos complejos working al 100%
+- ✅ Arquitectura Clean Architecture completamente estable
+
 ## [2.2.2] - 2024-12-27
 
 ### 🐛 HOTFIX CRÍTICO - MAPPERS ANIDADOS EN INJECTION FILES
