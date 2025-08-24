@@ -621,7 +621,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
         // Solo agregar si no existe ya
         if (!nestedMapperReferences[nestedMapperName]) {
           nestedMapperReferences[nestedMapperName] = mapperClassName;
-          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
+          nestedMappers.push(`    private ${nestedMapperName} = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
         }
         
         if (field.isArray) {
@@ -659,7 +659,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
     
     // Agregar imports e instancias de mappers anidados si existen
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
+      nestedMapperImports = `import { Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     
@@ -817,7 +817,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
         // Solo agregar si no existe ya
         if (!nestedMapperReferences[nestedMapperName]) {
           nestedMapperReferences[nestedMapperName] = nestedMapperClassName;
-          nestedMappers.push(`    private ${nestedMapperName} = InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
+          nestedMappers.push(`    private ${nestedMapperName} = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper.${methodName}()`);
         }
         
         if (nestedField.isArray) {
@@ -862,7 +862,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     });
     
     if (nestedMappers.length > 0) {
-      nestedMapperImports = `import { InjectionPlatformBusiness${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
+      nestedMapperImports = `import { Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}${cleanOperationName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/business/${serviceNameLower}/injection-${apiName}-business-${serviceNameLower}-${operationName.replace(/_/g, '-')}-mapper";\n`;
       nestedMapperInstances = nestedMappers.join('\n');
     }
     

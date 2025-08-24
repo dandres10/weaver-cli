@@ -1,12 +1,12 @@
 import { Mapper } from "@bus/core/classes";
 import { IAvailabilityScheduleAppointmentRequestDTO } from "@appointment/domain/models/apis/appointment/business/availability";
 import { IAvailabilityScheduleAppointmentRequestEntity } from "@appointment/infrastructure/entities/apis/appointment/business/availability";
-import { InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-schedule-appointment-mapper";
+import { InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-schedule-appointment-mapper";
 
 export class AvailabilityScheduleAppointmentRequestMapper extends Mapper<IAvailabilityScheduleAppointmentRequestEntity, IAvailabilityScheduleAppointmentRequestDTO> {
 
     private static instance: AvailabilityScheduleAppointmentRequestMapper;
-    private appointmentrequestMapper = InjectionPlatformBusinessAvailabilityScheduleAppointmentMapper.AppointmentRequestMapper()
+    private appointmentrequestMapper = InjectionAppointmentBusinessAvailabilityScheduleAppointmentMapper.AppointmentRequestMapper()
     public constructor() { super(); }
 
     public static getInstance(): AvailabilityScheduleAppointmentRequestMapper {

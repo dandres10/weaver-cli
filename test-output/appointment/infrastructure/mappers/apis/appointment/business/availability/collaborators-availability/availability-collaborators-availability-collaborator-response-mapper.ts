@@ -1,14 +1,14 @@
 import { Mapper } from "@bus/core/classes";
 import { IAvailabilityCollaboratorsAvailabilityCollaboratorResponseDTO } from "@appointment/domain/models/apis/appointment/business/availability";
 import { IAvailabilityCollaboratorsAvailabilityCollaboratorResponseEntity } from "@appointment/infrastructure/entities/apis/appointment/business/availability";
-import { InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-collaborators-availability-mapper";
+import { InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper } from "@appointment/infrastructure/mappers/apis/appointment/injection/business/availability/injection-appointment-business-availability-collaborators-availability-mapper";
 
 export class AvailabilityCollaboratorsAvailabilityCollaboratorResponseMapper extends Mapper<IAvailabilityCollaboratorsAvailabilityCollaboratorResponseEntity, IAvailabilityCollaboratorsAvailabilityCollaboratorResponseDTO> {
 
     private static instance: AvailabilityCollaboratorsAvailabilityCollaboratorResponseMapper;
-    private availabilityServiceresponseMapper = InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper.AvailabilityServiceResponseMapper()
-    private rangesresponseMapper = InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper.RangesResponseMapper()
-    private calculatePossibleAssignmentHoursresponseMapper = InjectionPlatformBusinessAvailabilityCollaboratorsAvailabilityMapper.CalculatePossibleAssignmentHoursResponseMapper()
+    private availabilityServiceresponseMapper = InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper.AvailabilityServiceResponseMapper()
+    private rangesresponseMapper = InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper.RangesResponseMapper()
+    private calculatePossibleAssignmentHoursresponseMapper = InjectionAppointmentBusinessAvailabilityCollaboratorsAvailabilityMapper.CalculatePossibleAssignmentHoursResponseMapper()
     public constructor() { super(); }
 
     public static getInstance(): AvailabilityCollaboratorsAvailabilityCollaboratorResponseMapper {
