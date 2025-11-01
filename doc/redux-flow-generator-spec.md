@@ -1,14 +1,14 @@
 # 🔴 Redux Flow Generator - Especificación Completa
 
-**Versión**: 3.0.0  
-**Fecha**: Octubre 2024  
+**Versión**: 3.1.0  
+**Fecha**: Noviembre 2024  
 **Autor**: Weaver CLI Team
 
 ---
 
 ## 📊 Estado Actual de Implementación
 
-**Última Actualización**: 30 de Octubre 2024
+**Última Actualización**: 1 de Noviembre 2024
 
 | Fase | Estado | Progreso | Descripción |
 |------|--------|----------|-------------|
@@ -73,39 +73,147 @@
   - ✅ Resumen y confirmación
   - ✅ Generación completa del flujo Redux
 
-### 🆕 Mejoras Recientes Implementadas (Octubre 31, 2024):
+### 🆕 Mejoras Recientes Implementadas (Noviembre 1, 2024):
 
-#### 1. **Generación Recursiva de Interfaces** ⭐
+#### 1. **Conversión Automática snake_case → camelCase** 🔄 ⭐ NUEVO
+- **Los campos del YAML en snake_case se convierten automáticamente a camelCase**
+- Aplica tanto a campos principales como a objetos anidados recursivamente
+- Función `toCamelCase()` aplicada a todos los campos en generación de DTOs
+- Ejemplo:
+  ```yaml
+  # YAML (snake_case)
+  properties:
+    first_name: string
+    last_name: string
+    main_location: boolean
+    token_expiration_minutes: integer
+  ```
+  
+  ```typescript
+  // TypeScript generado (camelCase)
+  export interface IUserReduxDTO {
+    firstName?: string;           // ✅ Convertido
+    lastName?: string;            // ✅ Convertido
+    mainLocation?: boolean;       // ✅ Convertido
+    tokenExpirationMinutes?: number;  // ✅ Convertido
+  }
+  ```
+
+#### 2. **Rutas de Importación Corregidas** 📦 ⭐ NUEVO
+- **Corregida la ruta del archivo de inyección global**
+- Eliminado nivel redundante `{api}/` en la ruta
+- Cambio aplicado a todos los Use Cases:
+  ```typescript
+  // ❌ ANTES (incorrecto - nivel extra)
+  import { InjectionRepositoriesRedux } from "@platform/infrastructure/repositories/redux/platform/injection";
+  
+  // ✅ AHORA (correcto)
+  import { InjectionRepositoriesRedux } from "@platform/infrastructure/repositories/redux/injection";
+  ```
+
+#### 3. **Inyección Global Inteligente** 🔧 ⭐ NUEVO
+- **Ya no se crean archivos de inyección locales por flow**
+- **Actualiza automáticamente el archivo de inyección global**
+- Ubicación: `infrastructure/repositories/redux/injection/injection-repositories-redux.ts`
+- Agrega imports y métodos estáticos incrementalmente
+- Detecta métodos existentes para evitar duplicados
+- Ejemplo de actualización:
+  ```typescript
+  // Antes de generar nuevo flow
+  import { PlatformReduxRepository } from "../bus/platform/platform-redux-repository";
+  
+  export class InjectionRepositoriesRedux {
+      public static PlatformReduxRepository() { 
+          return PlatformReduxRepository.getInstance() 
+      }
+  }
+  
+  // Después de generar "platform-configuration" flow
+  import { PlatformReduxRepository } from "../bus/platform/platform-redux-repository";
+  import { PlatformConfigurationReduxRepository } from "../platform/custom/platform-configuration/platform-configuration-redux-repository"; // ✅ Agregado
+  
+  export class InjectionRepositoriesRedux {
+      public static PlatformReduxRepository() { 
+          return PlatformReduxRepository.getInstance() 
+      }
+      
+      public static PlatformConfigurationReduxRepository() {  // ✅ Agregado
+          return PlatformConfigurationReduxRepository.getInstance() 
+      }
+  }
+  ```
+
+#### 4. **Nombres de Repositorio Específicos en Use Cases** 🎯 ⭐ NUEVO
+- **Use Cases ahora usan el repositorio específico del flow**
+- Antes usaban el repositorio genérico del API
+- Mejora la claridad y consistencia del código
+- Ejemplo:
+  ```typescript
+  // ❌ ANTES (nombre genérico del API)
+  export class SavePlatformConfigurationUseCase {
+      private platformReduxRepository = InjectionRepositoriesRedux.PlatformReduxRepository();
+      
+      public execute(param: IPlatformConfigurationReduxDTO, config: IConfigDTO): void {
+          this.platformReduxRepository.savePlatformConfiguration(param, config);
+      }
+  }
+  
+  // ✅ AHORA (nombre específico del flow)
+  export class SavePlatformConfigurationUseCase {
+      private platformConfigurationReduxRepository = InjectionRepositoriesRedux.PlatformConfigurationReduxRepository();
+      
+      public execute(param: IPlatformConfigurationReduxDTO, config: IConfigDTO): void {
+          this.platformConfigurationReduxRepository.savePlatformConfiguration(param, config);
+      }
+  }
+  ```
+
+#### 5. **Búsqueda Mejorada de redux-core.ts** 🔍 ⭐ NUEVO
+- **Busca en múltiples ubicaciones posibles**
+- Funciona con diferentes estructuras de proyecto
+- Ubicaciones de búsqueda:
+  1. `{basePath}/core/redux/redux-core.ts` (dentro del API)
+  2. `{basePath}/../core/redux/redux-core.ts` (nivel src)
+  3. `{basePath}/../../core/redux/redux-core.ts` (dos niveles arriba)
+- Si no encuentra ninguno, omite el registro sin error
+
+#### 6. **Código Limpio Sin Comentarios Decorativos** ✨ ⭐ NUEVO
+- **Eliminados comentarios decorativos innecesarios**
+- Comentarios removidos:
+  - Líneas con `====` (separadores)
+  - `// Use Cases para ${flowName}`
+  - `// MÉTODOS PARA ${flowName} (Array/Object)`
+- **Comentarios preservados:**
+  - JSDoc al inicio de clases y archivos
+  - Comentarios de imports organizativos
+  - Marcadores WEAVER para actualizaciones
+- Código más profesional y limpio
+
+#### 7. **Generación Recursiva de Interfaces** ⭐
 - Todos los objetos anidados generan interfaces específicas con sufijo `ReduxDTO`
 - Recursión infinita: objetos dentro de objetos generan sus propias interfaces
+- **Incluye conversión a camelCase en todos los niveles**
 - Ejemplo:
   ```typescript
   export interface IDashboardReduxDTO {
     recentActivities?: IRecentActivitiesReduxDTO[];  // ✅ Interface específica
-    statistics?: IStatisticsReduxDTO;                // ✅ Interface específica
+    platformConfiguration?: IPlatformConfigurationReduxDTO;  // ✅ camelCase + ReduxDTO
   }
   
   export interface IRecentActivitiesReduxDTO {
-    metadata?: IMetadataReduxDTO;  // ✅ Recursivo
-  }
-  
-  export interface IMetadataReduxDTO {
-    appointmentId?: string;
-    amount?: number;
+    activityType?: string;      // ✅ snake_case convertido
+    createdAt?: string;         // ✅ snake_case convertido
+    userId?: string;            // ✅ snake_case convertido
   }
   ```
 
-#### 2. **Preservación de Nombres de Campos**
-- Los nombres de campos del schema se preservan sin transformación
-- Si el YAML define `userId`, se genera `userId` (no `userid`)
-- PascalCase solo se aplica a nombres de interfaces
-
-#### 3. **Corrección de Imports Multilínea en Slice**
+#### 8. **Corrección de Imports Multilínea en Slice**
 - Detección correcta de bloques de imports multilínea
 - Preservación de todos los imports al agregar nuevos flujos
 - Pattern regex mejorado: `/import\s*\{[^}]+\}\s*from\s*["']\.\/.*\.reducer["'];?/gs`
+- Evita eliminar imports de flujos anteriores
 
-#### 4. **Estructura de Carpetas Consistente**
+#### 9. **Estructura de Carpetas Consistente**
 - Todos los flujos custom incluyen nivel `custom/` en la ruta
 - Ejemplo: `redux/appointment/custom/dashboard/`
 - Aplicado a todas las 3 capas: domain, facade, infrastructure
@@ -332,7 +440,7 @@ platform/infrastructure/repositories/redux/platform/custom/user-preferences/
 - ✅ Parser extrae los schemas del archivo y muestra lista para seleccionar
 - ✅ Usuario elige en qué API generarlo
 - ✅ Siempre se pregunta: "¿Lista o Objeto?"
-- ✅ Path: `custom/{nombre}` en lugar de `entities/` o `business/`
+- ✅ Path: Todos los flows en `custom/{nombre}`
 
 ---
 
@@ -348,8 +456,8 @@ sequenceDiagram
     U->>CLI: weaver
     CLI->>U: Menú principal
     U->>CLI: 🔴 Crear flujo Redux
-    CLI->>U: ¿Entity, Business o Custom Flow?
-    U->>CLI: Selecciona tipo de flujo
+    CLI->>U: ¿Custom Flow?
+    U->>CLI: Confirma Custom Flow
     
     alt Custom Flow 🆕
         CLI->>U: Ruta del archivo YAML con schemas
@@ -462,9 +570,7 @@ appointment/
             └── custom/
                 └── dashboard/
                     ├── dashboard-redux-repository.ts  # Implementación repositorio
-                    ├── dashboard.reducer.ts           # Reducers de Dashboard
-                    └── injection/
-                        └── injection-dashboard-redux-repository.ts
+                    └── dashboard.reducer.ts           # Reducers de Dashboard
 
 core/                                          # ← Siempre al mismo nivel que appointment/
 └── redux/
@@ -512,13 +618,10 @@ appointment/
             └── custom/
                 ├── dashboard/                 # Ya existía
                 │   ├── dashboard-redux-repository.ts
-                │   ├── dashboard.reducer.ts
-                │   └── injection/
+                │   └── dashboard.reducer.ts
                 └── products/                  # ← NUEVO
                     ├── products-redux-repository.ts
-                    ├── products.reducer.ts
-                    └── injection/
-                        └── injection-products-redux-repository.ts
+                    └── products.reducer.ts
 
 core/
 └── redux/
@@ -639,19 +742,13 @@ appointment/
         └── custom/
             ├── dashboard/
             │   ├── dashboard-redux-repository.ts
-            │   ├── dashboard.reducer.ts
-            │   └── injection/
-            │       └── injection-dashboard-redux-repository.ts
+            │   └── dashboard.reducer.ts
             ├── products/
             │   ├── products-redux-repository.ts
-            │   ├── products.reducer.ts
-            │   └── injection/
-            │       └── injection-products-redux-repository.ts
+            │   └── products.reducer.ts
             └── appointments/
                 ├── appointments-redux-repository.ts
-                ├── appointments.reducer.ts
-                └── injection/
-                    └── injection-appointments-redux-repository.ts
+                └── appointments.reducer.ts
 
 core/
 └── redux/
@@ -788,7 +885,7 @@ $ weaver
 ¿Qué deseas generar?
 > 🔴 Crear flujo Redux
 
-¿Entity, Business o Custom Flow?
+Generando flujo Custom desde archivo YAML
 > 🆕 Custom Flow
 
 Ruta del archivo YAML con schemas personalizados:
@@ -977,14 +1074,16 @@ export interface IUserPreferencesReduxDTO {
 
 | Aspecto | Entity/Business Flow | Custom Flow |
 |---------|---------------------|-------------|
-| **Input** | URL de Swagger | Ruta de archivo YAML |
-| **Schemas** | Extraídos del Swagger completo | Definidos en archivo local |
-| **Detección Array/Object** | Automática desde Swagger | Usuario siempre elige |
-| **Path generado** | `entities/` o `business/` | `custom/` |
-| **Sufijo state** | `Entity` o `Business` | `Custom` |
-| **Operaciones CRUD** | ✅ Idénticas | ✅ Idénticas |
-| **Estructura archivos** | ✅ Idéntica | ✅ Idéntica |
-| **Nomenclatura DTOs** | `I{Name}ReduxDTO` | `I{Name}ReduxDTO` |
+| **Input** | ❌ No disponible | Ruta de archivo YAML |
+| **Schemas** | ❌ No disponible | Definidos en archivo local |
+| **Detección Array/Object** | ❌ No disponible | Usuario siempre elige |
+| **Path generado** | ❌ No disponible | `custom/` |
+| **Sufijo state** | ❌ No disponible | Sin sufijo (nombre directo) |
+| **Operaciones CRUD** | ❌ No disponible | ✅ Arrays y Objetos |
+| **Estructura archivos** | ❌ No disponible | ✅ Completa |
+| **Nomenclatura DTOs** | ❌ No disponible | `I{Name}ReduxDTO` |
+
+**Nota**: Solo está implementado el flujo **Custom** que carga schemas desde archivos YAML locales.
 
 ### Ejemplo Completo: UserPreferences como Objeto
 
@@ -1317,9 +1416,9 @@ $ weaver generate → Redux Flow → Custom → platform → userPreferences →
   2. CREA 19 archivos de userPreferences
   3. NO TOCA redux-core.ts (ya estaba registrado)
 
-Estado: Redux con 3 flows
+Estado: Redux con 3 flows custom
 Archivos: 58
-platform.slice.ts: { userEntity, authBusiness, userPreferencesCustom }
+platform.slice.ts: { platformConfiguration, dashboard, userPreferences }
 redux-core.ts: ✅ platform registrado
 
 📅 DÍA 5: Cleanup (authBusiness) - Flow Individual
@@ -1694,7 +1793,7 @@ export interface DetectedReduxFlow {
   apiName: string;       // 'platform', 'appointment'
   flowType: string;      // 'entity', 'business', 'custom'
   storageType: string;   // 'array', 'object'
-  stateSuffix: string;   // 'Entity', 'Business', 'Custom'
+  stateSuffix: string;   // Sin sufijo (nombre directo del flow)
   totalFiles: number;    // 19-20
   paths: string[];       // Rutas de archivos a eliminar
 }
@@ -1866,9 +1965,8 @@ export interface ICompanyReduxDTO {
 }
 ```
 
-**Path según tipo**:
-- Entity Flow: `domain/models/redux/{api-name}/entities/{entity}/i-{entity}-redux-dto.ts`
-- Business Flow: `domain/models/redux/{api-name}/business/{service}/i-{service}-redux-dto.ts`
+**Path**:
+- Custom Flow: `domain/models/redux/{api-name}/custom/{flow-name}/i-{flow-name}-redux-dto.ts`
 
 **Reglas de Generación**:
 1. Leer la **Response Schema** del endpoint seleccionado
@@ -2027,7 +2125,7 @@ Cuando se genera un segundo flujo Redux en la misma API, el generador:
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
 import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/{type}/{entity}";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Crear/Agregar un item al array de {Entity}
@@ -2081,7 +2179,7 @@ export class CreateUserUseCase implements UseCase<IUserReduxDTO, void> {
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
 import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/{type}/{entity}";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Leer items de {Entity} desde Redux
@@ -2124,7 +2222,7 @@ export class Read{Entity}UseCase implements UseCase<string | null, I{Entity}Redu
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
 import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/{entity}";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Actualizar un item en el array de {Entity}
@@ -2157,7 +2255,7 @@ export class Update{Entity}UseCase implements UseCase<{ id: string; data: Partia
 ```typescript
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Eliminar un item del array de {Entity}
@@ -2190,7 +2288,7 @@ export class Delete{Entity}UseCase implements UseCase<string, void> {
 ```typescript
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Limpiar todo el estado de {Entity} en Redux
@@ -2264,7 +2362,7 @@ Cuando el response es un objeto simple (no array), se generan use cases diferent
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
 import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/{entity}";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Guardar/reemplazar objeto completo de {Entity}
@@ -2291,7 +2389,7 @@ export class Save{Entity}UseCase implements UseCase<I{Entity}ReduxDTO, void> {
 import { UseCase } from "@bus/core/interfaces/use-case";
 import { IConfigDTO } from "@{api-name}/core/interfaces";
 import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/{type}/{entity}";
-import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/{api-name}/injection";
+import { InjectionRepositoriesRedux } from "@{api-name}/infrastructure/repositories/redux/injection";
 
 /**
  * Use Case: Leer una propiedad específica del objeto {Entity}
@@ -2676,20 +2774,20 @@ export const platformSlice = createSlice({
 
 ### 7. Infrastructure Layer - Reducers
 
-Los reducers están organizados en subcarpetas `entities/` y `business/` según el tipo.
+Los reducers están organizados en la carpeta `custom/` con el nombre del flow.
 
-#### `entities/user/user.reducer.ts` (Para Arrays)
+#### `custom/products/products.reducer.ts` (Para Arrays)
 
-**Path**: `infrastructure/repositories/redux/{api-name}/entities/{entity}/{entity}.reducer.ts`
+**Path**: `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}.reducer.ts`
 
 ```typescript
 import { PayloadAction } from "@reduxjs/toolkit";
 import { I{ApiName}InitialStateReduxDTO } from "../../{api-name}.slice";
-import { I{Entity}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/entities/{entity}";
+import { I{FlowName}ReduxDTO } from "@{api-name}/domain/models/redux/{api-name}/custom/{flow-name}";
 
 /**
- * Reducers para {Entity} (Array)
- * Path: infrastructure/repositories/redux/{api-name}/entities/{entity}/{entity}.reducer.ts
+ * Reducers para {FlowName} (Array)
+ * Path: infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}.reducer.ts
  */
 
 /**
@@ -2762,9 +2860,9 @@ export const clearAllUserReducer = (
 
 ---
 
-#### `business/auth/auth.reducer.ts` (Para Objetos)
+#### `custom/dashboard/dashboard.reducer.ts` (Para Objetos)
 
-**Path**: `infrastructure/repositories/redux/{api-name}/business/{business}/{business}.reducer.ts`
+**Path**: `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}.reducer.ts`
 
 ```typescript
 import { PayloadAction } from "@reduxjs/toolkit";
@@ -3029,37 +3127,64 @@ export class PlatformReduxRepository extends IPlatformReduxRepository {
 
 ---
 
-#### `injection/injection-{api-name}-redux-repository.ts`
+#### `injection/injection-repositories-redux.ts` (GLOBAL)
 
-**Path**: `infrastructure/repositories/redux/{api-name}/injection/injection-{api-name}-redux-repository.ts`
+**Path**: `infrastructure/repositories/redux/injection/injection-repositories-redux.ts`
+
+**⚠️ IMPORTANTE**: Este es un archivo **GLOBAL** que se actualiza incrementalmente con cada nuevo flow.
 
 ```typescript
-import { {ApiName}ReduxRepository } from "../{api-name}-redux-repository";
+import { PlatformReduxRepository } from "../bus/platform/platform-redux-repository";
+import { PlatformConfigurationReduxRepository } from "../platform/custom/platform-configuration/platform-configuration-redux-repository";
+import { DashboardReduxRepository } from "../platform/custom/dashboard/dashboard-redux-repository";
 
 /**
- * Inyección de dependencias para Repository Redux de {ApiName}
- * Path: infrastructure/repositories/redux/{api-name}/injection/injection-{api-name}-redux-repository.ts
+ * Inyección de dependencias para Repositories Redux
+ * Este archivo se actualiza automáticamente con cada nuevo flow
  */
 export class InjectionRepositoriesRedux {
-    public static {ApiName}ReduxRepository() { 
-        return {ApiName}ReduxRepository.getInstance();
-    }
-}
-```
-
-**Ejemplo para Platform**:
-```typescript
-// injection-platform-redux-repository.ts
-import { PlatformReduxRepository } from "../platform-redux-repository";
-
-export class InjectionRepositoriesRedux {
+    // Repositorio del bus principal (existente)
     public static PlatformReduxRepository() { 
         return PlatformReduxRepository.getInstance();
     }
+    
+    // Repositorios de flows custom (agregados automáticamente)
+    public static PlatformConfigurationReduxRepository() {
+        return PlatformConfigurationReduxRepository.getInstance();
+    }
+    
+    public static DashboardReduxRepository() {
+        return DashboardReduxRepository.getInstance();
+    }
 }
 ```
 
-**Nota**: Este archivo NO se actualiza en generaciones subsiguientes, se crea solo una vez.
+**Comportamiento**:
+- ✅ **Primera generación**: Crea el archivo si no existe
+- ✅ **Generaciones subsiguientes**: Agrega nuevos imports y métodos
+- ✅ **Detección de duplicados**: No agrega métodos que ya existen
+- ✅ **Preservación**: Mantiene todos los métodos existentes
+
+**Ejemplo de actualización incremental**:
+```typescript
+// Antes de generar "dashboard" flow
+export class InjectionRepositoriesRedux {
+    public static PlatformConfigurationReduxRepository() {
+        return PlatformConfigurationReduxRepository.getInstance();
+    }
+}
+
+// Después de generar "dashboard" flow
+export class InjectionRepositoriesRedux {
+    public static PlatformConfigurationReduxRepository() {
+        return PlatformConfigurationReduxRepository.getInstance();
+    }
+    
+    public static DashboardReduxRepository() {  // ✅ Agregado automáticamente
+        return DashboardReduxRepository.getInstance();
+    }
+}
+```
 
 ---
 
@@ -3238,11 +3363,11 @@ Cuando se genera el **primer flujo Redux** para una API (ej: User Entity en Plat
 - ✅ `facade/redux/{api-name}/{api-name}-redux-facade.ts`
 - ✅ `facade/redux/{api-name}/injection/injection-{api-name}-redux-facade.ts`
 - ✅ `infrastructure/repositories/redux/{api-name}/{api-name}.slice.ts`
-- ✅ `infrastructure/repositories/redux/{api-name}/{type}/{entity}/{entity}.reducer.ts`
-- ✅ `infrastructure/repositories/redux/{api-name}/{api-name}-redux-repository.ts`
-- ✅ `infrastructure/repositories/redux/{api-name}/injection/injection-{api-name}-redux-repository.ts`
-- ✅ `infrastructure/mappers/redux/{api-name}/{type}/{entity}/{entity}-redux-mapper.ts`
-- ✅ `infrastructure/mappers/redux/{api-name}/{type}/{entity}/injection/injection-{entity}-redux-mapper.ts`
+- ✅ `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}.reducer.ts`
+- ✅ `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}-redux-repository.ts`
+- ✅ `infrastructure/repositories/redux/injection/injection-repositories-redux.ts` (actualizado incrementalmente)
+- ✅ `infrastructure/mappers/redux/{api-name}/custom/{flow-name}/{flow-name}-redux-mapper.ts`
+- ✅ `infrastructure/mappers/redux/{api-name}/custom/{flow-name}/injection/injection-{flow-name}-redux-mapper.ts`
 
 **Archivos ACTUALIZADOS** (existentes):
 - 🔄 `core/redux/redux-core.ts` - Se registra el slice de la API
@@ -3275,9 +3400,11 @@ Cuando se genera un **segundo flujo Redux** en la misma API (ej: Auth Business e
 **Archivos NO TOCADOS**:
 - ⏭️ `core/redux/redux-core.ts` - Ya está registrado
 - ⏭️ `facade/redux/{api-name}/injection/injection-{api-name}-redux-facade.ts`
-- ⏭️ `infrastructure/repositories/redux/{api-name}/injection/injection-{api-name}-redux-repository.ts`
 - ⏭️ `core/interfaces/i-config-repository-dto.ts`
 - ⏭️ `core/types/selector-{api-name}-redux.ts`
+
+**Archivos ACTUALIZADOS INCREMENTALMENTE**:
+- 🔄 `infrastructure/repositories/redux/injection/injection-repositories-redux.ts` - Se agregan nuevos métodos
 
 **Total Segunda Generación**: ~10-12 archivos (solo los nuevos y actualizados)
 
@@ -3910,39 +4037,44 @@ async function handleCreateReduxFlow(isLocalMode: boolean) {
 | **Actions** | `{action}{Entity}Action` | `createUserAction`, `saveAuthAction` |
 | **Reducers** | `{action}{Entity}Reducer` | `createUserReducer`, `saveAuthReducer` |
 
-### 2. Sufijos para State Properties
+### 2. Nomenclatura de State Properties
 
-Para evitar conflictos y diferenciar tipos en el state:
+Todos los flujos usan nombres directos sin sufijos:
 
-| Tipo | Sufijo | Ejemplo | Uso |
-|------|--------|---------|-----|
-| **Entity** | `Entity` | `userEntity`, `companyEntity` | Entities del dominio (CRUD) desde Swagger |
-| **Business** | `Business` | `authBusiness`, `availabilityBusiness` | Business flows/servicios desde Swagger |
-| **Custom** 🆕 | `Custom` | `userPreferencesCustom`, `appConfigCustom` | Estructuras personalizadas sin Swagger |
+| Tipo | Nomenclatura | Ejemplo | Uso |
+|------|--------------|---------|-----|
+| **Custom** | Sin sufijo (nombre directo) | `platformConfiguration`, `dashboard`, `userPreferences` | Todos los flows desde archivos YAML locales |
 
-**Razón**: Permite tener `user` entity, `user` business y `user` custom en la misma API sin conflicto.
+**Ventajas**:
+- ✅ Nombres más limpios y directos
+- ✅ No hay conflictos ya que solo existe un tipo de flujo
+- ✅ Más fácil de usar: `state.platform.dashboard` en lugar de `state.platform.dashboardCustom`
 
-### 3. Estructura de Carpetas por Tipo
+### 3. Estructura de Carpetas Redux
 
 ```
 infrastructure/repositories/redux/{api-name}/
-├── {api-name}.slice.ts                     # Slice principal
-├── entities/                               # Entities (CRUD) desde Swagger
-│   ├── user/
-│   │   └── user.reducer.ts
-│   └── company/
-│       └── company.reducer.ts
-├── business/                               # Business flows desde Swagger
-│   ├── auth/
-│   │   └── auth.reducer.ts
-│   └── availability/
-│       └── availability.reducer.ts
-└── custom/                                 # Custom flows (sin Swagger) 🆕
+├── {api-name}.slice.ts                     # Slice principal con todos los flujos
+└── custom/                                 # Todos los flows custom desde YAML local
+    ├── platform-configuration/
+    │   ├── platform-configuration-redux-repository.ts
+    │   └── platform-configuration.reducer.ts
+    ├── dashboard/
+    │   ├── dashboard-redux-repository.ts
+    │   └── dashboard.reducer.ts
     ├── user-preferences/
+    │   ├── user-preferences-redux-repository.ts
     │   └── user-preferences.reducer.ts
-    └── app-config/
-        └── app-config.reducer.ts
+    └── products/
+        ├── products-redux-repository.ts
+        └── products.reducer.ts
 ```
+
+**Características**:
+- ✅ **Solo flujos custom**: Todos los flows provienen de archivos YAML locales
+- ✅ **Usuario define estructura**: El desarrollador crea el schema según necesidad
+- ✅ **Flexibilidad total**: Objetos simples, objetos complejos, arrays, mixtos
+- ✅ **Sin dependencia de Swagger backend**: Ideal para estado local de la app
 
 ### 2. Conversiones
 
@@ -4079,21 +4211,21 @@ public readAuth(config: IConfigDTO): IAuthReduxDTO | null {
     │           └── auth/
     │               └── auth-redux-mapper.ts
     └── repositories/
-        └── redux/{api-name}/
-            ├── {api-name}.slice.ts                     # UN slice por API
-            ├── {api-name}-redux-repository.ts          # UN repository por API
+        └── redux/
             ├── injection/
-            │   └── injection-{api-name}-redux-repository.ts
-            ├── entities/                               # Reducers de entities
-            │   ├── user/
-            │   │   └── user.reducer.ts
-            │   └── company/
-            │       └── company.reducer.ts
-            └── business/                               # Reducers de business
-                ├── auth/
-                │   └── auth.reducer.ts
-                └── availability/
-                    └── availability.reducer.ts
+            │   └── injection-repositories-redux.ts    # ← GLOBAL: Inyección de todos los flows
+            └── {api-name}/
+                ├── {api-name}.slice.ts                # UN slice por API
+                └── custom/                            # Todos los flows custom
+                    ├── dashboard/
+                    │   ├── dashboard-redux-repository.ts
+                    │   └── dashboard.reducer.ts
+                    ├── platform-configuration/
+                    │   ├── platform-configuration-redux-repository.ts
+                    │   └── platform-configuration.reducer.ts
+                    └── user-preferences/
+                        ├── user-preferences-redux-repository.ts
+                        └── user-preferences.reducer.ts
 
 core/                                                   # ← Al mismo nivel que {api-name}/
 └── redux/
@@ -4101,9 +4233,10 @@ core/                                                   # ← Al mismo nivel que
 ```
 
 **Puntos Clave**:
-- ✅ **NO usar `/bus/`**: Rutas Redux van directamente en `redux/{api-name}/`
+- ✅ **Inyección global**: Un solo archivo `injection-repositories-redux.ts` para todos los flows
 - ✅ **Un slice por API**: Todo centralizado en `{api-name}.slice.ts`
-- ✅ **Organización entities/business**: Mantiene separación lógica
+- ✅ **Solo flujos custom**: Todos en `custom/{flow-name}/`
+- ✅ **Sin archivos de inyección locales**: La inyección es global
 - ✅ **redux-core.ts externo**: En `core/redux/`, fuera del API folder
 
 ### 6. Importaciones
@@ -4455,10 +4588,11 @@ Esta especificación define completamente el **Redux Flow Generator** para Weave
 
 ### Arquitectura Final Confirmada
 
-✅ **Un Slice por API**: Cada API tiene un único slice que contiene todas sus entities, business flows y custom flows  
-✅ **Modelo Flat con Sufijos**: `userEntity`, `authBusiness`, `userPreferencesCustom` (Entity/Business/Custom)  
+✅ **Un Slice por API**: Cada API tiene un único slice que contiene todos sus flujos custom  
+✅ **Solo Flujos Custom**: Todos los flows provienen de archivos YAML locales (`platformConfiguration`, `dashboard`, `userPreferences`)  
 ✅ **Actualización Inteligente**: Archivos compartidos (slice, facade, repository) se actualizan incrementalmente  
 ✅ **String Replacement**: Técnica robusta para agregar código a archivos existentes sin romper  
+✅ **Conversión Automática**: snake_case → camelCase para todos los campos  
 ✅ **Registro Único en redux-core.ts**: Solo en la primera generación de una API  
 ✅ **Sin archivos .action.ts**: Actions se importan directamente del slice  
 ✅ **CRUD Completo**: Create, Read, Update, Delete, Clear para arrays y objetos  

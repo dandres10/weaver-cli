@@ -558,14 +558,14 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Create${info.flowNamePascal}UseCase implements UseCase<I${
     info.flowNamePascal
   }ReduxDTO, void> {
     private static instance: Create${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Create${info.flowNamePascal}UseCase {
@@ -579,7 +579,7 @@ export class Create${info.flowNamePascal}UseCase implements UseCase<I${
     public execute(param: I${
       info.flowNamePascal
     }ReduxDTO, config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.create${
+        this.${info.flowNameCamel}ReduxRepository.create${
     info.flowNamePascal
   }(param, config);
     }
@@ -598,7 +598,7 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Read${
     info.flowNamePascal
@@ -606,8 +606,8 @@ export class Read${
     info.flowNamePascal
   }ReduxDTO | I${info.flowNamePascal}ReduxDTO[] | null> {
     private static instance: Read${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Read${info.flowNamePascal}UseCase {
@@ -622,11 +622,11 @@ export class Read${
       info.flowNamePascal
     }ReduxDTO | I${info.flowNamePascal}ReduxDTO[] | null {
         if (param) {
-            return this.${info.apiNameCamel}ReduxRepository.read${
+            return this.${info.flowNameCamel}ReduxRepository.read${
     info.flowNamePascal
   }ById(param, config);
         } else {
-            return this.${info.apiNameCamel}ReduxRepository.readAll${
+            return this.${info.flowNameCamel}ReduxRepository.readAll${
     info.flowNamePascal
   }(config);
         }
@@ -646,7 +646,7 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Update${
     info.flowNamePascal
@@ -654,8 +654,8 @@ export class Update${
     info.flowNamePascal
   }ReduxDTO> }, void> {
     private static instance: Update${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Update${info.flowNamePascal}UseCase {
@@ -669,7 +669,7 @@ export class Update${
     public execute(param: { id: string; data: Partial<I${
       info.flowNamePascal
     }ReduxDTO> }, config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.update${
+        this.${info.flowNameCamel}ReduxRepository.update${
     info.flowNamePascal
   }(param.id, param.data, config);
     }
@@ -696,7 +696,7 @@ export class Delete${info.flowNamePascal}UseCase implements UseCase<string, void
     }
 
     public execute(param: string, config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.delete${info.flowNamePascal}(param, config);
+        this.${info.flowNameCamel}ReduxRepository.delete${info.flowNamePascal}(param, config);
     }
 }
 `;
@@ -721,7 +721,7 @@ export class Clear${info.flowNamePascal}UseCase implements UseCase<any, void> {
     }
 
     public execute(config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.clearAll${info.flowNamePascal}(config);
+        this.${info.flowNameCamel}ReduxRepository.clearAll${info.flowNamePascal}(config);
     }
 }
 `;
@@ -743,14 +743,14 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Save${info.flowNamePascal}UseCase implements UseCase<I${
     info.flowNamePascal
   }ReduxDTO, void> {
     private static instance: Save${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Save${info.flowNamePascal}UseCase {
@@ -764,7 +764,7 @@ export class Save${info.flowNamePascal}UseCase implements UseCase<I${
     public execute(param: I${
       info.flowNamePascal
     }ReduxDTO, config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.save${
+        this.${info.flowNameCamel}ReduxRepository.save${
     info.flowNamePascal
   }(param, config);
     }
@@ -783,14 +783,14 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Read${info.flowNamePascal}UseCase implements UseCase<void, I${
     info.flowNamePascal
   }ReduxDTO | null> {
     private static instance: Read${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Read${info.flowNamePascal}UseCase {
@@ -804,7 +804,7 @@ export class Read${info.flowNamePascal}UseCase implements UseCase<void, I${
     public execute(config: IConfigDTO): I${
       info.flowNamePascal
     }ReduxDTO | null {
-        return this.${info.apiNameCamel}ReduxRepository.read${
+        return this.${info.flowNameCamel}ReduxRepository.read${
     info.flowNamePascal
   }(config);
     }
@@ -823,14 +823,14 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Read${
     info.flowNamePascal
   }PropertyUseCase implements UseCase<string, any> {
     private static instance: Read${info.flowNamePascal}PropertyUseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Read${info.flowNamePascal}PropertyUseCase {
@@ -845,7 +845,7 @@ export class Read${
         propertyName: K, 
         config: IConfigDTO
     ): I${info.flowNamePascal}ReduxDTO[K] | null {
-        return this.${info.apiNameCamel}ReduxRepository.read${
+        return this.${info.flowNameCamel}ReduxRepository.read${
     info.flowNamePascal
   }Property(propertyName, config);
     }
@@ -864,7 +864,7 @@ import { I${info.flowNamePascal}ReduxDTO } from "@${
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
 import { InjectionRepositoriesRedux } from "@${
     info.apiName
-  }/infrastructure/repositories/redux/${info.apiName}/injection";
+  }/infrastructure/repositories/redux/injection";
 
 export class Update${
     info.flowNamePascal
@@ -872,8 +872,8 @@ export class Update${
     info.flowNamePascal
   }ReduxDTO>, void> {
     private static instance: Update${info.flowNamePascal}UseCase;
-    private ${info.apiNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
-    info.apiNamePascal
+    private ${info.flowNameCamel}ReduxRepository = InjectionRepositoriesRedux.${
+    info.flowNamePascal
   }ReduxRepository();
 
     public static getInstance(): Update${info.flowNamePascal}UseCase {
@@ -887,7 +887,7 @@ export class Update${
     public execute(param: Partial<I${
       info.flowNamePascal
     }ReduxDTO>, config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.update${
+        this.${info.flowNameCamel}ReduxRepository.update${
     info.flowNamePascal
   }(param, config);
     }
@@ -914,7 +914,7 @@ export class Clear${info.flowNamePascal}UseCase implements UseCase<any, void> {
     }
 
     public execute(config: IConfigDTO): void {
-        this.${info.apiNameCamel}ReduxRepository.clear${info.flowNamePascal}(config);
+        this.${info.flowNameCamel}ReduxRepository.clear${info.flowNamePascal}(config);
     }
 }
 `;
@@ -1925,30 +1925,66 @@ async function generateRepositoryInjection(
   repositoryName: string,
   info: ReduxGenerationInfo
 ): Promise<void> {
-  const injectionPath = path.join(repositoryPath, "injection");
-  const injectionFile = path.join(
-    injectionPath,
-    `injection-${repositoryName}-redux-repository.ts`
-  );
+  // Actualizar el archivo de inyección global en infrastructure/repositories/redux/injection/
+  const basePath = repositoryPath.split(path.sep).slice(0, -3).join(path.sep); // Subir 3 niveles desde custom/flow-name
+  const globalInjectionPath = path.join(basePath, "injection");
+  const globalInjectionFile = path.join(globalInjectionPath, "injection-repositories-redux.ts");
 
-  if (await fs.pathExists(injectionFile)) {
-    return;
-  }
-
-  await fs.ensureDir(injectionPath);
+  // Asegurar que el directorio de inyección existe
+  await fs.ensureDir(globalInjectionPath);
 
   const repositoryClassName = info.flowNamePascal;
+  const methodName = `${repositoryClassName}ReduxRepository`;
+  
+  // Ruta relativa desde el archivo de inyección global al repositorio
+  const relativePath = `../${info.apiName}/custom/${info.flowName}/${repositoryName}-redux-repository`;
 
-  const injectionContent = `import { ${repositoryClassName}ReduxRepository } from "../${repositoryName}-redux-repository";
+  // Leer el contenido existente o crear uno nuevo
+  let content = "";
+  if (await fs.pathExists(globalInjectionFile)) {
+    content = await fs.readFile(globalInjectionFile, "utf-8");
+    
+    // Verificar si el método ya existe
+    if (content.includes(`${methodName}()`)) {
+      console.log(chalk.gray(`    ℹ️  Método ${methodName}() ya existe en injection`));
+      return;
+    }
+
+    // Agregar el nuevo import
+    const importStatement = `import { ${repositoryClassName}ReduxRepository } from "${relativePath}";`;
+    
+    // Buscar la última línea de import
+    const importRegex = /import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?/g;
+    const imports = content.match(importRegex);
+    
+    if (imports && imports.length > 0) {
+      const lastImport = imports[imports.length - 1];
+      content = content.replace(lastImport, `${lastImport}\n${importStatement}`);
+    } else {
+      // Si no hay imports, agregar al inicio
+      content = `${importStatement}\n\n${content}`;
+    }
+
+    // Agregar el nuevo método estático en la clase
+    // Buscar el último método estático antes de cerrar la clase
+    const classEndRegex = /(\s+public static \w+\(\)[^}]+}\s*)(})\s*$/;
+    const match = content.match(classEndRegex);
+    
+    if (match) {
+      const newMethod = `\n    \n    public static ${methodName}() { return ${repositoryClassName}ReduxRepository.getInstance() }`;
+      content = content.replace(match[0], `${match[1]}${newMethod}\n${match[2]}`);
+    }
+  } else {
+    // Crear el archivo nuevo
+    content = `import { ${repositoryClassName}ReduxRepository } from "${relativePath}";
 
 export class InjectionRepositoriesRedux {
-    public static ${repositoryClassName}ReduxRepository() { 
-        return ${repositoryClassName}ReduxRepository.getInstance();
-    }
-}
-`;
+    
+    public static ${methodName}() { return ${repositoryClassName}ReduxRepository.getInstance() }
+}`;
+  }
 
-  await fs.writeFile(injectionFile, injectionContent);
+  await fs.writeFile(globalInjectionFile, content);
 }
 
 async function generateReduxMappers(
@@ -1979,13 +2015,25 @@ async function registerInReduxCore(
   basePath: string,
   info: ReduxGenerationInfo
 ): Promise<void> {
-  // Buscar el archivo redux-core.ts
-  const reduxCorePath = path.join(basePath, "core/redux/redux-core.ts");
+  // Buscar el archivo redux-core.ts en múltiples ubicaciones posibles
+  const possiblePaths = [
+    path.join(basePath, "core/redux/redux-core.ts"),  // Dentro del API
+    path.join(basePath, "../core/redux/redux-core.ts"), // Nivel superior (src/core)
+    path.join(basePath, "../../core/redux/redux-core.ts"), // Dos niveles arriba
+  ];
+
+  let reduxCorePath = "";
+  for (const testPath of possiblePaths) {
+    if (await fs.pathExists(testPath)) {
+      reduxCorePath = testPath;
+      break;
+    }
+  }
 
   // Verificar si el archivo existe
-  if (!(await fs.pathExists(reduxCorePath))) {
+  if (!reduxCorePath) {
     console.log(
-      chalk.yellow("    ⚠️  redux-core.ts no encontrado - omitiendo registro")
+      chalk.gray("    ℹ️  redux-core.ts no encontrado - omitiendo registro")
     );
     return;
   }
