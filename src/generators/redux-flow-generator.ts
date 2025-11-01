@@ -1776,12 +1776,12 @@ function generateRepositoryContent(
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
   }/domain/models/redux/${info.apiName}/custom/${info.flowName}";
-import { I${info.apiNamePascal}ReduxRepository } from "@${
+import { I${info.flowNamePascal}ReduxRepository } from "@${
     info.apiName
-  }/domain/services/repositories/redux/${info.apiName}/i-${
-    info.apiName
+  }/domain/services/repositories/redux/${info.apiName}/custom/i-${
+    info.flowName
   }-redux-repository";
-import { ${info.apiNameCamel}Slice } from "./${info.apiName}.slice";
+import { ${info.apiNameCamel}Slice } from "../../${info.apiName}.slice";
 `;
 
   const actionsDestruct = `const {
@@ -1794,13 +1794,13 @@ import { ${info.apiNameCamel}Slice } from "./${info.apiName}.slice";
   return `${imports}
 ${actionsDestruct}
 
-export class ${info.apiNamePascal}ReduxRepository extends I${info.apiNamePascal}ReduxRepository {
-    private static instance: ${info.apiNamePascal}ReduxRepository;
+export class ${info.flowNamePascal}ReduxRepository extends I${info.flowNamePascal}ReduxRepository {
+    private static instance: ${info.flowNamePascal}ReduxRepository;
 
-    public static getInstance(): ${info.apiNamePascal}ReduxRepository {
-        if (!${info.apiNamePascal}ReduxRepository.instance)
-            ${info.apiNamePascal}ReduxRepository.instance = new ${info.apiNamePascal}ReduxRepository();
-        return ${info.apiNamePascal}ReduxRepository.instance;
+    public static getInstance(): ${info.flowNamePascal}ReduxRepository {
+        if (!${info.flowNamePascal}ReduxRepository.instance)
+            ${info.flowNamePascal}ReduxRepository.instance = new ${info.flowNamePascal}ReduxRepository();
+        return ${info.flowNamePascal}ReduxRepository.instance;
     }
 
 ${methods}

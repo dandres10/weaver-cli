@@ -218,6 +218,40 @@
 - Ejemplo: `redux/appointment/custom/dashboard/`
 - Aplicado a todas las 3 capas: domain, facade, infrastructure
 
+#### 10. **Correcciones Críticas en Repositorio Redux** 🔧 ⭐ NUEVO
+- **Corregido**: Nombre de clase del repositorio ahora es específico del flow
+  ```typescript
+  // ❌ ANTES (incorrecto - nombre genérico del API)
+  export class PlatformReduxRepository extends IPlatformReduxRepository {
+      private static instance: PlatformReduxRepository;
+  }
+  
+  // ✅ AHORA (correcto - nombre específico del flow)
+  export class PlatformConfigurationReduxRepository extends IPlatformConfigurationReduxRepository {
+      private static instance: PlatformConfigurationReduxRepository;
+  }
+  ```
+
+- **Corregido**: Import de interface específica del flow
+  ```typescript
+  // ❌ ANTES (incorrecto - interface genérica del API)
+  import { IPlatformReduxRepository } from "@platform/domain/services/repositories/redux/platform/i-platform-redux-repository";
+  
+  // ✅ AHORA (correcto - interface específica del flow)
+  import { IPlatformConfigurationReduxRepository } from "@platform/domain/services/repositories/redux/platform/custom/i-platform-configuration-redux-repository";
+  ```
+
+- **Corregido**: Ruta relativa al slice desde el repositorio
+  ```typescript
+  // ❌ ANTES (incorrecto - faltaban niveles)
+  import { platformSlice } from "./platform.slice";
+  
+  // ✅ AHORA (correcto - ruta desde custom/flow-name/ hacia nivel API)
+  import { platformSlice } from "../../platform.slice";
+  ```
+
+**Impacto**: Estas correcciones resuelven errores de compilación TypeScript y aseguran que cada flow tenga su propio repositorio independiente.
+
 ### ⏳ Próximos Pasos:
 1. Fase 5: Testing - Tests unitarios e integración
 2. Fase 6: Documentation - Actualizar README y docs
@@ -245,20 +279,17 @@
 ## Introducción
 
 El **Redux Flow Generator** es una nueva funcionalidad de Weaver CLI que genera automáticamente toda la estructura Redux (slice, actions, reducers, repositories, use cases, facades) basándose en:
-- **Responses de Swagger** (para Entity y Business Flows)
-- **Schemas de archivo YAML** (para Custom Flows)
+- **Schemas de archivo YAML**: Estructuras personalizadas definidas en formato OpenAPI 3.0.x
 
 ### Contexto
 
 El generador toma como base la arquitectura Redux implementada en `goluti-frontend` (documentada en `redux-flow-platform.md`) y la adapta para:
-- **Entity Flows**: Operaciones CRUD basadas en entidades del Swagger (User, Company, etc.)
-- **Business Flows**: Servicios de negocio basados en operaciones del Swagger (Availability, Auth, etc.)
 - **Custom Flows**: Estructuras personalizadas definidas en archivo YAML con schemas OpenAPI 3.0.x
 
 ### Arquitectura Clave
 
-- **Un slice por API**: Cada API (platform, appointment, etc.) tiene UN solo slice que contiene todas sus entities y business flows
-- **Modelo Flat**: Estado Redux no anidado, con sufijos `Entity` y `Business` para diferenciar tipos
+- **Un slice por API**: Cada API (platform, appointment, etc.) tiene UN solo slice que contiene todos sus custom flows
+- **Modelo Flat**: Estado Redux no anidado, cada custom flow tiene su propia propiedad en el estado
 - **Actualización Inteligente**: Primera generación crea el slice y lo registra en `redux-core.ts`; generaciones subsiguientes actualizan el slice existente
 - **String Replacement**: Utiliza reemplazo inteligente de strings para actualizar archivos existentes
 
@@ -526,7 +557,7 @@ sequenceDiagram
 
 ### Modelo: Un Slice por API
 
-Cada API (platform, appointment, commercial, etc.) tiene **UN SOLO SLICE** que contiene todas sus entities, business flows y custom flows.
+Cada API (platform, appointment, commercial, etc.) tiene **UN SOLO SLICE** que contiene todos sus custom flows.
 
 ### Primera Generación: Dashboard Flow en Appointment API
 
@@ -1070,18 +1101,18 @@ export interface IUserPreferencesReduxDTO {
 
 **Nomenclatura**: `I{CustomName}{NestedField}DTO` para evitar conflictos.
 
-### Comparación: Custom vs Entity/Business
+### Características del Custom Flow
 
-| Aspecto | Entity/Business Flow | Custom Flow |
-|---------|---------------------|-------------|
-| **Input** | ❌ No disponible | Ruta de archivo YAML |
-| **Schemas** | ❌ No disponible | Definidos en archivo local |
-| **Detección Array/Object** | ❌ No disponible | Usuario siempre elige |
-| **Path generado** | ❌ No disponible | `custom/` |
-| **Sufijo state** | ❌ No disponible | Sin sufijo (nombre directo) |
-| **Operaciones CRUD** | ❌ No disponible | ✅ Arrays y Objetos |
-| **Estructura archivos** | ❌ No disponible | ✅ Completa |
-| **Nomenclatura DTOs** | ❌ No disponible | `I{Name}ReduxDTO` |
+| Aspecto | Descripción |
+|---------|-------------|
+| **Input** | Ruta de archivo YAML local |
+| **Schemas** | Definidos en formato OpenAPI 3.0.x |
+| **Detección Array/Object** | Usuario siempre elige explícitamente |
+| **Path generado** | `custom/{flow-name}/` |
+| **Sufijo state** | Sin sufijo (nombre directo del flow) |
+| **Operaciones CRUD** | Soporta Arrays y Objetos |
+| **Estructura archivos** | Arquitectura completa de 3 capas |
+| **Nomenclatura DTOs** | `I{Name}ReduxDTO` |
 
 **Nota**: Solo está implementado el flujo **Custom** que carga schemas desde archivos YAML locales.
 
@@ -1523,9 +1554,8 @@ $ weaver
 > 🧹 Limpiar/Eliminar código generado
 
 ¿Qué tipo de código eliminar?
-1. Entity/Business Flows
-2. 🔴 Redux Flows 🆕
-> 2
+1. 🔴 Redux Flows (Custom)
+> 1
 
 🔍 Detectando Redux flows generados...
 
@@ -2944,186 +2974,90 @@ const {
 
 ### 9. Infrastructure Layer - Repository Implementation
 
-#### `{api-name}-redux-repository.ts` - Implementación con Todos los Métodos
+#### `{flow-name}-redux-repository.ts` - Implementación del Repositorio
 
-**Path**: `infrastructure/repositories/redux/{api-name}/{api-name}-redux-repository.ts`
+**Path**: `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}-redux-repository.ts`
 
-Este archivo implementa TODOS los métodos de la interface `I{ApiName}ReduxRepository`. Se **actualiza** cada vez que se genera un nuevo flujo Redux.
+Cada flow custom tiene su propio archivo de repositorio que implementa los métodos de su interface específica `I{FlowName}ReduxRepository`.
 
-**Ejemplo: Platform con User (array) y Auth (object)**:
+**Ejemplo: PlatformConfiguration (custom object)**:
 
 ```typescript
 import { IConfigDTO } from "@platform/core/interfaces";
-import { IUserReduxDTO } from "@platform/domain/models/redux/platform/entities/user";
-import { IAuthReduxDTO } from "@platform/domain/models/redux/platform/business/auth";
-import { IPlatformReduxRepository } from "@platform/domain/services/repositories/redux/platform/i-platform-redux-repository";
-import { platformSlice } from "./platform.slice";
+import { IPlatformConfigurationReduxDTO } from "@platform/domain/models/redux/platform/custom/platform-configuration";
+import { IPlatformConfigurationReduxRepository } from "@platform/domain/services/repositories/redux/platform/custom/i-platform-configuration-redux-repository";
+import { platformSlice } from "../../platform.slice";
 
 /**
- * Implementación del repositorio Redux para Platform API
- * Contiene TODOS los métodos para entities y business flows
- * Path: infrastructure/repositories/redux/platform/platform-redux-repository.ts
+ * Implementación del repositorio Redux para PlatformConfiguration Flow
+ * Path: infrastructure/repositories/redux/platform/custom/platform-configuration/platform-configuration-redux-repository.ts
  * 
- * NOTA: Este archivo se actualiza agregando nuevos métodos cuando se generan
- * nuevas entities o business flows
+ * NOTA: Cada flow custom tiene su propio repositorio específico
  */
 
 // Importar actions directamente del slice (NO hay archivos .action.ts)
 const { 
-  // User Entity actions
-  createUserAction,
-  updateUserAction,
-  deleteUserAction,
-  setAllUserAction,
-  clearAllUserAction,
-  // Auth Business actions
-  saveAuthAction,
-  updateAuthAction,
-  clearAuthAction
+  // PlatformConfiguration actions
+  savePlatformConfigurationAction,
+  updatePlatformConfigurationAction,
+  clearPlatformConfigurationAction
 } = platformSlice.actions;
 
-export class PlatformReduxRepository extends IPlatformReduxRepository {
-    private static instance: PlatformReduxRepository;
+export class PlatformConfigurationReduxRepository extends IPlatformConfigurationReduxRepository {
+    private static instance: PlatformConfigurationReduxRepository;
 
-    public static getInstance(): PlatformReduxRepository {
-        if (!PlatformReduxRepository.instance)
-            PlatformReduxRepository.instance = new PlatformReduxRepository();
-        return PlatformReduxRepository.instance;
+    public static getInstance(): PlatformConfigurationReduxRepository {
+        if (!PlatformConfigurationReduxRepository.instance)
+            PlatformConfigurationReduxRepository.instance = new PlatformConfigurationReduxRepository();
+        return PlatformConfigurationReduxRepository.instance;
     }
 
-    // ============================================
-    // MÉTODOS PARA USER ENTITY (Array)
-    // ============================================
-
-    /**
-     * Crea/agrega un nuevo User al array
-     */
-    public createUser(params: IUserReduxDTO, config: IConfigDTO): void {
+    public savePlatformConfiguration(params: IPlatformConfigurationReduxDTO, config: IConfigDTO): void {
         if (config?.dispatch) {
-            config.dispatch(createUserAction(params));
+            config.dispatch(savePlatformConfigurationAction(params));
         }
     }
 
-    /**
-     * Lee un User específico por ID
-     * Selector: state?.platform?.userEntity
-     */
-    public readUserById(id: string, config: IConfigDTO): IUserReduxDTO | null {
+    public readPlatformConfiguration(config: IConfigDTO): IPlatformConfigurationReduxDTO | null {
         if (config?.selector) {
-            const array = config.selector((state: any) => state?.platform?.userEntity);
-            if (Array.isArray(array)) {
-                return array.find(item => item.id === id) ?? null;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Lee todos los Users del array
-     * Selector: state?.platform?.userEntity
-     */
-    public readAllUser(config: IConfigDTO): IUserReduxDTO[] | null {
-        if (config?.selector) {
-            const data = config.selector((state: any) => state?.platform?.userEntity);
+            const data = config.selector((state: any) => state?.platform?.platformConfiguration);
             return data ?? null;
         }
         return null;
     }
 
-    /**
-     * Actualiza un User específico
-     */
-    public updateUser(id: string, data: Partial<IUserReduxDTO>, config: IConfigDTO): void {
-        if (config?.dispatch) {
-            config.dispatch(updateUserAction({ id, data }));
-        }
-    }
-
-    /**
-     * Elimina un User específico
-     */
-    public deleteUser(id: string, config: IConfigDTO): void {
-        if (config?.dispatch) {
-            config.dispatch(deleteUserAction(id));
-        }
-    }
-
-    /**
-     * Limpia todo el array de Users
-     */
-    public clearAllUser(config: IConfigDTO): void {
-        if (config?.dispatch) {
-            config.dispatch(clearAllUserAction());
-        }
-    }
-
-    // ============================================
-    // MÉTODOS PARA AUTH BUSINESS (Object)
-    // ============================================
-
-    /**
-     * Guarda/reemplaza el objeto Auth completo
-     */
-    public saveAuth(params: IAuthReduxDTO, config: IConfigDTO): void {
-        if (config?.dispatch) {
-            config.dispatch(saveAuthAction(params));
-        }
-    }
-
-    /**
-     * Lee el objeto Auth completo
-     * Selector: state?.platform?.authBusiness
-     */
-    public readAuth(config: IConfigDTO): IAuthReduxDTO | null {
-        if (config?.selector) {
-            const data = config.selector((state: any) => state?.platform?.authBusiness);
-            return data ?? null;
-        }
-        return null;
-    }
-
-    /**
-     * Lee solo una propiedad específica del objeto Auth (optimizado para objetos grandes) 🆕
-     * Selector: state?.platform?.authBusiness?.[propertyName]
-     * @param propertyName - Nombre de la propiedad a leer
-     * @returns Valor de la propiedad o null
-     */
-    public readAuthProperty<K extends keyof IAuthReduxDTO>(
+    public readPlatformConfigurationProperty<K extends keyof IPlatformConfigurationReduxDTO>(
         propertyName: K, 
         config: IConfigDTO
-    ): IAuthReduxDTO[K] | null {
+    ): IPlatformConfigurationReduxDTO[K] | null {
         if (config?.selector) {
-            const value = config.selector((state: any) => state?.platform?.authBusiness?.[propertyName]);
+            const value = config.selector((state: any) => state?.platform?.platformConfiguration?.[propertyName]);
             return value ?? null;
         }
         return null;
     }
 
-    /**
-     * Actualiza parcialmente el objeto Auth
-     */
-    public updateAuth(data: Partial<IAuthReduxDTO>, config: IConfigDTO): void {
+    public updatePlatformConfiguration(data: Partial<IPlatformConfigurationReduxDTO>, config: IConfigDTO): void {
         if (config?.dispatch) {
-            config.dispatch(updateAuthAction(data));
+            config.dispatch(updatePlatformConfigurationAction(data));
         }
     }
 
-    /**
-     * Limpia el objeto Auth
-     */
-    public clearAuth(config: IConfigDTO): void {
+    public clearPlatformConfiguration(config: IConfigDTO): void {
         if (config?.dispatch) {
-            config.dispatch(clearAuthAction());
+            config.dispatch(clearPlatformConfigurationAction());
         }
     }
 }
 ```
 
-**Puntos Clave del Selector**:
-- ✅ Entity Array: `state?.{apiKey}?.{entity}Entity` → `state?.platform?.userEntity`
-- ✅ Business Object: `state?.{apiKey}?.{business}Business` → `state?.platform?.authBusiness`
+**Puntos Clave del Repositorio**:
+- ✅ Cada flow custom tiene su propio repositorio específico
+- ✅ Path: `infrastructure/repositories/redux/{api-name}/custom/{flow-name}/{flow-name}-redux-repository.ts`
+- ✅ Selector para custom flow: `state?.{apiKey}?.{flowNameCamel}` → `state?.platform?.platformConfiguration`
 - ✅ El `{apiKey}` es el nombre de la API en camelCase (platform, appointment, etc.)
-- ✅ Actions importadas del slice directamente: `const { createUserAction } = platformSlice.actions`
+- ✅ Actions importadas del slice: `const { savePlatformConfigurationAction } = platformSlice.actions`
+- ✅ Ruta relativa al slice desde `custom/flow-name/`: `"../../platform.slice"`
 
 ---
 
@@ -3412,25 +3346,26 @@ Cuando se genera un **segundo flujo Redux** en la misma API (ej: Auth Business e
 
 ### Archivos por API (Compartidos)
 
-Estos archivos contienen información de TODAS las entities/business de una API:
+Estos archivos contienen información de TODOS los custom flows de una API:
 
 | Archivo | Scope | Se Actualiza |
 |---------|-------|--------------|
-| `{api-name}.slice.ts` | Todas las entities/business | ✅ Sí |
-| `{api-name}-redux-repository.ts` | Todas las entities/business | ✅ Sí |
-| `{api-name}-redux-facade.ts` | Todas las entities/business | ✅ Sí |
-| `i-{api-name}-redux-repository.ts` | Todas las entities/business | ✅ Sí |
+| `{api-name}.slice.ts` | Todos los custom flows | ✅ Sí |
+| `injection-repositories-redux.ts` | Global - todos los repositorios | ✅ Sí |
 
-### Archivos por Entity/Business (Individuales)
+### Archivos por Custom Flow (Individuales)
 
-Estos archivos son específicos de cada entity/business:
+Estos archivos son específicos de cada custom flow:
 
 | Archivo | Scope | Se Actualiza |
 |---------|-------|--------------|
-| `i-{entity}-redux-dto.ts` | Solo esta entity/business | ❌ No |
-| `{entity}.reducer.ts` | Solo esta entity/business | ❌ No |
-| `{entity}-redux-mapper.ts` | Solo esta entity/business | ❌ No |
-| Use cases (`create-{entity}-use-case.ts`, etc.) | Solo esta entity/business | ❌ No |
+| `i-{flow-name}-redux-dto.ts` | Solo este custom flow | ❌ No |
+| `{flow-name}.reducer.ts` | Solo este custom flow | ❌ No |
+| `{flow-name}-redux-repository.ts` | Solo este custom flow | ❌ No |
+| `i-{flow-name}-redux-repository.ts` | Solo este custom flow | ❌ No |
+| Use cases (`save-{flow-name}-use-case.ts`, etc.) | Solo este custom flow | ❌ No |
+| `{flow-name}-redux-mapper.ts` | Solo este custom flow | ❌ No |
+| `{flow-name}-redux-facade.ts` | Solo este custom flow | ❌ No |
 
 ---
 
@@ -3893,48 +3828,74 @@ case 'create-redux-flow':
 
 ```typescript
 async function handleCreateReduxFlow(isLocalMode: boolean) {
-  // 1. Solicitar URL del Swagger
-  const swaggerUrl = await promptSwaggerUrl();
-  
-  // 2. Cargar y parsear Swagger
-  const parser = new SwaggerParser();
-  await parser.loadFromUrl(swaggerUrl);
-  
-  // 3. Elegir tipo: Entity o Business Flow
-  const flowType = await inquirer.prompt([{
-    type: 'list',
-    name: 'type',
-    message: '¿Qué tipo de flujo Redux deseas crear?',
-    choices: [
-      { name: '📦 Entity Flow (CRUD)', value: 'entity' },
-      { name: '💼 Business Flow (Servicios)', value: 'business' }
-    ]
+  // 1. Solicitar ruta del archivo YAML
+  const yamlPath = await inquirer.prompt([{
+    type: 'input',
+    name: 'path',
+    message: '📄 Ruta del archivo YAML (OpenAPI 3.0.x):',
+    validate: (input: string) => {
+      if (!input || input.trim().length === 0) {
+        return 'Por favor proporciona una ruta válida';
+      }
+      if (!fs.existsSync(input)) {
+        return 'El archivo no existe';
+      }
+      return true;
+    }
   }]);
   
-  // 4. Mostrar lista de entities/services
-  const items = flowType.type === 'entity' 
-    ? parser.getAvailableEntities()
-    : parser.getAvailableBusinessServices();
-    
-  const selectedItem = await promptSelectItem(items);
+  // 2. Cargar y parsear YAML
+  const analyzer = new SwaggerReduxAnalyzer();
+  await analyzer.loadFromFile(yamlPath.path);
   
-  // 5. Mostrar operaciones disponibles
-  const operations = parser.getOperationsForTag(selectedItem);
-  const selectedOperation = await promptSelectOperation(operations);
+  // 3. Seleccionar tag (API)
+  const tags = analyzer.getAvailableTags();
+  const selectedTag = await inquirer.prompt([{
+    type: 'list',
+    name: 'tag',
+    message: '🏷️  Selecciona el tag/API:',
+    choices: tags
+  }]);
+  
+  // 4. Seleccionar operación
+  const operations = analyzer.getOperationsForTag(selectedTag.tag);
+  const selectedOperation = await inquirer.prompt([{
+    type: 'list',
+    name: 'operation',
+    message: '🔧 Selecciona la operación:',
+    choices: operations.map(op => ({
+      name: `${op.method.toUpperCase()} ${op.path}`,
+      value: op
+    }))
+  }]);
+  
+  // 5. Solicitar nombre del flow
+  const flowNamePrompt = await inquirer.prompt([{
+    type: 'input',
+    name: 'name',
+    message: '📝 Nombre del flow (kebab-case, ej: user-preferences):',
+    validate: (input: string) => {
+      if (!input || input.trim().length === 0) {
+        return 'El nombre no puede estar vacío';
+      }
+      if (!/^[a-z0-9-]+$/.test(input)) {
+        return 'Usa solo minúsculas, números y guiones (kebab-case)';
+      }
+      return true;
+    }
+  }]);
   
   // 6. Obtener schema del response
-  const responseSchema = parser.getResponseSchema(
-    selectedOperation.path,
-    selectedOperation.method
+  const responseSchema = analyzer.getResponseSchema(
+    selectedOperation.operation.path,
+    selectedOperation.operation.method
   );
   
   // 7. Mostrar preview del schema
   console.log(chalk.cyan('\n📋 Schema del Response:'));
   console.log(JSON.stringify(responseSchema.fields, null, 2));
   
-  // ============================================
-  // 8. ← NUEVA PREGUNTA: ¿Lista o Objeto?
-  // ============================================
+  // 8. Preguntar: ¿Lista o Objeto?
   const storageType = await inquirer.prompt([{
     type: 'list',
     name: 'type',
@@ -3969,9 +3930,9 @@ async function handleCreateReduxFlow(isLocalMode: boolean) {
   
   // 10. Confirmar generación
   console.log(chalk.yellow('\n📝 Resumen:'));
-  console.log(`  Tipo: ${flowType.type === 'entity' ? 'Entity' : 'Business'}`);
-  console.log(`  Item: ${selectedItem}`);
-  console.log(`  Operación: ${selectedOperation.method.toUpperCase()} ${selectedOperation.path}`);
+  console.log(`  API: ${selectedTag.tag}`);
+  console.log(`  Flow: ${flowNamePrompt.name}`);
+  console.log(`  Operación: ${selectedOperation.operation.method.toUpperCase()} ${selectedOperation.operation.path}`);
   console.log(`  Storage: ${storageType.type === 'array' ? 'Lista (Array)' : 'Objeto único'}`);
   if (idField) console.log(`  Campo ID: ${idField}`);
   
@@ -3989,17 +3950,15 @@ async function handleCreateReduxFlow(isLocalMode: boolean) {
   
   // 11. Generar flujo Redux
   const targetBasePath = await detectTargetDirectory();
-  const apiName = extractApiName(targetBasePath);
+  const apiName = selectedTag.tag;
   
   await createReduxFlow(
-    selectedItem,
     targetBasePath,
     responseSchema,
     apiName,
     {
-      flowType: flowType.type,
-      operation: selectedOperation,
-      isArray: storageType.type === 'array',  // ← Decisión del usuario
+      flowName: flowNamePrompt.name,
+      isArray: storageType.type === 'array',
       idField: idField
     }
   );
@@ -4583,8 +4542,7 @@ const reduxFiles = [
 ## Conclusión
 
 Esta especificación define completamente el **Redux Flow Generator** para Weaver CLI v3.0.0, que permite generar automáticamente toda la estructura Redux basándose en:
-- **Responses del Swagger** (Entity Flows y Business Flows)
-- **Schemas de archivo YAML** con formato OpenAPI 3.0.x (Custom Flows)
+- **Schemas de archivo YAML** con formato OpenAPI 3.0.x (Custom Flows únicamente)
 
 ### Arquitectura Final Confirmada
 
