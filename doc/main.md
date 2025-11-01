@@ -12,6 +12,7 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 - **[README](./README.md)** - Documentación principal del proyecto con instalación y uso
 - **[Estructura Generada Correcta](./estructura-generada-correcta.md)** - Documentación detallada de la arquitectura y patrones generados
 - **[Parser OpenAPI Avanzado](./parser-openapi.md)** - Documentación técnica del sistema de parsing OpenAPI/Swagger
+- **[Redux Flow Generator Spec](./redux-flow-generator-spec.md)** - Especificación completa del generador de flujos Redux
 
 ### 🚀 Guías de Uso
 - **[Comandos de Weaver](./COMANDOS-WEAVER.md)** - Lista completa de comandos disponibles y su uso
@@ -33,9 +34,10 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 
 ### 🏗️ ¿Quieres entender la arquitectura?
 1. **Estructura Completa**: [Estructura Generada Correcta](./estructura-generada-correcta.md)
-2. **Parser OpenAPI**: [Parser OpenAPI Avanzado](./parser-openapi.md) - Cómo funciona el parsing de especificaciones
-3. **Patrones Implementados**: Ver secciones de Clean Architecture
-4. **Ejemplos de Código**: Revisar templates y casos de uso
+2. **Redux Flow**: [Redux Flow Generator Spec](./redux-flow-generator-spec.md) - Especificación del generador Redux
+3. **Parser OpenAPI**: [Parser OpenAPI Avanzado](./parser-openapi.md) - Cómo funciona el parsing de especificaciones
+4. **Patrones Implementados**: Ver secciones de Clean Architecture
+5. **Ejemplos de Código**: Revisar templates y casos de uso
 
 ### 🔧 ¿Vas a desarrollar o modificar Weaver CLI?
 1. **Contexto del Proyecto**: [Prompt para Cambios](./PROMPT-PARA-CAMBIOS.md)
@@ -51,16 +53,23 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 - **🔍 Parser OpenAPI Avanzado**: Manejo robusto de esquemas complejos (`anyOf`, `$ref`, inline schemas)
 - **📋 Enums SCREAMING_SNAKE_CASE**: Nomenclatura estándar TypeScript con valores exactos del backend
 - **🔄 Arrays de Respuesta**: Detección automática con `mapFromList()` vs `mapFrom()`
-- **🎯 Dos tipos de generación**:
-  - **Entidades CRUD**: DTOs, Use Cases, Repositories, Facades completos
-  - **Flujos de Negocio**: Servicios complejos con mappers anidados
+- **🎯 Tres tipos de generación**:
+  - **Entidades CRUD**: DTOs, Use Cases, Repositories, Facades completos (desde Swagger)
+  - **Flujos de Negocio**: Servicios complejos con mappers anidados (desde Swagger)
+  - **Flujos Redux**: Estado global con Redux Toolkit (desde Swagger o YAML custom)
+    - Entity/Business Flows: Desde URL de Swagger
+    - Custom Flows: Desde archivo YAML con schemas OpenAPI 3.0.x 🆕
 - **🧪 Testing Robusto**: 8 tests unitarios + validación end-to-end automática
 - **🔐 Sistema de Autenticación**: Acceso controlado con clave de sesión
-- **🧹 Sistema de Limpieza**: Eliminación inteligente de código generado
+- **🧹 Sistema de Limpieza**: Eliminación inteligente de código generado (Entity/Business/Redux flows)
 
 ### 🎯 Casos de Uso Principales
 - **Generación CRUD**: `User`, `Company`, `Product` → Estructura completa de entidades
 - **Flujos de Negocio**: `Auth` (login, logout, refresh), `Payment`, `Notification`
+- **Flujos Redux**: 
+  - Entity/Business: Guardar responses de Swagger en Redux store
+  - Custom: Guardar estructuras desde archivo YAML (ej: UserPreferences, AppConfig) 🆕
+  - Cleanup/Revert: Eliminar Redux flows individuales o API completa 🆕
 - **APIs Múltiples**: Soporte para `platform`, `payment`, `core`, etc.
 - **Proyectos Existentes**: Integración con arquitecturas existentes
 
@@ -73,6 +82,7 @@ doc/
 ├── main.md                           # 📍 Este archivo - Índice principal
 ├── README.md                         # 📖 Documentación principal
 ├── estructura-generada-correcta.md   # 🏗️ Arquitectura y patrones
+├── redux-flow-generator-spec.md      # 🔴 Especificación generador Redux
 ├── COMANDOS-WEAVER.md                # 🚀 Comandos y uso
 ├── ejemplo-uso.md                    # 🧪 Tutorial paso a paso
 ├── PROMPT-PARA-CAMBIOS.md            # 🔧 Contexto para desarrollo
@@ -98,8 +108,9 @@ weaver --local
 
 ### 📊 Estado del Proyecto
 - **Versión Actual**: v2.2.0 (Diciembre 2024)
+- **Próxima Versión**: v3.0.0 - Redux Flow Generator (En Desarrollo)
 - **Estado**: ✅ Producción - Sistema completo y robusto
-- **Características**: Clean Architecture + Parser OpenAPI Avanzado + Enums SCREAMING_SNAKE_CASE
+- **Características**: Clean Architecture + Parser OpenAPI Avanzado + Enums SCREAMING_SNAKE_CASE + Redux Generator
 
 ### 🆘 Soporte
 - **Autenticación**: Clave `soyia` (válida 30 días)

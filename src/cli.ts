@@ -4,8 +4,10 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { createCorrectEntityFlow } from './generators/correct-entity-flow-generator';
 import { createBusinessFlow } from './generators/business-flow-generator';
+import { createReduxFlow, ReduxFlowOptions } from './generators/redux-flow-generator';
 import { detectGeneratedEntities, cleanupEntity } from './generators/cleanup-generator';
 import { SwaggerAnalyzer } from './parsers/swagger-parser';
+import { SwaggerReduxAnalyzer } from './parsers/swagger-redux-parser';
 import { ProjectValidator } from './validators/project-validator';
 import { AuthManager } from './auth/auth-manager';
 import { DirectoryDetector } from './utils/directory-detector';
@@ -25,6 +27,10 @@ const menuChoices: MenuChoice[] = [
   {
     name: '💼 Crear flujo de negocio',
     value: 'create-business-flow'
+  },
+  {
+    name: '🔴 Crear flujo Redux',
+    value: 'create-redux-flow'
   },
   {
     name: '🧹 Limpiar/Eliminar código generado',
@@ -64,6 +70,9 @@ async function showMainMenu(isLocalMode: boolean = false): Promise<void> {
       break;
     case 'create-business-flow':
       await handleCreateBusinessFlow(isLocalMode);
+      break;
+    case 'create-redux-flow':
+      await handleCreateReduxFlow(isLocalMode);
       break;
     case 'cleanup':
       await handleCleanup(isLocalMode);
@@ -956,6 +965,456 @@ async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<v
 
     if (retry) {
       await handleCreateBusinessFlow(isLocalMode);
+    } else {
+      await showMainMenu(isLocalMode);
+    }
+  }
+}
+
+/**
+ * Maneja la creación de un flujo Redux completo (simplificado - solo Custom Flows)
+ */
+async function handleCreateReduxFlow(isLocalMode: boolean = false): Promise<void> {
+  try {
+    console.log(chalk.yellow('\n📋 Configurando flujo Redux...'));
+
+    // 🔍 DETECTAR DIRECTORIO ACTUAL Y APIs DISPONIBLES
+    console.log(chalk.blue('🔍 Analizando estructura del directorio...'));
+    const directoryInfo = await DirectoryDetector.detectCurrentApi();
+    
+    if (directoryInfo.currentApiName) {
+      console.log(chalk.green(`✅ API detectada en directorio actual: ${directoryInfo.currentApiName}`));
+    } else {
+      console.log(chalk.yellow('⚠️  No se detectó estructura de API en el directorio actual'));
+    }
+
+    if (directoryInfo.possibleApiNames.length > 0) {
+      console.log(chalk.gray(`📁 APIs disponibles: ${directoryInfo.possibleApiNames.join(', ')}`));
+    }
+
+    // 1. Solicitar ruta del archivo OpenAPI/Swagger
+    const { swaggerFile } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'swaggerFile',
+        message: 'Ruta del archivo OpenAPI/Swagger (JSON/YAML):',
+        validate: (input: string) => {
+          if (!input.trim()) {
+            return 'La ruta del archivo es requerida';
+          }
+          if (!fs.existsSync(input.trim())) {
+            return 'El archivo no existe';
+          }
+          if (!/\.(json|yaml|yml)$/i.test(input.trim())) {
+            return 'El archivo debe ser .json, .yaml o .yml';
+          }
+          return true;
+        }
+      }
+    ]);
+
+    // Cargar y analizar el swagger (usando parser especializado para Redux)
+    console.log(chalk.blue('\n🔍 Analizando OpenAPI...'));
+    const swaggerAnalyzer = new SwaggerReduxAnalyzer();
+
+    try {
+      await swaggerAnalyzer.loadFromFile(swaggerFile.trim());
+    } catch (error) {
+      console.error(chalk.red('\n❌ Error cargando el swagger:'), error);
+      return await handleCreateReduxFlow(isLocalMode);
+    }
+
+    // 3. Obtener el nombre de la API
+    const detectedApiName = swaggerAnalyzer.getDetectedApiName();
+    const suggestedNames = swaggerAnalyzer.suggestApiNames();
+
+    let apiName: string;
+
+    if (detectedApiName) {
+      const { useDetectedApi } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'useDetectedApi',
+          message: `¿Usar la API detectada "${detectedApiName}"?`,
+          default: true
+        }
+      ]);
+
+      if (useDetectedApi) {
+        apiName = detectedApiName;
+      } else {
+        const { selectedApiName } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedApiName',
+            message: 'Selecciona el nombre de la API:',
+            choices: [
+              ...suggestedNames.map(name => ({ name, value: name })),
+              { name: '📝 Ingresar nombre personalizado', value: 'custom' }
+            ]
+          }
+        ]);
+
+        if (selectedApiName === 'custom') {
+          const { customApiName } = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'customApiName',
+              message: 'Nombre de la API:',
+              validate: (input: string) => {
+                if (!input.trim()) return 'El nombre de la API es requerido';
+                if (!/^[a-z][a-z0-9-]*$/.test(input.trim())) {
+                  return 'El nombre debe empezar con minúscula y solo contener letras, números y guiones';
+                }
+                return true;
+              }
+            }
+          ]);
+          apiName = customApiName.trim();
+        } else {
+          apiName = selectedApiName;
+        }
+      }
+    } else {
+      const { selectedApiName } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedApiName',
+          message: 'No se pudo detectar automáticamente. Selecciona el nombre de la API:',
+          choices: [
+            ...suggestedNames.map(name => ({ name, value: name })),
+            { name: '📝 Ingresar nombre personalizado', value: 'custom' }
+          ]
+        }
+      ]);
+
+      if (selectedApiName === 'custom') {
+        const { customApiName } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'customApiName',
+            message: 'Nombre de la API:',
+            validate: (input: string) => {
+              if (!input.trim()) return 'El nombre de la API es requerido';
+              if (!/^[a-z][a-z0-9-]*$/.test(input.trim())) {
+                return 'El nombre debe empezar con minúscula y solo contener letras, números y guiones';
+              }
+              return true;
+            }
+          }
+        ]);
+        apiName = customApiName.trim();
+      } else {
+        apiName = selectedApiName;
+      }
+    }
+
+    console.log(chalk.blue(`🔗 API configurada: ${apiName}`));
+
+    // 4. Obtener tags disponibles
+    const availableTags = swaggerAnalyzer.getAvailableTags();
+    
+    if (availableTags.length === 0) {
+      console.log(chalk.yellow('\n⚠️  No se encontraron tags en el swagger'));
+      return await showMainMenu(isLocalMode);
+    }
+
+    console.log(chalk.green(`\n✅ Se encontraron ${availableTags.length} tags disponibles`));
+
+    const { selectedTag } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedTag',
+        message: 'Selecciona el tag/servicio:',
+        choices: availableTags.map((tag: string) => ({ name: tag, value: tag })),
+        pageSize: 15
+      }
+    ]);
+
+    // 5. Obtener operaciones disponibles para el tag
+    const operations = swaggerAnalyzer.getOperationsForTag(selectedTag);
+
+    if (operations.length === 0) {
+      console.log(chalk.yellow(`\n⚠️  No se encontraron operaciones para ${selectedTag}`));
+      return await showMainMenu(isLocalMode);
+    }
+
+    console.log(chalk.blue(`\n📋 Se encontraron ${operations.length} operaciones disponibles`));
+
+    // 6. Seleccionar operación
+    const operationChoices = operations.map(op => ({
+      name: `${op.method.toUpperCase()} ${op.path} ${op.summary ? `- ${op.summary}` : ''}`,
+      value: op,
+      short: `${op.method.toUpperCase()} ${op.path}`
+    }));
+
+    const { selectedOperation } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selectedOperation',
+        message: 'Selecciona la operación del endpoint:',
+        choices: operationChoices,
+        pageSize: 15
+      }
+    ]);
+
+    // 7. Obtener schema del response
+    const responseSchema = swaggerAnalyzer.getResponseSchema(selectedOperation.path, selectedOperation.method);
+
+    if (!responseSchema) {
+      console.log(chalk.yellow(`\n⚠️  No se pudo obtener el schema del response para la operación seleccionada`));
+      return await showMainMenu(isLocalMode);
+    }
+
+    // 8. Mostrar preview del schema
+    console.log(chalk.cyan('\n📋 Schema del Response:'));
+    console.log(chalk.gray(`   Tipo: ${responseSchema.isArray ? 'Array[]' : 'Objeto {}'}`));
+    console.log(chalk.gray(`   Campos: ${responseSchema.fields.length}`));
+    if (responseSchema.fields.length > 0 && responseSchema.fields.length <= 10) {
+      responseSchema.fields.forEach(field => {
+        console.log(chalk.gray(`     • ${field.name}: ${field.type}`));
+      });
+    }
+
+    // 9. Preguntar tipo de almacenamiento (solo si el response es OBJETO)
+    let storageType: 'array' | 'object';
+    
+    if (responseSchema.isArray) {
+      // Si el response ya es array, automáticamente es Lista
+      storageType = 'array';
+      console.log(chalk.blue('\n📦 El response es un array, se guardará como Lista automáticamente'));
+    } else {
+      // Si el response es objeto, preguntar al usuario
+      const { selectedStorageType } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedStorageType',
+          message: '¿Cómo deseas guardar este dato en Redux?',
+          choices: [
+            { 
+              name: '📋 Lista (Array) - Para colecciones con CRUD completo', 
+              value: 'array' 
+            },
+            { 
+              name: '📄 Objeto único - Para datos singleton', 
+              value: 'object' 
+            }
+          ]
+        }
+      ]);
+      storageType = selectedStorageType;
+    }
+
+    // 10. Si es array, pedir campo ID
+    let idField: string | null = null;
+    
+    if (storageType === 'array') {
+      const availableFields = responseSchema.fields.map(f => f.name);
+      
+      if (availableFields.length > 0) {
+        const { selectedIdField } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedIdField',
+            message: '¿Qué campo usar como identificador único (ID)?',
+            choices: availableFields
+          }
+        ]);
+        idField = selectedIdField;
+      } else {
+        console.log(chalk.yellow('\n⚠️  No se encontraron campos en el schema, usando "id" por defecto'));
+        idField = 'id';
+      }
+    }
+
+    // 10. Solicitar nombre del flujo Redux
+    const { flowName } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'flowName',
+        message: 'Nombre del flujo Redux (en kebab-case):',
+        default: selectedTag.toLowerCase().replace(/\s+/g, '-'),
+        validate: (input: string) => {
+          if (!input.trim()) return 'El nombre del flujo es requerido';
+          if (!/^[a-z][a-z0-9-]*$/.test(input.trim())) {
+            return 'El nombre debe estar en kebab-case (solo minúsculas, números y guiones)';
+          }
+          return true;
+        }
+      }
+    ]);
+
+    // 11. Configurar directorio de destino
+    let targetBasePath: string;
+
+    if (isLocalMode) {
+      const testOutputPath = path.resolve('./test-output');
+      await fs.ensureDir(testOutputPath);
+      
+      const existingDirs = [];
+      if (await fs.pathExists(testOutputPath)) {
+        const contents = await fs.readdir(testOutputPath);
+        for (const item of contents) {
+          const itemPath = path.join(testOutputPath, item);
+          const stat = await fs.stat(itemPath);
+          if (stat.isDirectory()) {
+            existingDirs.push(item);
+          }
+        }
+      }
+      
+      const directoryChoices: any[] = [];
+      
+      for (const dir of existingDirs) {
+        directoryChoices.push({
+          name: `${dir} (existente)`,
+          value: path.join(testOutputPath, dir),
+          short: dir
+        });
+      }
+      
+      directoryChoices.push({
+        name: `Crear nueva carpeta: ${apiName}`,
+        value: 'create_new',
+        short: `nuevo: ${apiName}`
+      });
+
+      const { selectedDirectory } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedDirectory',
+          message: '¿En qué directorio crear los archivos Redux?',
+          choices: directoryChoices,
+          pageSize: 10
+        }
+      ]);
+
+      if (selectedDirectory === 'create_new') {
+        targetBasePath = path.resolve(`./test-output/${apiName}`);
+        await fs.ensureDir(targetBasePath);
+      } else {
+        targetBasePath = selectedDirectory;
+      }
+      
+      console.log(chalk.green(`✅ Directorio target válido: ${targetBasePath}`));
+    } else {
+      const directoryChoices: any[] = [];
+      
+      if (directoryInfo.currentApiName) {
+        directoryChoices.push({
+          name: `${directoryInfo.currentApiName} (directorio actual)`,
+          value: directoryInfo.baseDirectory,
+          short: directoryInfo.currentApiName
+        });
+      }
+      
+      for (const siblingApi of directoryInfo.possibleApiNames) {
+        if (siblingApi !== directoryInfo.currentApiName) {
+          const siblingPath = path.join(path.dirname(directoryInfo.baseDirectory), siblingApi);
+          directoryChoices.push({
+            name: `${siblingApi} (API hermana)`,
+            value: siblingPath,
+            short: siblingApi
+          });
+        }
+      }
+
+      const { selectedDirectory } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedDirectory',
+          message: '¿En qué directorio crear los archivos Redux?',
+          choices: directoryChoices,
+          pageSize: 10
+        }
+      ]);
+
+      targetBasePath = selectedDirectory;
+
+      const validation = await DirectoryDetector.validateTargetPath(targetBasePath);
+      if (!validation.isValid) {
+        console.log(chalk.red(`\n❌ ${validation.message}`));
+        return await showMainMenu(isLocalMode);
+      }
+      console.log(chalk.green(`✅ ${validation.message}`));
+    }
+
+    // 12. Mostrar resumen y confirmar
+    console.log(chalk.yellow('\n📝 Resumen de generación Redux:'));
+    console.log(chalk.white(`  Nombre del flujo: ${flowName}`));
+    console.log(chalk.white(`  Tag/Servicio: ${selectedTag}`));
+    console.log(chalk.white(`  Operación: ${selectedOperation.method.toUpperCase()} ${selectedOperation.path}`));
+    console.log(chalk.white(`  Storage: ${storageType === 'array' ? 'Lista (Array)' : 'Objeto único'}`));
+    if (idField) console.log(chalk.white(`  Campo ID: ${idField}`));
+    console.log(chalk.white(`  API: ${apiName}`));
+    console.log(chalk.white(`  Target: ${targetBasePath}`));
+    console.log(chalk.white(`  Archivos a generar: ~${storageType === 'array' ? '20' : '21'} archivos`));
+
+    const { confirmGeneration } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirmGeneration',
+        message: `¿Generar flujo Redux completo?`,
+        default: true
+      }
+    ]);
+
+    if (!confirmGeneration) {
+      console.log(chalk.yellow('\n❌ Generación cancelada'));
+      return await showMainMenu(isLocalMode);
+    }
+
+    // 13. Generar flujo Redux
+    console.log(chalk.blue(`\n🔧 Generando flujo Redux: ${flowName}...`));
+
+    const options: ReduxFlowOptions = {
+      flowName: flowName.trim(),
+      isArray: storageType === 'array',
+      idField: idField
+    };
+
+    await createReduxFlow(targetBasePath, responseSchema, apiName, options);
+
+    console.log(chalk.green(`\n✅ Flujo Redux "${flowName}" generado exitosamente!`));
+
+    if (isLocalMode) {
+      console.log(chalk.blue(`📁 Archivos generados en: ${targetBasePath}`));
+      console.log(chalk.gray('💡 Puedes revisar los archivos en la carpeta test-output/'));
+    } else {
+      console.log(chalk.blue(`📁 Archivos generados en el proyecto real: ${targetBasePath}`));
+    }
+
+    // Volver al menú principal
+    const { backToMenu } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'backToMenu',
+        message: '¿Volver al menú principal?',
+        default: true
+      }
+    ]);
+
+    if (backToMenu) {
+      await showMainMenu(isLocalMode);
+    } else {
+      console.log(chalk.green('\n👋 ¡Hasta luego!'));
+      process.exit(0);
+    }
+
+  } catch (error) {
+    console.error(chalk.red('\n❌ Error al generar el flujo Redux:'), error);
+    
+    const { retry } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'retry',
+        message: '¿Intentar nuevamente?',
+        default: true
+      }
+    ]);
+
+    if (retry) {
+      await handleCreateReduxFlow(isLocalMode);
     } else {
       await showMainMenu(isLocalMode);
     }

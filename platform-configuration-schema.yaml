@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: Platform Configuration API
+  version: 1.0.0
+  description: |
+    API para la configuración de plataforma.
+    Incluye configuración del usuario, moneda, ubicación, idioma, empresa, roles, permisos y menú.
+
+
+paths:
+  /configuration:
+    get:
+      tags:
+        - platform-configuration
+      summary: Obtener configuración completa de la plataforma
+      operationId: getPlatformConfiguration
+      responses:
+        '200':
+          description: Configuración de la plataforma y token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  platform_configuration:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID del usuario
+                          email:
+                            type: string
+                            format: email
+                            description: Correo electrónico del usuario
+                          first_name:
+                            type: string
+                            description: Nombre del usuario
+                          last_name:
+                            type: string
+                            description: Apellido del usuario
+                          phone:
+                            type: string
+                            description: Teléfono del usuario
+                          state:
+                            type: boolean
+                            description: Estado del usuario
+                        description: Información del usuario
+                      
+                      currency:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID de la moneda
+                          name:
+                            type: string
+                            description: Nombre de la moneda
+                          code:
+                            type: string
+                            description: Código de la moneda (ej. USD, EUR)
+                          symbol:
+                            type: string
+                            description: Símbolo de la moneda (ej. $, €)
+                          state:
+                            type: boolean
+                            description: Estado de la moneda
+                        description: Configuración de moneda
+                      
+                      location:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID de la ubicación
+                          name:
+                            type: string
+                            description: Nombre de la ubicación
+                          address:
+                            type: string
+                            description: Dirección
+                          city:
+                            type: string
+                            description: Ciudad
+                          phone:
+                            type: string
+                            description: Teléfono de la ubicación
+                          email:
+                            type: string
+                            format: email
+                            description: Correo electrónico de la ubicación
+                          main_location:
+                            type: boolean
+                            description: Indica si es la ubicación principal
+                          state:
+                            type: boolean
+                            description: Estado de la ubicación
+                        description: Ubicación principal
+                      
+                      language:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID del idioma
+                          name:
+                            type: string
+                            description: Nombre del idioma
+                          code:
+                            type: string
+                            description: Código del idioma (ej. es, en)
+                          native_name:
+                            type: string
+                            description: Nombre nativo del idioma
+                          state:
+                            type: boolean
+                            description: Estado del idioma
+                        description: Configuración de idioma
+                      
+                      platform:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID de la plataforma
+                          language_id:
+                            type: string
+                            description: ID del idioma configurado
+                          location_id:
+                            type: string
+                            description: ID de la ubicación configurada
+                          token_expiration_minutes:
+                            type: integer
+                            description: Minutos de expiración del token
+                          currency_id:
+                            type: string
+                            description: ID de la moneda configurada
+                        description: Configuración general de la plataforma
+                      
+                      country:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID del país
+                          name:
+                            type: string
+                            description: Nombre del país
+                          code:
+                            type: string
+                            description: Código del país
+                          phone_code:
+                            type: string
+                            description: Código telefónico del país
+                          state:
+                            type: boolean
+                            description: Estado del país
+                        description: Información del país
+                      
+                      company:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID de la empresa
+                          name:
+                            type: string
+                            description: Nombre de la empresa
+                          inactivity_time:
+                            type: integer
+                            description: Tiempo de inactividad en minutos
+                          nit:
+                            type: string
+                            description: NIT de la empresa
+                          state:
+                            type: boolean
+                            description: Estado de la empresa
+                        description: Información de la empresa
+                      
+                      rol:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID del rol
+                          name:
+                            type: string
+                            description: Nombre del rol
+                          code:
+                            type: string
+                            description: Código del rol
+                          description:
+                            type: string
+                            description: Descripción del rol
+                          state:
+                            type: boolean
+                            description: Estado del rol
+                        description: Rol del usuario
+                      
+                      permissions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID del permiso
+                            name:
+                              type: string
+                              description: Nombre del permiso
+                            description:
+                              type: string
+                              description: Descripción del permiso
+                            state:
+                              type: boolean
+                              description: Estado del permiso
+                        description: Lista de permisos del usuario
+                      
+                      menu:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID del ítem de menú
+                            name:
+                              type: string
+                              description: Nombre del ítem de menú
+                            label:
+                              type: string
+                              description: Etiqueta del ítem de menú
+                            description:
+                              type: string
+                              description: Descripción del ítem de menú
+                            top_id:
+                              type: string
+                              description: ID del ítem padre
+                            route:
+                              type: string
+                              description: Ruta del ítem de menú
+                            state:
+                              type: boolean
+                              description: Estado del ítem de menú
+                            icon:
+                              type: string
+                              description: Icono del ítem de menú
+                        description: Estructura del menú
+                    description: Configuración de la plataforma
+                  
+                  platform_variations:
+                    type: object
+                    properties:
+                      currencies:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID de la moneda
+                            name:
+                              type: string
+                              description: Nombre de la moneda
+                            code:
+                              type: string
+                              description: Código de la moneda (ej. USD, EUR)
+                            symbol:
+                              type: string
+                              description: Símbolo de la moneda (ej. $, €)
+                            state:
+                              type: boolean
+                              description: Estado de la moneda
+                        description: Lista de monedas disponibles
+                      
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID de la ubicación
+                            name:
+                              type: string
+                              description: Nombre de la ubicación
+                            address:
+                              type: string
+                              description: Dirección
+                            city:
+                              type: string
+                              description: Ciudad
+                            phone:
+                              type: string
+                              description: Teléfono de la ubicación
+                            email:
+                              type: string
+                              format: email
+                              description: Correo electrónico de la ubicación
+                            main_location:
+                              type: boolean
+                              description: Indica si es la ubicación principal
+                            state:
+                              type: boolean
+                              description: Estado de la ubicación
+                        description: Lista de ubicaciones disponibles
+                      
+                      languages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID del idioma
+                            name:
+                              type: string
+                              description: Nombre del idioma
+                            code:
+                              type: string
+                              description: Código del idioma (ej. es, en)
+                            native_name:
+                              type: string
+                              description: Nombre nativo del idioma
+                            state:
+                              type: boolean
+                              description: Estado del idioma
+                        description: Lista de idiomas disponibles
+                      
+                      companies:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: ID de la empresa
+                            name:
+                              type: string
+                              description: Nombre de la empresa
+                            inactivity_time:
+                              type: integer
+                              description: Tiempo de inactividad en minutos
+                            nit:
+                              type: string
+                              description: NIT de la empresa
+                            state:
+                              type: boolean
+                              description: Estado de la empresa
+                        description: Lista de empresas disponibles
+                    description: Variaciones disponibles de la plataforma
+                  
+                  token:
+                    type: string
+                    description: Token de autenticación
+                description: Respuesta completa con configuración y token
+
