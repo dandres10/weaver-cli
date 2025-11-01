@@ -793,10 +793,60 @@ async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<v
     // 6. Mostrar información del servicio de negocio
     console.log(chalk.cyan(`\n📋 Información del servicio: ${selectedService}`));
     
+    let selectedOperations: any[] = [];
+    
     if (serviceSchema.businessOperations && serviceSchema.businessOperations.length > 0) {
-      console.log(chalk.blue('\n🔧 Operaciones de negocio:'));
+      console.log(chalk.blue('\n🔧 Operaciones de negocio disponibles:'));
       serviceSchema.businessOperations.forEach(op => {
-        console.log(`  • ${op.method} ${op.path} - ${op.summary || 'Sin descripción'}`);
+        const operationName = op.path.split('/').pop() || op.operationId;
+        console.log(`  • ${operationName} - ${op.method.toUpperCase()} ${op.path}`);
+        if (op.summary) {
+          console.log(chalk.gray(`    ${op.summary}`));
+        }
+      });
+
+      // 7. Seleccionar operaciones a generar
+      const operationChoices = [
+        {
+          name: '✅ TODOS los flujos de negocio',
+          value: 'all'
+        },
+        new inquirer.Separator('--- Operaciones individuales ---'),
+        ...serviceSchema.businessOperations.map((op: any) => {
+          const operationName = op.path.split('/').pop() || op.operationId;
+          return {
+            name: `${operationName} (${op.method.toUpperCase()} ${op.path})`,
+            value: op,
+            short: operationName
+          };
+        })
+      ];
+
+      const { selectedOperation } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedOperation',
+          message: 'Selecciona qué flujos generar:',
+          choices: operationChoices,
+          pageSize: 15
+        }
+      ]);
+
+      if (selectedOperation === 'all') {
+        selectedOperations = serviceSchema.businessOperations;
+        console.log(chalk.green(`\n✅ Se generarán TODAS las operaciones (${selectedOperations.length})`));
+      } else {
+        selectedOperations = [selectedOperation];
+        const operationName = selectedOperation.path.split('/').pop() || selectedOperation.operationId;
+        console.log(chalk.green(`\n✅ Se generará solo: ${operationName}`));
+      }
+
+      // Mostrar detalles de las operaciones seleccionadas
+      console.log(chalk.blue('\n📋 Detalles de operaciones a generar:'));
+      selectedOperations.forEach(op => {
+        const operationName = op.path.split('/').pop() || op.operationId;
+        console.log(chalk.cyan(`\n  ${operationName}:`));
+        console.log(`    • ${op.method.toUpperCase()} ${op.path}`);
         if (op.requestSchema) {
           console.log(`    📥 Request: ${op.requestSchema}`);
         }
@@ -805,14 +855,17 @@ async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<v
         }
         if (op.fields.length > 0) {
           console.log(chalk.gray(`    📊 Campos (${op.fields.length}):`));
-          op.fields.forEach(field => {
+          op.fields.slice(0, 5).forEach((field: any) => {
             const required = field.required ? '🔴' : '🔵';
             console.log(chalk.gray(`      ${required} ${field.name}: ${field.type}`));
           });
+          if (op.fields.length > 5) {
+            console.log(chalk.gray(`      ... y ${op.fields.length - 5} campos más`));
+          }
         }
-        console.log('');
       });
     } else {
+      // Flujo legacy (sin businessOperations)
       console.log(chalk.blue('\n🔧 Operaciones disponibles:'));
       console.log(`  • Crear: ${serviceSchema.operations.create ? '✅' : '❌'}`);
       console.log(`  • Leer: ${serviceSchema.operations.read ? '✅' : '❌'}`);
@@ -825,20 +878,33 @@ async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<v
         const required = field.required ? '🔴' : '🔵';
         console.log(`  ${required} ${field.name}: ${field.type}`);
       });
+      
+      selectedOperations = []; // Generará todo el servicio
     }
 
-    // 7. Confirmar generación
+    // 8. Confirmar generación
     const { shouldGenerate } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'shouldGenerate',
-        message: `¿Generar flujo de negocio completo para el servicio "${selectedService}"?`,
+        message: selectedOperations.length === 1 && serviceSchema.businessOperations 
+          ? `¿Generar flujo de negocio para la operación seleccionada?`
+          : `¿Generar flujo de negocio completo para el servicio "${selectedService}"?`,
         default: true
       }
     ]);
 
     if (!shouldGenerate) {
       return await showMainMenu(isLocalMode);
+    }
+
+    // Crear una copia del schema con solo las operaciones seleccionadas
+    let finalSchema = serviceSchema;
+    if (selectedOperations.length > 0 && serviceSchema.businessOperations) {
+      finalSchema = {
+        ...serviceSchema,
+        businessOperations: selectedOperations
+      };
     }
 
     // 8. Ejecutar validaciones pre-generación
@@ -928,8 +994,12 @@ async function handleCreateBusinessFlow(isLocalMode: boolean = false): Promise<v
     }
 
     // 10. Generar el flujo de negocio
-    console.log(chalk.green(`\n🔧 Generando flujo de negocio para ${selectedService}...`));
-    await createBusinessFlow(selectedService, targetDirectory, serviceSchema, apiName);
+    if (selectedOperations.length > 0 && serviceSchema.businessOperations) {
+      console.log(chalk.green(`\n🔧 Generando ${selectedOperations.length === serviceSchema.businessOperations.length ? 'TODAS las operaciones' : 'operación seleccionada'} para ${selectedService}...`));
+    } else {
+      console.log(chalk.green(`\n🔧 Generando flujo de negocio para ${selectedService}...`));
+    }
+    await createBusinessFlow(selectedService, targetDirectory, finalSchema, apiName);
 
     console.log(chalk.green(`\n✅ Flujo de negocio ${selectedService} generado exitosamente!`));
     console.log(chalk.cyan(`📁 Archivos generados en: ${targetDirectory}`));
