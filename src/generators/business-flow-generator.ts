@@ -1987,18 +1987,50 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
           }
         }
         
-        // Extraer mapper instances existentes
-        const mapperInstanceRegex = /private (\w+ResponseMapper) = [^;]+;/g;
-        const mapperMatches = existingContent.matchAll(mapperInstanceRegex);
+        // Extraer mapper instances existentes (pueden ser multilínea)
+        // Buscar patrones como: private xxxResponseMapper = ... ;
+        const mapperLines = existingContent.split('\n');
         const newMapperNames = new Set(allImports.mapperInstances.map(m => {
           const match = m.match(/private (\w+ResponseMapper)/);
           return match ? match[1] : '';
         }));
         
-        for (const match of mapperMatches) {
-          const mapperName = match[1];
-          if (!newMapperNames.has(mapperName)) {
-            existingMapperInstances.push(`  ${match[0]}`);
+        let inMapper = false;
+        let currentMapper = '';
+        let currentMapperName = '';
+        
+        for (let i = 0; i < mapperLines.length; i++) {
+          const line = mapperLines[i];
+          
+          // Detectar inicio de mapper instance
+          const mapperStartMatch = line.match(/^\s*(private (\w+ResponseMapper) =)/);
+          if (mapperStartMatch) {
+            inMapper = true;
+            currentMapperName = mapperStartMatch[2];
+            currentMapper = line;
+            
+            // Si termina en la misma línea
+            if (line.includes(';')) {
+              inMapper = false;
+              if (!newMapperNames.has(currentMapperName)) {
+                existingMapperInstances.push(currentMapper);
+              }
+              currentMapper = '';
+              currentMapperName = '';
+            }
+          } else if (inMapper) {
+            // Continuar acumulando líneas del mapper
+            currentMapper += '\n' + line;
+            
+            // Si encontramos el final (;)
+            if (line.includes(';')) {
+              inMapper = false;
+              if (!newMapperNames.has(currentMapperName)) {
+                existingMapperInstances.push(currentMapper);
+              }
+              currentMapper = '';
+              currentMapperName = '';
+            }
           }
         }
         
