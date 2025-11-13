@@ -139,8 +139,8 @@ export { I${entityName}DeleteDTO } from './i-${entityNameKebab}-delete-dto';`;
 async function generateDomainRepositoryInterface(entityName: string, paths: any, schema?: EntitySchema | null, apiName: string = 'platform'): Promise<void> {
   const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
 
-  const repositoryInterface = `import { IConfigDTO } from "@bus/core/interfaces";
-import { IPaginationBackendDTO } from "@bus/core/interfaces/i-pagination-backend-dto";
+  const repositoryInterface = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { IPaginationBackendDTO } from "@core/interfaces/i-pagination-backend-dto";
 import { I${entityName}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityName.toLowerCase()}";
 import {
   I${entityName}DeleteEntity,
@@ -169,8 +169,8 @@ async function generateDomainUseCases(entityName: string, paths: any, schema?: E
   const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
 
   // 1. Save Use Case
-  const saveUseCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+  const saveUseCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { I${entityName}DTO, I${entityName}SaveDTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntities${entityName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-mapper";
 import { InjectionPlatformEntitiesRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities/injection-${apiName}-entities-repository";
@@ -199,8 +199,8 @@ export class ${entityName}SaveUseCase implements UseCase<I${entityName}SaveDTO, 
   console.log(chalk.green(`✅ Save Use Case: ${entityNameKebab}-save-use-case.ts`));
 
   // 2. Read Use Case
-  const readUseCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+  const readUseCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { I${entityName}DTO, I${entityName}ReadDTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntities${entityName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-mapper";
 import { InjectionPlatformEntitiesRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities/injection-${apiName}-entities-repository";
@@ -229,8 +229,8 @@ export class ${entityName}ReadUseCase implements UseCase<I${entityName}ReadDTO, 
   console.log(chalk.green(`✅ Read Use Case: ${entityNameKebab}-read-use-case.ts`));
 
   // 3. Update Use Case
-  const updateUseCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+  const updateUseCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { I${entityName}DTO, I${entityName}UpdateDTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntities${entityName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-mapper";
 import { InjectionPlatformEntitiesRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities/injection-${apiName}-entities-repository";
@@ -259,8 +259,8 @@ export class ${entityName}UpdateUseCase implements UseCase<I${entityName}UpdateD
   console.log(chalk.green(`✅ Update Use Case: ${entityNameKebab}-update-use-case.ts`));
 
   // 4. Delete Use Case
-  const deleteUseCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+  const deleteUseCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { I${entityName}DTO, I${entityName}DeleteDTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntities${entityName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-mapper";
 import { InjectionPlatformEntitiesRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities/injection-${apiName}-entities-repository";
@@ -289,11 +289,11 @@ export class ${entityName}DeleteUseCase implements UseCase<I${entityName}DeleteD
   console.log(chalk.green(`✅ Delete Use Case: ${entityNameKebab}-delete-use-case.ts`));
 
   // 5. List Use Case
-  const listUseCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+  const listUseCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { I${entityName}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntitiesRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/entities/injection-${apiName}-entities-repository";
-import { IPaginationBackendDTO } from "@bus/core/interfaces/i-pagination-backend-dto";
+import { IPaginationBackendDTO } from "@core/interfaces/i-pagination-backend-dto";
 
 export class ${entityName}ListUseCase implements UseCase<IPaginationBackendDTO, I${entityName}DTO[] | null> {
   private static instance: ${entityName}ListUseCase;
@@ -427,13 +427,13 @@ async function generateInfrastructureRepository(entityName: string, paths: any, 
   const entityNameLower = entityName.toLowerCase();
   const entityNameUpper = entityName.toUpperCase();
 
-  const repositoryContent = `import { IConfigDTO } from "@bus/core/interfaces";
-import ${apiName}Axios from "@bus/core/axios/${apiName}-axios";
-import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@bus/core/const";
-import { CONST_CORE_DTO } from "@bus/core/const/const-core";
-import { InjectionCore } from "@bus/core/injection/injection-core";
+  const repositoryContent = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import ${apiName}Axios from "@core/axios/${apiName}-axios";
+import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@core/const";
+import { CONST_CORE_DTO } from "@core/const/const-core";
+import { InjectionCore } from "@core/injection/injection-core";
 import { I${entityName}Repository } from "@${apiName}/domain/services/repositories/apis/${apiName}/entities/i-${entityNameKebab}-repository";
-import { IPaginationBackendDTO } from "@bus/core/interfaces/i-pagination-backend-dto";
+import { IPaginationBackendDTO } from "@core/interfaces/i-pagination-backend-dto";
 import { I${entityName}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { I${entityName}DeleteEntity, I${entityName}Entity, I${entityName}ReadEntity, I${entityName}SaveEntity, I${entityName}UpdateEntity } from "@${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}";
 import { InjectionPlatformEntities${entityName}Mapper } from "@${apiName}/infrastructure/mappers/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-mapper";
@@ -546,7 +546,7 @@ async function generateFacade(entityName: string, paths: any, schema?: EntitySch
   const entityNameKebab = entityName.replace(/([A-Z])/g, '-$1').toLowerCase().substring(1);
   const entityNameLower = entityName.toLowerCase();
 
-  const facadeContent = `import { IConfigDTO } from "@bus/core/interfaces";
+  const facadeContent = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
 import {
   I${entityName}DTO,
   I${entityName}DeleteDTO,
@@ -554,7 +554,7 @@ import {
   I${entityName}SaveDTO,
   I${entityName}UpdateDTO,
 } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
-import { IPaginationBackendDTO } from "@bus/core/interfaces/i-pagination-backend-dto";
+import { IPaginationBackendDTO } from "@core/interfaces/i-pagination-backend-dto";
 import { InjectionPlatformEntities${entityName}UseCase } from "@${apiName}/domain/services/use_cases/apis/${apiName}/injection/entities/injection-${apiName}-entities-${entityNameKebab}-use-case";
 
 export class ${entityName}Facade {
@@ -787,7 +787,7 @@ function generateEntityMapper(entityName: string, fields: any[], apiName: string
     })
   ].join(',\n');
 
-  return `import { Mapper } from "@bus/core/classes";
+  return `import { Mapper } from "@core/classes";
 import { I${entityName}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { I${entityName}Entity } from "@${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}";
 
@@ -828,7 +828,7 @@ function generateSpecificMapper(entityName: string, fields: any[], operation: 's
   const operationCap = operation.charAt(0).toUpperCase() + operation.slice(1);
 
   if (operation === 'delete' || operation === 'read') {
-    return `import { Mapper } from "@bus/core/classes";
+    return `import { Mapper } from "@core/classes";
 import { I${entityName}${operationCap}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { I${entityName}${operationCap}Entity } from "@${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}";
 
@@ -904,7 +904,7 @@ export class ${entityName}${operationCap}Mapper extends Mapper<I${entityName}${o
     return `      ${entityField}: param.${dtoField}`;
   }).filter(Boolean).join(',\n');
 
-  return `import { Mapper } from "@bus/core/classes";
+  return `import { Mapper } from "@core/classes";
 import { I${entityName}${operationCap}DTO } from "@${apiName}/domain/models/apis/${apiName}/entities/${entityNameLower}";
 import { I${entityName}${operationCap}Entity } from "@${apiName}/infrastructure/entities/apis/${apiName}/entities/${entityNameLower}";
 

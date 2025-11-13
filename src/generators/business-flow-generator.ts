@@ -667,7 +667,7 @@ function generateBusinessMapper(serviceName: string, operation: any, type: 'requ
     mapToFields = mapToMappings.join(',\n');
   }
 
-  return `import { Mapper } from "@bus/core/classes";
+  return `import { Mapper } from "@core/classes";
 import { ${dtoInterfaceName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
 import { ${entityInterfaceName} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";
 ${nestedMapperImports}
@@ -870,7 +870,7 @@ function generateIndividualNestedMapper(typeName: string, field: any, apiName: s
     mapToFields = mapToMappings.join(',\n');
   }
 
-  return `import { Mapper } from "@bus/core/classes";
+  return `import { Mapper } from "@core/classes";
 import { ${dtoInterfaceName} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
 import { ${entityInterfaceName} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";
 ${nestedMapperImports}
@@ -1418,7 +1418,7 @@ async function generateDomainRepositoryInterfaces(serviceName: string, paths: an
     const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
     
     // Generar interface del repositorio para el servicio
-    const repositoryInterface = `import { IConfigDTO } from "@bus/core/interfaces";
+    const repositoryInterface = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
 import { 
 ${schema.businessOperations.map(operation => {
   const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
@@ -1547,8 +1547,8 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
     return await ${repositoryCall}.then((data) => data ?? null);` 
           : `return await ${repositoryCall}.then((data) => data ?? null);`;
 
-        const useCase = `import { IConfigDTO } from "@bus/core/interfaces";
-import { UseCase } from "@bus/core/interfaces/use-case";
+        const useCase = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { UseCase } from "@core/interfaces/use-case";
 import { ${dtoImports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
 ${mapperImport}
 import { Injection${toPascalCase(apiName)}BusinessRepository } from "@${apiName}/infrastructure/repositories/apis/${apiName}/repositories/injection/business/injection-${apiName}-business-repository";
@@ -1663,7 +1663,7 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
   }`;
       }).join('\n\n');
 
-    const facade = `import { IConfigDTO } from "@bus/core/interfaces";
+    const facade = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
 import {
   ${imports},
 } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
@@ -1954,11 +1954,11 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
     const entityImports = Array.from(allImports.entities).join(', ');
     const mapperImports = Array.from(allImports.mapperImports).join('\n');
 
-    const repository = `import { IConfigDTO } from "@bus/core/interfaces";
-import ${apiName}Axios from "@bus/core/axios/${apiName}-axios";
-import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@bus/core/const";
-import { CONST_CORE_DTO } from "@bus/core/const/const-core";
-import { InjectionCore } from "@bus/core/injection/injection-core";
+    const repository = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import ${apiName}Axios from "@core/axios/${apiName}-axios";
+import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@core/const";
+import { CONST_CORE_DTO } from "@core/const/const-core";
+import { InjectionCore } from "@core/injection/injection-core";
 import { I${toPascalCase(serviceName)}Repository } from "@${apiName}/domain/services/repositories/apis/${apiName}/business/i-${serviceNameKebab}-repository";
 import { ${dtoImports} } from "@${apiName}/domain/models/apis/${apiName}/business/${serviceNameLower}";
 import { ${entityImports} } from "@${apiName}/infrastructure/entities/apis/${apiName}/business/${serviceNameLower}";

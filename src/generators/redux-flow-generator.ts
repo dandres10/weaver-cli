@@ -551,7 +551,7 @@ async function generateArrayUseCases(
   info: ReduxGenerationInfo
 ): Promise<void> {
   // 1. Create Use Case
-  const createContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const createContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -591,7 +591,7 @@ export class Create${info.flowNamePascal}UseCase implements UseCase<I${
   );
 
   // 2. Read Use Case
-  const readContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const readContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -639,7 +639,7 @@ export class Read${
   );
 
   // 3. Update Use Case
-  const updateContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const updateContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -681,7 +681,7 @@ export class Update${
   );
 
   // 4. Delete Use Case
-  const deleteContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const deleteContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { InjectionRepositoriesRedux } from "@${info.apiName}/infrastructure/repositories/redux/${info.apiName}/injection";
 
@@ -706,7 +706,7 @@ export class Delete${info.flowNamePascal}UseCase implements UseCase<string, void
   );
 
   // 5. Clear Use Case
-  const clearContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const clearContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { InjectionRepositoriesRedux } from "@${info.apiName}/infrastructure/repositories/redux/${info.apiName}/injection";
 
@@ -736,7 +736,7 @@ async function generateObjectUseCases(
   info: ReduxGenerationInfo
 ): Promise<void> {
   // 1. Save Use Case
-  const saveContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const saveContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -776,7 +776,7 @@ export class Save${info.flowNamePascal}UseCase implements UseCase<I${
   );
 
   // 2. Read Use Case
-  const readContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const readContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -816,7 +816,7 @@ export class Read${info.flowNamePascal}UseCase implements UseCase<void, I${
   );
 
   // 3. Read Property Use Case (genérico)
-  const readPropertyContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const readPropertyContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -857,7 +857,7 @@ export class Read${
   );
 
   // 4. Update Use Case
-  const updateContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const updateContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { I${info.flowNamePascal}ReduxDTO } from "@${
     info.apiName
@@ -899,7 +899,7 @@ export class Update${
   );
 
   // 5. Clear Use Case
-  const clearContent = `import { UseCase } from "@bus/core/interfaces/use-case";
+  const clearContent = `import { UseCase } from "@core/interfaces/use-case";
 import { IConfigDTO } from "@${info.apiName}/core/interfaces";
 import { InjectionRepositoriesRedux } from "@${info.apiName}/infrastructure/repositories/redux/${info.apiName}/injection";
 
