@@ -115,31 +115,51 @@ async function generateInfrastructureEntities(serviceName: string, paths: any, s
         await generateNestedEntitiesForOperation(serviceName, operation, 'response', operationFolder, apiName, exportStatements, operationName);
       }
     }
-    // Generar index.ts con export type (simplificado y mejor práctica)
+    // Generar index.ts con export type (simplificado y mejor práctica) - INCREMENTAL
+    const indexPath = path.join(paths.infraEntities, 'index.ts');
     const uniqueExports = new Set<string>();
     const finalExports: string[] = [];
     
+    // Leer exports existentes si el archivo ya existe
+    if (await fs.pathExists(indexPath)) {
+      try {
+        const existingContent = await fs.readFile(indexPath, 'utf-8');
+        const existingExports = existingContent.split('\n').filter(line => line.trim().startsWith('export'));
+        
+        existingExports.forEach(statement => {
+          const match = statement.match(/export (?:type )?\{ (\w+) \}/);
+          if (match) {
+            const interfaceName = match[1];
+            if (!uniqueExports.has(interfaceName)) {
+              uniqueExports.add(interfaceName);
+              // Asegurar que sea export type
+              const typeStatement = statement.includes('export type {') ? statement : statement.replace('export {', 'export type {');
+              finalExports.push(typeStatement);
+            }
+          }
+        });
+      } catch (error) {
+        console.log(chalk.yellow(`⚠️  No se pudo leer index.ts existente: ${error}`));
+      }
+    }
+    
+    // Agregar nuevos exports
     exportStatements.forEach(statement => {
-      // Extraer el nombre de la interface del export
       const match = statement.match(/export \{ (\w+) \}/);
       if (match) {
         const interfaceName = match[1];
         
         if (!uniqueExports.has(interfaceName)) {
           uniqueExports.add(interfaceName);
-          // Convertir todos a export type (mejor práctica para interfaces)
           const typeStatement = statement.replace('export {', 'export type {');
           finalExports.push(typeStatement);
         }
       }
     });
     
-    const indexContent = finalExports.join('\n') + '\n';
-    await fs.writeFile(
-      path.join(paths.infraEntities, 'index.ts'),
-      indexContent
-    );
-    console.log(chalk.green(`✅ Index Entity: index.ts`));
+    const indexContent = finalExports.sort().join('\n') + '\n';
+    await fs.writeFile(indexPath, indexContent);
+    console.log(chalk.green(`✅ Index Entity: index.ts ${await fs.pathExists(indexPath) ? '(actualizado)' : ''}`));
   } else {
     // Si no hay operaciones de negocio, NO generar nada (nunca legacy)
     console.log(chalk.yellow('⚠️  No se generaron entities porque no hay operaciones de negocio detectadas.'));
@@ -215,13 +235,47 @@ async function generateInfrastructureMappers(serviceName: string, paths: any, sc
       }
     }
     
-    // Generar index.ts para mappers
-    const indexContent = exportStatements.join('\n') + '\n';
-    await fs.writeFile(
-      path.join(paths.infraMappers, 'index.ts'),
-      indexContent
-    );
-    console.log(chalk.green(`✅ Index Mapper: index.ts`));
+    // Generar index.ts para mappers - INCREMENTAL
+    const indexPath = path.join(paths.infraMappers, 'index.ts');
+    const uniqueExports = new Set<string>();
+    const finalExports: string[] = [];
+    
+    // Leer exports existentes si el archivo ya existe
+    if (await fs.pathExists(indexPath)) {
+      try {
+        const existingContent = await fs.readFile(indexPath, 'utf-8');
+        const existingExports = existingContent.split('\n').filter(line => line.trim().startsWith('export'));
+        
+        existingExports.forEach(statement => {
+          const match = statement.match(/export \{ (\w+) \}/);
+          if (match) {
+            const mapperName = match[1];
+            if (!uniqueExports.has(mapperName)) {
+              uniqueExports.add(mapperName);
+              finalExports.push(statement);
+            }
+          }
+        });
+      } catch (error) {
+        console.log(chalk.yellow(`⚠️  No se pudo leer index.ts existente: ${error}`));
+      }
+    }
+    
+    // Agregar nuevos exports
+    exportStatements.forEach(statement => {
+      const match = statement.match(/export \{ (\w+) \}/);
+      if (match) {
+        const mapperName = match[1];
+        if (!uniqueExports.has(mapperName)) {
+          uniqueExports.add(mapperName);
+          finalExports.push(statement);
+        }
+      }
+    });
+    
+    const indexContent = finalExports.sort().join('\n') + '\n';
+    await fs.writeFile(indexPath, indexContent);
+    console.log(chalk.green(`✅ Index Mapper: index.ts ${await fs.pathExists(indexPath) ? '(actualizado)' : ''}`));
   } else {
     console.log(chalk.yellow('⚠️  No se generaron mappers porque no hay operaciones de negocio detectadas.'));
   }
@@ -282,31 +336,51 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
       }
     }
     
-    // Generar index.ts para DTOs con export type (simplificado y mejor práctica)
+    // Generar index.ts para DTOs con export type (simplificado y mejor práctica) - INCREMENTAL
+    const indexPath = path.join(paths.domainModels, 'index.ts');
     const uniqueExports = new Set<string>();
     const finalExports: string[] = [];
     
+    // Leer exports existentes si el archivo ya existe
+    if (await fs.pathExists(indexPath)) {
+      try {
+        const existingContent = await fs.readFile(indexPath, 'utf-8');
+        const existingExports = existingContent.split('\n').filter(line => line.trim().startsWith('export'));
+        
+        existingExports.forEach(statement => {
+          const match = statement.match(/export (?:type )?\{ (\w+) \}/);
+          if (match) {
+            const interfaceName = match[1];
+            if (!uniqueExports.has(interfaceName)) {
+              uniqueExports.add(interfaceName);
+              // Asegurar que sea export type
+              const typeStatement = statement.includes('export type {') ? statement : statement.replace('export {', 'export type {');
+              finalExports.push(typeStatement);
+            }
+          }
+        });
+      } catch (error) {
+        console.log(chalk.yellow(`⚠️  No se pudo leer index.ts existente: ${error}`));
+      }
+    }
+    
+    // Agregar nuevos exports
     exportStatements.forEach(statement => {
-      // Extraer el nombre de la interface del export
       const match = statement.match(/export \{ (\w+) \}/);
       if (match) {
         const interfaceName = match[1];
         
         if (!uniqueExports.has(interfaceName)) {
           uniqueExports.add(interfaceName);
-          // Convertir todos a export type (mejor práctica para interfaces)
           const typeStatement = statement.replace('export {', 'export type {');
           finalExports.push(typeStatement);
         }
       }
     });
     
-    const indexContent = finalExports.join('\n') + '\n';
-    await fs.writeFile(
-      path.join(paths.domainModels, 'index.ts'),
-      indexContent
-    );
-    console.log(chalk.green(`✅ Index DTO: index.ts`));
+    const indexContent = finalExports.sort().join('\n') + '\n';
+    await fs.writeFile(indexPath, indexContent);
+    console.log(chalk.green(`✅ Index DTO: index.ts ${await fs.pathExists(indexPath) ? '(actualizado)' : ''}`));
   } else {
     console.log(chalk.yellow('⚠️  No se generaron DTOs porque no hay operaciones de negocio detectadas.'));
   }
