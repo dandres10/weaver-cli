@@ -1949,12 +1949,102 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
       }
     }
 
+    // Verificar si el archivo ya existe
+    const repositoryFilePath = path.join(paths.infraRepositories, `${serviceNameKebab}-repository.ts`);
+    let existingMethods: string[] = [];
+    let existingMapperInstances: string[] = [];
+    let existingDtos: Set<string> = new Set();
+    let existingEntities: Set<string> = new Set();
+    let existingMapperImports: Set<string> = new Set();
+
+    if (await fs.pathExists(repositoryFilePath)) {
+      try {
+        const existingContent = await fs.readFile(repositoryFilePath, 'utf-8');
+        
+        // Extraer métodos existentes (todo lo que esté entre 'public async' y el cierre de la función)
+        const methodRegex = /public async (\w+)\([^)]*\)[^{]*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g;
+        const methodMatches = existingContent.matchAll(methodRegex);
+        const newMethodNames = new Set(methods.map(m => {
+          const match = m.match(/public async (\w+)\(/);
+          return match ? match[1] : '';
+        }));
+        
+        for (const match of methodMatches) {
+          const methodName = match[1];
+          // Solo agregar si no está en los nuevos métodos
+          if (!newMethodNames.has(methodName)) {
+            existingMethods.push(`  ${match[0]}`);
+          }
+        }
+        
+        // Extraer mapper instances existentes
+        const mapperInstanceRegex = /private (\w+ResponseMapper) = [^;]+;/g;
+        const mapperMatches = existingContent.matchAll(mapperInstanceRegex);
+        const newMapperNames = new Set(allImports.mapperInstances.map(m => {
+          const match = m.match(/private (\w+ResponseMapper)/);
+          return match ? match[1] : '';
+        }));
+        
+        for (const match of mapperMatches) {
+          const mapperName = match[1];
+          if (!newMapperNames.has(mapperName)) {
+            existingMapperInstances.push(`  ${match[0]}`);
+          }
+        }
+        
+        // Extraer DTOs existentes
+        const dtoImportMatch = existingContent.match(/import \{([^}]+)\} from "@\w+\/domain\/models\/apis\/\w+\/business\/\w+";/);
+        if (dtoImportMatch) {
+          dtoImportMatch[1].split(',').forEach(dto => {
+            const trimmed = dto.trim();
+            if (trimmed && !allImports.dtos.has(trimmed)) {
+              existingDtos.add(trimmed);
+            }
+          });
+        }
+        
+        // Extraer Entities existentes
+        const entityImportMatch = existingContent.match(/import \{([^}]+)\} from "@\w+\/infrastructure\/entities\/apis\/\w+\/business\/\w+";/);
+        if (entityImportMatch) {
+          entityImportMatch[1].split(',').forEach(entity => {
+            const trimmed = entity.trim();
+            if (trimmed && !allImports.entities.has(trimmed)) {
+              existingEntities.add(trimmed);
+            }
+          });
+        }
+        
+        // Extraer mapper imports existentes
+        const mapperImportRegex = /import \{ Injection\w+ \} from "@\w+\/infrastructure\/mappers[^"]+";/g;
+        const mapperImportMatches = existingContent.matchAll(mapperImportRegex);
+        const newMapperImportsSet = new Set(Array.from(allImports.mapperImports));
+        
+        for (const match of mapperImportMatches) {
+          if (!newMapperImportsSet.has(match[0])) {
+            existingMapperImports.add(match[0]);
+          }
+        }
+        
+        console.log(chalk.blue(`ℹ️  Archivo existente detectado - Agregando ${methods.length} método(s) nuevo(s), manteniendo ${existingMethods.length} método(s) existente(s)`));
+      } catch (error) {
+        console.log(chalk.yellow(`⚠️  No se pudo leer el archivo existente: ${error}`));
+      }
+    }
+
+    // Combinar DTOs, Entities y Mapper Imports
+    const allDtos = [...Array.from(existingDtos), ...Array.from(allImports.dtos)];
+    const allEntities = [...Array.from(existingEntities), ...Array.from(allImports.entities)];
+    const allMapperImportsList = [...Array.from(existingMapperImports), ...Array.from(allImports.mapperImports)];
+    const allMapperInstancesList = [...existingMapperInstances, ...allImports.mapperInstances];
+    const allMethodsList = [...existingMethods, ...methods];
+
     // Generar el archivo completo
-    const dtoImports = Array.from(allImports.dtos).join(', ');
-    const entityImports = Array.from(allImports.entities).join(', ');
-    const mapperImports = Array.from(allImports.mapperImports).join('\n');
+    const dtoImports = allDtos.join(', ');
+    const entityImports = allEntities.join(', ');
+    const mapperImports = allMapperImportsList.join('\n');
 
     const repository = `import { IConfigDTO } from "@core/interfaces/i-config-repository-dto";
+import { Response } from "@core/interfaces/response";
 import ${apiName}Axios from "@core/axios/${apiName}-axios";
 import { CONST_${apiName.toUpperCase()}_API_ROUTES } from "@core/const";
 import { CONST_CORE_DTO } from "@core/const/const-core";
@@ -1968,7 +2058,7 @@ export class ${repositoryClassName} extends I${toPascalCase(serviceName)}Reposit
 
   private static instance: ${repositoryClassName};
   private readonly resolve = InjectionCore.Resolve();
-${allImports.mapperInstances.join('\n')}
+${allMapperInstancesList.join('\n')}
 
   private constructor() {
     super();
@@ -1980,14 +2070,11 @@ ${allImports.mapperInstances.join('\n')}
     return ${repositoryClassName}.instance;
   }
 
-${methods.join('\n\n')}
+${allMethodsList.join('\n\n')}
 }`;
 
-    await fs.writeFile(
-      path.join(paths.infraRepositories, `${serviceNameKebab}-repository.ts`),
-      repository
-    );
-    console.log(chalk.green(`✅ Infrastructure Repository: ${serviceNameKebab}-repository.ts`));
+    await fs.writeFile(repositoryFilePath, repository);
+    console.log(chalk.green(`✅ Infrastructure Repository: ${serviceNameKebab}-repository.ts ${existingMethods.length > 0 ? '(actualizado)' : ''}`));
   } else {
     console.log(chalk.yellow('⚠️  No se generaron infrastructure repositories porque no hay operaciones de negocio detectadas.'));
   }
