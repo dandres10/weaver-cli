@@ -1961,19 +1961,29 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
       try {
         const existingContent = await fs.readFile(repositoryFilePath, 'utf-8');
         
-        // Extraer métodos existentes (todo lo que esté entre 'public async' y el cierre de la función)
-        const methodRegex = /public async (\w+)\([^)]*\)[^{]*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g;
-        const methodMatches = existingContent.matchAll(methodRegex);
+        // Extraer métodos existentes usando un enfoque más robusto
+        // Buscar desde "public async" hasta el siguiente "public async" o hasta el cierre de la clase
         const newMethodNames = new Set(methods.map(m => {
           const match = m.match(/public async (\w+)\(/);
           return match ? match[1] : '';
         }));
         
-        for (const match of methodMatches) {
-          const methodName = match[1];
-          // Solo agregar si no está en los nuevos métodos
-          if (!newMethodNames.has(methodName)) {
-            existingMethods.push(`  ${match[0]}`);
+        // Dividir por "public async" para obtener cada método completo
+        const methodParts = existingContent.split(/\n\s*public async /);
+        
+        for (let i = 1; i < methodParts.length; i++) {
+          const methodPart = methodParts[i];
+          const methodNameMatch = methodPart.match(/^(\w+)\(/);
+          
+          if (methodNameMatch) {
+            const methodName = methodNameMatch[1];
+            
+            // Solo agregar si no está en los nuevos métodos
+            if (!newMethodNames.has(methodName)) {
+              // Reconstruir el método completo
+              const fullMethod = `  public async ${methodPart.split(/\n\s*public async |^\}/m)[0].trimEnd()}`;
+              existingMethods.push(fullMethod);
+            }
           }
         }
         
