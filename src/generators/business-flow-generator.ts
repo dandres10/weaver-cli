@@ -2122,7 +2122,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
     if (config.loadService)
       return ${apiName}Axios
         .post(CONST_${apiName.toUpperCase()}_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}, ${methodCall})
-        .then(({ data }) => {
+        .then(({ data }: { data: Response<${resolveEntityType}> }) => {
           const entity = this.resolve.ResolveRequest<${resolveEntityType}>(data);
           if (entity)
             return this.${operationCamelCaseVar}ResponseMapper.${operation.isResponseArray ? 'mapFromList' : 'mapFrom'}(entity);
