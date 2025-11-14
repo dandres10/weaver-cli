@@ -297,11 +297,14 @@ export class SwaggerReduxAnalyzer {
             }
           }
 
-          // Extraer schema de la response
-          if (operation.responses && operation.responses['200']) {
-            const response200 = operation.responses['200'];
-            if ('content' in response200 && response200.content && response200.content['application/json'] && response200.content['application/json'].schema) {
-              const schema = response200.content['application/json'].schema as any;
+          // Extraer schema de la response (buscar 200, 201, o el primer código de éxito 2xx)
+          const successResponse = operation.responses?.['200'] || operation.responses?.['201'] || 
+            Object.entries(operation.responses || {}).find(([code]) => code.startsWith('2'))?.[1];
+          
+          if (successResponse) {
+            const responseObj = successResponse as any;
+            if ('content' in responseObj && responseObj.content && responseObj.content['application/json'] && responseObj.content['application/json'].schema) {
+              const schema = responseObj.content['application/json'].schema as any;
               
               // Manejar tanto referencias ($ref) como schemas expandidos
               let responseSchemaObj = null;
@@ -1163,10 +1166,12 @@ export class SwaggerReduxAnalyzer {
     const operation = (pathItem as any)[method];
     if (!operation) return 'unknown';
 
-    const response200 = operation.responses?.['200'];
-    if (!response200 || !('content' in response200)) return 'void';
+    // Buscar respuesta exitosa (200, 201, o cualquier 2xx)
+    const successResponse = operation.responses?.['200'] || operation.responses?.['201'] || 
+      Object.entries(operation.responses || {}).find(([code]) => code.startsWith('2'))?.[1];
+    if (!successResponse || !('content' in successResponse)) return 'void';
 
-    const schema = response200.content?.['application/json']?.schema;
+    const schema = (successResponse as any).content?.['application/json']?.schema;
     if (!schema) return 'void';
 
     // Si es un $ref, extraer nombre
@@ -1227,12 +1232,14 @@ export class SwaggerReduxAnalyzer {
    * @returns Nombre del schema o null
    */
   private getResponseSchemaNameForOperation(operation: any): string | null {
-    const response200 = operation.responses?.['200'];
-    if (!response200 || !('content' in response200)) {
+    // Buscar respuesta exitosa (200, 201, o cualquier 2xx)
+    const successResponse = operation.responses?.['200'] || operation.responses?.['201'] || 
+      Object.entries(operation.responses || {}).find(([code]) => code.startsWith('2'))?.[1];
+    if (!successResponse || !('content' in successResponse)) {
       return null;
     }
 
-    const schema = response200.content?.['application/json']?.schema;
+    const schema = (successResponse as any).content?.['application/json']?.schema;
     if (!schema) return null;
 
     if (schema.$ref) {
@@ -1260,10 +1267,12 @@ export class SwaggerReduxAnalyzer {
     const operation = (pathItem as any)[method];
     if (!operation) return null;
 
-    const response200 = operation.responses?.['200'];
-    if (!response200 || !('content' in response200)) return null;
+    // Buscar respuesta exitosa (200, 201, o cualquier 2xx)
+    const successResponse = operation.responses?.['200'] || operation.responses?.['201'] || 
+      Object.entries(operation.responses || {}).find(([code]) => code.startsWith('2'))?.[1];
+    if (!successResponse || !('content' in successResponse)) return null;
 
-    const schema = response200.content?.['application/json']?.schema;
+    const schema = (successResponse as any).content?.['application/json']?.schema;
     if (!schema) return null;
 
     return this.parseResponseSchema(schema as any);

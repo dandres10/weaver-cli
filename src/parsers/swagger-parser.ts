@@ -275,11 +275,14 @@ export class SwaggerAnalyzer {
             }
           }
 
-          // Extraer schema de la response
-          if (operation.responses && operation.responses['200']) {
-            const response200 = operation.responses['200'];
-            if ('content' in response200 && response200.content && response200.content['application/json'] && response200.content['application/json'].schema) {
-              const schema = response200.content['application/json'].schema as any;
+          // Extraer schema de la response (buscar 200, 201, o el primer código de éxito 2xx)
+          const successResponse = operation.responses?.['200'] || operation.responses?.['201'] || 
+            Object.entries(operation.responses || {}).find(([code]) => code.startsWith('2'))?.[1];
+          
+          if (successResponse) {
+            const responseObj = successResponse as any;
+            if ('content' in responseObj && responseObj.content && responseObj.content['application/json'] && responseObj.content['application/json'].schema) {
+              const schema = responseObj.content['application/json'].schema as any;
               
               // Manejar tanto referencias ($ref) como schemas expandidos
               let responseSchemaObj = null;
