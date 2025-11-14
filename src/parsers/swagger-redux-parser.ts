@@ -281,14 +281,30 @@ export class SwaggerReduxAnalyzer {
                 businessOp.requestSchema = schema.$ref.split('/').pop();
               }
               
-              // Extraer campos del request
-              if (schema.properties) {
-                for (const [fieldName, fieldSchema] of Object.entries(schema.properties)) {
+              // Extraer campos del request con fallback a $ref
+              let requestSchema = schema;
+              
+              // Si NO tiene properties directas pero SÍ tiene $ref, resolver la referencia
+              if (!schema.properties && schema.$ref) {
+                const refName = schema.$ref.split('/').pop();
+                if (this.openApiDoc?.components?.schemas && refName) {
+                  const resolvedSchema = this.openApiDoc.components.schemas[refName] as any;
+                  if (resolvedSchema && resolvedSchema.properties) {
+                    requestSchema = resolvedSchema;
+                    console.log(`  📦 Resolviendo $ref request: ${refName} (${Object.keys(resolvedSchema.properties).length} campos)`);
+                  }
+                }
+              }
+              
+              // Ahora extraer las properties (ya sea del schema original o del resuelto)
+              if (requestSchema && requestSchema.properties) {
+                for (const [fieldName, fieldSchema] of Object.entries(requestSchema.properties)) {
                   if (typeof fieldSchema === 'object' && fieldSchema !== null) {
-                    const field = this.parseFieldSchema(
+                    // Usar parseFieldSchemaWithRefs para manejar $ref anidados
+                    const field = this.parseFieldSchemaWithRefs(
                       fieldName, 
                       fieldSchema as any, 
-                      schema.required || []
+                      requestSchema.required || []
                     );
                     businessOp.fields.push(field);
                   }
@@ -928,9 +944,22 @@ export class SwaggerReduxAnalyzer {
   }
 
   /**
-   * Parsea un campo resolviendo referencias $ref
+   * Parsea un campo resolviendo referencias $ref y allOf
    */
   private parseFieldSchemaWithRefs(name: string, schema: any, required: string[]): EntityField {
+    // Si tiene allOf, extraer el primer $ref (patrón común en OpenAPI)
+    if (schema.allOf && Array.isArray(schema.allOf)) {
+      for (const subSchema of schema.allOf) {
+        if (subSchema.$ref) {
+          // Resolver el $ref dentro del allOf recursivamente
+          return this.parseFieldSchemaWithRefs(name, subSchema, required);
+        } else if (subSchema.properties) {
+          // Si tiene properties directas, usarlas
+          return this.parseFieldSchemaWithRefs(name, subSchema, required);
+        }
+      }
+    }
+    
     // Si es una referencia, resolverla
     if (schema.$ref) {
       const refName = schema.$ref.split('/').pop();
