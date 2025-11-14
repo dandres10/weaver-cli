@@ -1796,6 +1796,30 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
           }
         }
         
+        // IMPORTANTE: Detectar métodos que usan use cases pero no tienen la instancia declarada
+        // Esto puede pasar si el archivo fue corrompido antes
+        const methodUseCaseRegex = /this\.(\w+UseCase)\.execute\(/g;
+        const methodUseCaseMatches = existingContent.matchAll(methodUseCaseRegex);
+        const declaredUseCases = new Set([
+          ...newUseCaseNames,
+          ...existingUseCaseInstances.map(inst => {
+            const match = inst.match(/private readonly (\w+UseCase)/);
+            return match ? match[1] : '';
+          })
+        ]);
+        
+        for (const match of methodUseCaseMatches) {
+          const useCaseName = match[1];
+          if (!declaredUseCases.has(useCaseName)) {
+            // Reconstruir la instancia del use case basándose en el nombre del método
+            // Ejemplo: loginUseCase -> AuthLoginUseCase
+            const methodName = useCaseName.replace(/UseCase$/, '');
+            const useCaseClassName = `${toPascalCase(serviceName)}${methodName.charAt(0).toUpperCase() + methodName.slice(1)}UseCase`;
+            existingUseCaseInstances.push(`  private readonly ${useCaseName} = Injection${toPascalCase(apiName)}Business${toPascalCase(serviceName)}UseCase.${useCaseClassName}();`);
+            declaredUseCases.add(useCaseName);
+          }
+        }
+        
         // Extraer métodos públicos existentes
         const methodRegex = /public async (\w+)\([^)]*\): Promise<[^{]+\{[^}]+\}/g;
         const methodMatches = existingContent.matchAll(methodRegex);
