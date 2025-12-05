@@ -23,6 +23,9 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 - **[Publicar en NPM](./PUBLICAR-NPM.md)** - Guía completa para publicar y mantener el paquete NPM
 - **[Changelog](./CHANGELOG.md)** - Historial detallado de versiones y cambios
 
+### 🧪 Scripts de Prueba Local
+- **[Scripts de Prueba](../scripts/README.md)** - Scripts para probar el generador sin CLI interactiva
+
 ---
 
 ## 🎯 Acceso Rápido por Categorías
@@ -43,6 +46,7 @@ Un generador de código CLI inteligente que lee especificaciones OpenAPI/Swagger
 1. **Contexto del Proyecto**: [Prompt para Cambios](./PROMPT-PARA-CAMBIOS.md)
 2. **Historial de Cambios**: [Changelog](./CHANGELOG.md)
 3. **Publicación**: [Publicar en NPM](./PUBLICAR-NPM.md)
+4. **Scripts de Prueba**: Ver sección [Scripts de Prueba Local](#-scripts-de-prueba-local)
 
 ---
 
@@ -88,6 +92,12 @@ doc/
 ├── PROMPT-PARA-CAMBIOS.md            # 🔧 Contexto para desarrollo
 ├── PUBLICAR-NPM.md                   # 📦 Guía de publicación
 └── CHANGELOG.md                      # 📋 Historial de versiones
+
+scripts/
+├── README.md                         # 🧪 Documentación de scripts de prueba
+├── test-swagger-analyzer.ts          # 🔍 Analiza Swagger completo
+├── test-generate-business-flow.ts    # 🚀 Genera flujo sin interacción
+└── test-single-operation.ts          # 🎯 Analiza operación específica
 ```
 
 ---
@@ -136,6 +146,48 @@ weaver --local
 - **Problema con comandos**: COMANDOS-WEAVER → Troubleshooting
 - **Entender código generado**: Estructura Generada → Patrones
 - **Publicar nueva versión**: PUBLICAR-NPM → Guía completa
+
+---
+
+## 🧪 Scripts de Prueba Local
+
+Para probar y debuggear el generador sin usar la CLI interactiva, se incluyen scripts en la carpeta `scripts/`:
+
+```
+scripts/
+├── README.md                        # Documentación de scripts
+├── test-swagger-analyzer.ts         # Analiza todo el Swagger
+├── test-generate-business-flow.ts   # Genera flujo de negocio
+└── test-single-operation.ts         # Analiza una operación específica
+```
+
+### 📋 Comandos Disponibles
+
+```bash
+# Analizar el Swagger completo (entidades, servicios, operaciones)
+npx ts-node scripts/test-swagger-analyzer.ts
+
+# Generar flujo de negocio completo para un servicio
+npx ts-node scripts/test-generate-business-flow.ts Auth
+
+# Generar solo operaciones específicas (filtro por nombre)
+npx ts-node scripts/test-generate-business-flow.ts Auth delete-user
+
+# Analizar una operación específica en detalle (JSON completo)
+npx ts-node scripts/test-single-operation.ts delete-user-internal
+```
+
+### 🎯 Casos de Uso
+
+| Script | Cuándo usar |
+|--------|-------------|
+| `test-swagger-analyzer.ts` | Ver qué detecta el parser del Swagger |
+| `test-generate-business-flow.ts` | Probar generación sin interacción |
+| `test-single-operation.ts` | Debuggear una operación específica |
+
+### 📁 Output
+
+Los archivos generados se guardan en `test-output/platform/`
 
 ---
 

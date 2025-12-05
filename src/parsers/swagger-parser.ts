@@ -13,6 +13,7 @@ export interface EntityField {
   isEnum?: boolean;
   enumValues?: string[];
   nestedFields?: EntityField[];
+  isPathParam?: boolean; // Indica si es un parámetro de path (ej: {user_id})
 }
 
 export interface EntitySchema {
@@ -36,6 +37,7 @@ export interface EntitySchema {
     fields: EntityField[];
     responseFields?: EntityField[];
     isResponseArray?: boolean;
+    pathParameters?: EntityField[]; // Parámetros de path (ej: {user_id})
   }[];
 }
 
@@ -247,8 +249,31 @@ export class SwaggerAnalyzer {
             summary: operation.summary,
             requestSchema: null,
             responseSchema: null,
-            fields: []
+            fields: [],
+            pathParameters: [] // Nuevo: almacenar parámetros de path por separado
           };
+
+          // 🆕 Extraer parámetros de PATH (como {user_id})
+          if (operation.parameters && Array.isArray(operation.parameters)) {
+            for (const param of operation.parameters) {
+              const paramObj = param as any;
+              
+              // Solo procesar parámetros de path (no query ni header)
+              if (paramObj.in === 'path') {
+                const paramField = {
+                  name: paramObj.name,
+                  type: this.getTypeFromSchema(paramObj.schema || { type: 'string' }),
+                  required: paramObj.required !== false, // Path params son siempre requeridos
+                  format: paramObj.schema?.format,
+                  description: paramObj.description,
+                  isPathParam: true // Marcador para identificar que es un path param
+                };
+                
+                businessOp.fields.push(paramField);
+                businessOp.pathParameters.push(paramField);
+              }
+            }
+          }
 
           // Extraer schema del requestBody
           if (operation.requestBody && 'content' in operation.requestBody) {

@@ -7,6 +7,25 @@ import { EntitySchema } from '../parsers/swagger-parser';
 const DEFAULT_BASE_PATH = process.cwd(); // Directorio actual por defecto
 const LOCAL_TEST_PATH = './test-output';
 
+/**
+ * Extrae el nombre de la operación del path, ignorando los parámetros de path (ej: {user_id})
+ * Para /auth/delete-user-internal/{user_id} retorna "delete-user-internal"
+ */
+function getOperationNameFromPath(operationPath: string, fallback: string): string {
+  const segments = operationPath.split('/').filter(s => s.length > 0);
+  
+  // Buscar desde el final el primer segmento que NO sea un parámetro (que no tenga {})
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const segment = segments[i];
+    if (!segment.startsWith('{') && !segment.endsWith('}')) {
+      return segment;
+    }
+  }
+  
+  // Si todos son parámetros, usar el fallback (operationId)
+  return fallback;
+}
+
 export async function createBusinessFlow(serviceName: string, basePath: string = DEFAULT_BASE_PATH, schema?: EntitySchema | null, targetApiName: string = 'platform'): Promise<void> {
   console.log(chalk.blue(`📁 Generando flujo de negocio completo para ${serviceName} en: ${basePath}`));
 
@@ -74,7 +93,7 @@ async function generateInfrastructureEntities(serviceName: string, paths: any, s
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.infraEntities, operationName);
       await fs.ensureDir(operationFolder);
@@ -187,7 +206,7 @@ async function generateInfrastructureMappers(serviceName: string, paths: any, sc
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.infraMappers, operationName);
       await fs.ensureDir(operationFolder);
@@ -287,7 +306,7 @@ async function generateDomainDTOs(serviceName: string, paths: any, schema?: Enti
     let exportStatements: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationFolder = path.join(paths.domainModels, operationName);
       await fs.ensureDir(operationFolder);
@@ -544,7 +563,7 @@ function toSnakeCase(str: string): string {
 }
 
 function generateBusinessEntityInterface(serviceName: string, operation: any, type: 'request' | 'response'): string {
-  const operationName = operation.path.split('/').pop() || type;
+  const operationName = getOperationNameFromPath(operation.path, type);
   const cleanOperationName = operationName
     .replace(/_/g, '-')
     .split('-')
@@ -644,7 +663,7 @@ function getTypeScriptType(field: any): string {
 }
 
 function generateBusinessMapper(serviceName: string, operation: any, type: 'request' | 'response', apiName: string = 'platform'): string {
-  const operationName = operation.path.split('/').pop() || type;
+  const operationName = getOperationNameFromPath(operation.path, type);
   const cleanOperationName = operationName
     .replace(/_/g, '-')
     .split('-')
@@ -1077,7 +1096,7 @@ async function generateNestedDTOsForOperation(serviceName: string, operation: an
 }
 
 function generateBusinessDTO(serviceName: string, operation: any, type: 'request' | 'response', apiName: string = 'platform'): string {
-  const operationName = operation.path.split('/').pop() || type;
+  const operationName = getOperationNameFromPath(operation.path, type);
   const cleanOperationName = operationName
     .replace(/_/g, '-')
     .split('-')
@@ -1499,7 +1518,7 @@ async function generateDomainRepositoryInterfaces(serviceName: string, paths: an
     
     // Generar nuevos métodos abstractos
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const cleanOperationName = operationName
         .replace(/_/g, '-')
@@ -1631,7 +1650,7 @@ async function generateDomainUseCases(serviceName: string, paths: any, schema?: 
     const serviceNameKebab = serviceName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
@@ -1722,7 +1741,7 @@ async function generateBusinessFacades(serviceName: string, paths: any, schema?:
     schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .forEach(operation => {
-        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+        const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
         const operationName = rawOperationName.replace(/_/g, '-');
         const cleanOperationName = operationName
           .replace(/_/g, '-')
@@ -1888,7 +1907,7 @@ async function generateMapperInjectionPerOperation(serviceName: string, paths: a
     await fs.ensureDir(paths.injectionMappers);
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
@@ -2068,7 +2087,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
     const methods: string[] = [];
 
     for (const operation of schema.businessOperations) {
-      const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+      const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
       const operationName = rawOperationName.replace(/_/g, '-');
       const operationKebab = operationName.replace(/_/g, '-');
       const cleanOperationName = operationName
@@ -2113,7 +2132,48 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
 
         // Generar método
         const methodParams = hasRequest ? `params: ${requestEntityName}, ` : '';
-        const methodCall = hasRequest ? 'params' : '{}';
+        
+        // Determinar el método HTTP correcto
+        const httpMethod = (operation.method || 'post').toLowerCase();
+        
+        // Verificar si hay path parameters
+        const hasPathParams = operation.pathParameters && operation.pathParameters.length > 0;
+        
+        // Construir la URL - si hay path params, interpolarlos
+        const routeConstant = `CONST_${apiName.toUpperCase()}_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}`;
+        
+        let urlExpression: string;
+        let bodyParams: string;
+        
+        if (hasPathParams && operation.pathParameters) {
+          // Interpolar path params en la URL usando template string
+          const pathParamsList = operation.pathParameters.map((p: any) => `params.${p.name}`);
+          urlExpression = `\`\${${routeConstant}}/${pathParamsList.map((p: string) => `\${${p}}`).join('/')}\``;
+          
+          // Para body, excluir los path params (solo enviar los que no son de path)
+          const bodyFields = operation.fields?.filter((f: any) => !f.isPathParam) || [];
+          if (bodyFields.length > 0 && (httpMethod === 'post' || httpMethod === 'put' || httpMethod === 'patch')) {
+            // Crear objeto solo con los campos que no son path params
+            const bodyFieldNames = bodyFields.map((f: any) => f.name);
+            bodyParams = `{ ${bodyFieldNames.map((n: string) => `${n}: params.${n}`).join(', ')} }`;
+          } else {
+            bodyParams = '';
+          }
+        } else {
+          urlExpression = routeConstant;
+          bodyParams = hasRequest ? 'params' : '{}';
+        }
+        
+        // Construir la llamada axios según el método HTTP
+        let axiosCall: string;
+        if (httpMethod === 'get' || httpMethod === 'delete') {
+          // GET y DELETE normalmente no envían body (o usan query params)
+          axiosCall = `.${httpMethod}(${urlExpression})`;
+        } else {
+          // POST, PUT, PATCH envían body
+          axiosCall = `.${httpMethod}(${urlExpression}, ${bodyParams || '{}'})`;
+        }
+        
         // Para ResolveRequest, usar [] solo si es un array
         const resolveEntityType = operation.isResponseArray ? `${responseEntityName}[]` : responseEntityName;
         const method = `  public async ${operationCamelCase}(
@@ -2121,7 +2181,7 @@ async function generateInfrastructureRepositories(serviceName: string, paths: an
   ): Promise<${responseDTOName} | null> {
     if (config.loadService)
       return ${apiName}Axios
-        .post(CONST_${apiName.toUpperCase()}_API_ROUTES.${serviceName.toUpperCase()}_${operationName.toUpperCase().replace(/-/g, '_')}, ${methodCall})
+        ${axiosCall}
         .then(({ data }: { data: Response<${resolveEntityType}> }) => {
           const entity = this.resolve.ResolveRequest<${resolveEntityType}>(data);
           if (entity)
@@ -2378,7 +2438,7 @@ async function generateBusinessInjectionFiles(serviceName: string, paths: any, s
     schema.businessOperations
       .filter(operation => operation.responseFields && operation.responseFields.length > 0)
       .forEach(operation => {
-        const rawOperationName = operation.path.split('/').pop() || operation.operationId.toLowerCase();
+        const rawOperationName = getOperationNameFromPath(operation.path, operation.operationId.toLowerCase());
         const operationName = rawOperationName.replace(/_/g, '-');
         const operationKebab = operationName.replace(/_/g, '-');
         const cleanOperationName = operationName
