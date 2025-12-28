@@ -112,6 +112,7 @@ export class SwaggerAnalyzer {
 
   /**
    * Obtiene los servicios de negocio disponibles basándose en tags que NO tienen CRUD completo
+   * o que tienen diferente a 5 métodos HTTP
    */
   getAvailableBusinessServices(): string[] {
     if (!this.openApiDoc?.paths) {
@@ -120,6 +121,7 @@ export class SwaggerAnalyzer {
 
     const allTags = new Set<string>();
     const tagOperations = new Map<string, Set<string>>();
+    const tagHttpMethods = new Map<string, Set<string>>(); // Contar métodos HTTP únicos
 
     // Recopilar todos los tags y sus operaciones
     for (const path in this.openApiDoc.paths) {
@@ -138,6 +140,13 @@ export class SwaggerAnalyzer {
               tagOperations.set(tag, new Set());
             }
             
+            if (!tagHttpMethods.has(tag)) {
+              tagHttpMethods.set(tag, new Set());
+            }
+            
+            // Contar método HTTP único
+            tagHttpMethods.get(tag)!.add(method.toUpperCase());
+            
             // Mapear método HTTP a operación CRUD
             const crudOperation = this.mapHttpMethodToCrud(method, path);
             if (crudOperation) {
@@ -148,14 +157,19 @@ export class SwaggerAnalyzer {
       }
     }
 
-    // Filtrar tags que NO tienen CRUD completo (son servicios de negocio)
+    // Filtrar tags que NO tienen CRUD completo O tienen diferente a 5 métodos HTTP (son servicios de negocio)
     const businessServices: string[] = [];
     
     for (const tag of allTags) {
       const operations = tagOperations.get(tag) || new Set();
       const hasCompleteCrud = this.hasCompleteCrudOperations(operations);
       
-      if (!hasCompleteCrud) {
+      // Contar métodos HTTP únicos
+      const httpMethodsCount = tagHttpMethods.get(tag)?.size || 0;
+      const hasDifferentHttpMethodsCount = httpMethodsCount !== 5; // Diferente de 5
+      
+      // Es flujo de negocio si: NO tiene CRUD completo O tiene diferente a 5 métodos HTTP
+      if (!hasCompleteCrud || hasDifferentHttpMethodsCount) {
         businessServices.push(tag);
       }
     }
